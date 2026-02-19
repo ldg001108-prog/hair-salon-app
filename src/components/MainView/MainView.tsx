@@ -1,9 +1,23 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS, HAIR_COLORS } from "@/data/demo";
+import { useAppStore } from "@/store/useAppStore";
+
+// hex 색상을 intensity에 따라 조정하는 유틸
+function adjustColorIntensity(hex: string, intensity: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const factor = intensity / 100;
+    // 흰색(255)과 원래 색상 사이를 보간
+    const nr = Math.round(255 + (r - 255) * factor);
+    const ng = Math.round(255 + (g - 255) * factor);
+    const nb = Math.round(255 + (b - 255) * factor);
+    return `rgb(${nr}, ${ng}, ${nb})`;
+}
 
 
 
@@ -39,7 +53,8 @@ export default function MainView({
     const [activeGender, setActiveGender] = useState<"female" | "male">("female");
     const [activeCategory, setActiveCategory] = useState("best");
 
-    const [colorIntensity, setColorIntensity] = useState(70);
+    const colorIntensity = useAppStore((s) => s.colorIntensity ?? 70);
+    const setColorIntensity = useAppStore((s) => s.setColorIntensity);
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
 
@@ -160,6 +175,13 @@ export default function MainView({
     // 페이지 인디케이터 계산
     const totalPages = Math.ceil(filteredStyles.length / 4);
 
+    // 선택된 색상 정보 + intensity 적용된 실시간 미리보기 색상
+    const selectedColor = selectedColorId ? HAIR_COLORS.find((c) => c.id === selectedColorId) : null;
+    const previewColor = useMemo(() => {
+        if (!selectedColor) return null;
+        return adjustColorIntensity(selectedColor.hex, colorIntensity);
+    }, [selectedColor, colorIntensity]);
+
     return (
         <div className={styles.main}>
             {/* 헤더 — YUKINIAN 로고 */}
@@ -278,53 +300,99 @@ export default function MainView({
                         </svg>
                         Hair Color
                     </h3>
-                    <button
-                        className={`${styles.intensityToggle} ${showColorPicker ? styles.intensityToggleActive : ''}`}
-                        onClick={() => setShowColorPicker(!showColorPicker)}
-                    >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="4" y1="21" x2="4" y2="14" />
-                            <line x1="4" y1="10" x2="4" y2="3" />
-                            <line x1="12" y1="21" x2="12" y2="12" />
-                            <line x1="12" y1="8" x2="12" y2="3" />
-                            <line x1="20" y1="21" x2="20" y2="16" />
-                            <line x1="20" y1="12" x2="20" y2="3" />
-                            <line x1="1" y1="14" x2="7" y2="14" />
-                            <line x1="9" y1="8" x2="15" y2="8" />
-                            <line x1="17" y1="16" x2="23" y2="16" />
-                        </svg>
-                        Adjust
-                    </button>
+
+                    {/* 실시간 프리뷰 원 + Adjust 버튼 */}
+                    <div className={styles.colorHeaderRight}>
+                        {previewColor && (
+                            <div className={styles.colorPreviewCircle}>
+                                <div
+                                    className={styles.colorPreviewInner}
+                                    style={{ background: previewColor }}
+                                />
+                                <span className={styles.colorPreviewLabel}>{selectedColor?.label}</span>
+                            </div>
+                        )}
+                        <button
+                            className={`${styles.intensityToggle} ${showColorPicker ? styles.intensityToggleActive : ''}`}
+                            onClick={() => setShowColorPicker(!showColorPicker)}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="4" y1="21" x2="4" y2="14" />
+                                <line x1="4" y1="10" x2="4" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12" y2="3" />
+                                <line x1="20" y1="21" x2="20" y2="16" />
+                                <line x1="20" y1="12" x2="20" y2="3" />
+                                <line x1="1" y1="14" x2="7" y2="14" />
+                                <line x1="9" y1="8" x2="15" y2="8" />
+                                <line x1="17" y1="16" x2="23" y2="16" />
+                            </svg>
+                            Adjust
+                        </button>
+                    </div>
                 </div>
+
+                {/* 컬러 그리드 — 원형 칩 + 이름 라벨 */}
                 <div className={styles.colorPalette}>
                     <button
                         className={`${styles.colorChip} ${!selectedColorId ? styles.colorSelected : ""}`}
                         onClick={() => onColorSelect(null)}
                         title="Original"
                     >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
+                        <div className={styles.colorChipSwatch} style={{ background: 'linear-gradient(135deg, #e8e0f0, #d0c0e0)' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9070b0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </div>
+                        <span className={styles.colorChipLabel}>Original</span>
                     </button>
                     {HAIR_COLORS.map((color) => (
                         <button
                             key={color.id}
                             className={`${styles.colorChip} ${selectedColorId === color.id ? styles.colorSelected : ""}`}
-                            style={{ backgroundColor: color.hex }}
                             onClick={() => onColorSelect(color.id)}
                             title={color.label}
-                        />
+                        >
+                            <div
+                                className={styles.colorChipSwatch}
+                                style={{
+                                    background: selectedColorId === color.id
+                                        ? `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, Math.max(colorIntensity - 20, 10))}, ${color.hex})`
+                                        : `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, 50)}, ${color.hex})`,
+                                }}
+                            />
+                            <span className={styles.colorChipLabel}>{color.label}</span>
+                        </button>
                     ))}
                 </div>
 
-                {/* 컬러 감도 슬라이더 */}
+                {/* 컬러 Intensity 슬라이더 — 선택 색상에 따라 색 변경 */}
                 {showColorPicker && (
                     <div className={styles.intensitySlider}>
                         <div className={styles.sliderHeader}>
-                            <span className={styles.sliderLabel}>Intensity</span>
-                            <span className={styles.sliderValue}>{colorIntensity}%</span>
+                            <span className={styles.sliderLabel}>
+                                Color Intensity
+                            </span>
+                            <span className={styles.sliderValue} style={previewColor ? { color: selectedColor?.hex, background: `${selectedColor?.hex}15` } : {}}>
+                                {colorIntensity}%
+                            </span>
                         </div>
+
+                        {/* 실시간 그라데이션 미리보기 바 */}
+                        {selectedColor && (
+                            <div className={styles.gradientPreview}>
+                                <div
+                                    className={styles.gradientBar}
+                                    style={{ background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)}, ${selectedColor.hex})` }}
+                                />
+                                <div
+                                    className={styles.gradientMarker}
+                                    style={{ left: `${(colorIntensity - 10) / 90 * 100}%` }}
+                                />
+                            </div>
+                        )}
+
                         <input
                             type="range"
                             min="10"
@@ -332,9 +400,13 @@ export default function MainView({
                             value={colorIntensity}
                             onChange={(e) => setColorIntensity(Number(e.target.value))}
                             className={styles.slider}
+                            style={selectedColor ? {
+                                background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)} 0%, ${selectedColor.hex} 100%)`
+                            } : {}}
                         />
                         <div className={styles.sliderMarks}>
                             <span>Subtle</span>
+                            <span>Natural</span>
                             <span>Vivid</span>
                         </div>
                     </div>

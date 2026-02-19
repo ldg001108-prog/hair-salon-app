@@ -1,0 +1,235 @@
+.result {
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    background:
+        radial-gradient(ellipse at 30% 0%, rgba(160, 120, 200, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(220, 180, 210, 0.05) 0%, transparent 50%),
+        linear-gradient(168deg,
+            #f0e4f8 0%,
+            #ead8f2 15%,
+            #e4ceec 30%,
+            #dfc6e8 45%,
+            #e4cce8 55%,
+            #ead4ea 65%,
+            #f0dce8 78%,
+            #f5e4ec 88%,
+            #faf0f4 100%);
+    animation: fadeIn 0.3s ease;
+    padding-bottom: 32px;
+    position: relative;
+    overflow-x: hidden;
+    box-shadow: 0 0 60px rgba(160, 120, 200, 0.08);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* 헤더 */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 10px;
+    background: linear-gradient(180deg, rgba(240, 228, 248, 0.97) 0%, rgba(240, 228, 248, 0.85) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.backBtn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8a5cb0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1.5px solid rgba(180, 140, 220, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backBtn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #5a2d8a;
+    letter-spacing: 0.06em;
+}
+
+/* 이미지 */
+.imageSection {
+    padding: 20px 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.imageContainer {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+        0 8px 32px rgba(140, 100, 200, 0.12),
+        0 2px 8px rgba(140, 100, 200, 0.06);
+    max-width: 380px;
+    width: 100%;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.resultImg {
+    width: 100%;
+    max-height: 55vh;
+    object-fit: contain;
+    background: linear-gradient(135deg, rgba(240, 228, 248, 0.5), rgba(228, 206, 236, 0.3));
+}
+
+.demoOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(90, 45, 138, 0.35);
+    color: white;
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    gap: var(--space-2);
+    backdrop-filter: blur(4px);
+}
+
+.demoSub {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.compareLabels {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: 12px 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9070b0;
+    letter-spacing: 0.04em;
+}
+
+/* 스토리 카드 */
+.storyCard {
+    margin: 16px 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(140, 100, 200, 0.08),
+        0 1px 4px rgba(140, 100, 200, 0.04);
+    backdrop-filter: blur(12px);
+    animation: slideUp 0.4s ease 0.2s both;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.storyHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: 10px;
+}
+
+.storyEmoji {
+    font-size: 1.5rem;
+}
+
+.storyTitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #5a2d8a;
+}
+
+.colorInfo {
+    font-size: 13px;
+    color: #7b5a9a;
+    margin-bottom: 10px;
+}
+
+.storyText {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #7b5a9a;
+}
+
+/* 액션 버튼 */
+.actions {
+    padding: 8px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.actions .btn-primary {
+    background: linear-gradient(135deg, #b088cc 0%, #8a5cb0 50%, #9a6ac0 100%) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 24px rgba(138, 92, 176, 0.35) !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+}
+
+.actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1.5px solid rgba(180, 140, 220, 0.2) !important;
+    border-radius: 14px !important;
+    color: #8a5cb0 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.resetBtn {
+    padding: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #a090b0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 12px;
+}
+
+.resetBtn:active {
+    background: rgba(255, 255, 255, 0.3);
+}

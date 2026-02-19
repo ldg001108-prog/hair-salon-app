@@ -1,0 +1,124 @@
+/* ========== 스플래시 화면 ========== */
+.splash {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+
+    /* 밝은 프리미엄 그라데이션 */
+    background:
+        radial-gradient(ellipse at 30% 70%, rgba(180, 140, 220, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(220, 180, 210, 0.1) 0%, transparent 50%),
+        linear-gradient(155deg,
+            #3a1a5e 0%,
+            #5a2d8a 20%,
+            #7b4fa2 38%,
+            #9b70b8 52%,
+            #b990cc 64%,
+            #d0aad8 76%,
+            #e4c4e4 88%,
+            #f0d8ee 100%);
+
+    animation: splashIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fadeOut {
+    opacity: 0;
+    transform: scale(1.03);
+    pointer-events: none;
+}
+
+@keyframes splashIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* 로고 래퍼 */
+.logoWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: logoAppear 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    opacity: 0;
+}
+
+/* YUKINIAN 로고 — 크게 */
+.brandLogo {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 300;
+    font-size: clamp(3.2rem, 14vw, 5.5rem);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    margin: 0;
+    line-height: 1;
+
+    text-shadow:
+        0 0 80px rgba(220, 190, 240, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* 태그라인 */
+.tagline {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(0.85rem, 3vw, 1.1rem);
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+/* 하단 힌트 */
+.tapHint {
+    position: absolute;
+    bottom: 48px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.1em;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes logoAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+        filter: blur(12px);
+    }
+
+    60% {
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}

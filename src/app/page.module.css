@@ -1,0 +1,64 @@
+/* ========== 홈 랜딩 화면 ========== */
+.landing {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 밝은 프리미엄 그라데이션 */
+    background:
+        radial-gradient(ellipse at 30% 70%, rgba(180, 140, 220, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(220, 180, 210, 0.1) 0%, transparent 50%),
+        linear-gradient(155deg,
+            #3a1a5e 0%,
+            #5a2d8a 20%,
+            #7b4fa2 38%,
+            #9b70b8 52%,
+            #b990cc 64%,
+            #d0aad8 76%,
+            #e4c4e4 88%,
+            #f0d8ee 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* YUKINIAN 로고 */
+.brandLogo {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 300;
+    font-size: clamp(2rem, 9vw, 3.4rem);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+
+    text-shadow:
+        0 0 60px rgba(220, 190, 240, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+
+    animation: logoAppear 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes logoAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.92);
+        letter-spacing: 0.5em;
+        filter: blur(8px);
+    }
+
+    60% {
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        letter-spacing: 0.3em;
+        filter: blur(0);
+    }
+}

@@ -3,18 +3,19 @@
     max-width: 480px;
     margin: 0 auto;
     background:
-        radial-gradient(ellipse at 30% 0%, rgba(160, 120, 200, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(220, 180, 210, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 0%, rgba(130, 80, 200, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(180, 100, 200, 0.06) 0%, transparent 50%),
         linear-gradient(168deg,
-            #f0e4f8 0%,
-            #ead8f2 15%,
-            #e4ceec 30%,
-            #dfc6e8 45%,
-            #e4cce8 55%,
-            #ead4ea 65%,
-            #f0dce8 78%,
-            #f5e4ec 88%,
-            #faf0f4 100%);
+            #e8daf5 0%,
+            #e0d0f0 12%,
+            #dac5ec 25%,
+            #d4bae8 38%,
+            #d8c0ea 50%,
+            #dcc8ec 62%,
+            #e2d2ee 74%,
+            #eadcf2 84%,
+            #f2e8f8 94%,
+            #faf2fc 100%);
     animation: fadeIn 0.3s ease;
     padding-bottom: 32px;
     position: relative;

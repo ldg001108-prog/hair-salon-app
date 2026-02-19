@@ -25,16 +25,14 @@ export default function Splash({
         if (transitionedRef.current) return;
         transitionedRef.current = true;
         setFadeOut(true);
-        setTimeout(() => onCompleteRef.current(), 400);
+        setTimeout(() => onCompleteRef.current(), 500);
     };
 
     useEffect(() => {
-        // 2.5초 후 페이드아웃 → 자동 전환
-        const autoTimer = setTimeout(() => triggerTransition(), 2500);
+        const autoTimer = setTimeout(() => triggerTransition(), 3000);
         return () => clearTimeout(autoTimer);
-    }, []); // 빈 배열 — 최초 1회만 실행
+    }, []);
 
-    // 탭/클릭 시 즉시 전환 (카카오톡 인앱 브라우저 호환)
     const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
         triggerTransition();
@@ -48,11 +46,44 @@ export default function Splash({
             role="button"
             tabIndex={0}
         >
-            <div className={styles.logoWrap}>
-                <h1 className={styles.brandLogo}>YUKINIAN</h1>
-                <p className={styles.tagline}>AI Hair Styling</p>
+            {/* 배경 파티클 */}
+            <div className={styles.particles}>
+                <div className={styles.particle} />
+                <div className={styles.particle} />
+                <div className={styles.particle} />
+                <div className={styles.particle} />
+                <div className={styles.particle} />
             </div>
-            <p className={styles.tapHint}>Tap to continue</p>
+
+            {/* 메인 콘텐츠 */}
+            <div className={styles.content}>
+                {/* 히어로 이미지 */}
+                <div className={styles.heroImageWrap}>
+                    <div className={styles.heroGlow} />
+                    <img
+                        src="/images/splash_model.png"
+                        alt="AI Hair Styling"
+                        className={styles.heroImage}
+                    />
+                    <div className={styles.heroOverlay} />
+                </div>
+
+                {/* 텍스트 */}
+                <div className={styles.textWrap}>
+                    <h1 className={styles.brandTitle}>AI Hair Studio</h1>
+                    <p className={styles.tagline}>
+                        당신만의 스타일을 찾아보세요
+                    </p>
+                </div>
+            </div>
+
+            {/* 하단 */}
+            <div className={styles.bottomArea}>
+                <div className={styles.startBtn}>
+                    <span className={styles.startText}>탭하여 시작하기</span>
+                    <div className={styles.startPulse} />
+                </div>
+            </div>
         </div>
     );
 }

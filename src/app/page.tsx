@@ -1,9 +1,5 @@
-import styles from "./page.module.css";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-    return (
-        <main className={styles.landing}>
-            <h1 className={styles.brandLogo}>YUKINIAN</h1>
-        </main>
-    );
+    redirect("/salon/demo");
 }

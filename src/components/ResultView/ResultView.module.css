@@ -72,6 +72,40 @@
     letter-spacing: 0.06em;
 }
 
+/* ── 모드 토글 ── */
+.modeToggle {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 14px;
+    border: 1px solid rgba(180, 140, 220, 0.15);
+    margin-bottom: 14px;
+    width: fit-content;
+    align-self: center;
+}
+
+.modeBtn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9070b0;
+    padding: 8px 16px;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+}
+
+.modeBtnActive {
+    background: rgba(255, 255, 255, 0.85);
+    color: #6a3d9a;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(140, 100, 200, 0.12);
+}
+
 /* 이미지 */
 .imageSection {
     padding: 20px 20px 0;
@@ -121,16 +155,108 @@
     font-weight: 400;
 }
 
-.compareLabels {
+/* ── Before/After 비교 슬라이더 ── */
+.compareContainer {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    max-width: 380px;
+    width: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow:
+        0 8px 32px rgba(140, 100, 200, 0.12),
+        0 2px 8px rgba(140, 100, 200, 0.06);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.compareImg {
+    width: 100%;
+    max-height: 55vh;
+    object-fit: contain;
+    display: block;
+    background: linear-gradient(135deg, rgba(240, 228, 248, 0.5), rgba(228, 206, 236, 0.3));
+    pointer-events: none;
+}
+
+.beforeOverlay {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.beforeOverlay .compareImg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 슬라이더 라인 */
+.sliderLine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(-50%);
+    z-index: 10;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 슬라이더 핸들 */
+.sliderHandle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8a5cb0, #b088cc);
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: var(--space-4);
-    padding: 12px 0;
+    box-shadow:
+        0 4px 16px rgba(90, 45, 138, 0.35),
+        0 0 0 3px rgba(255, 255, 255, 0.8);
+    cursor: col-resize;
+    transition: transform 0.15s ease;
+}
+
+.sliderHandle:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Before/After 라벨 */
+.labelBefore,
+.labelAfter {
+    position: absolute;
+    bottom: 14px;
     font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9070b0;
-    letter-spacing: 0.04em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.labelBefore {
+    left: 12px;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    backdrop-filter: blur(8px);
+}
+
+.labelAfter {
+    right: 12px;
+    background: linear-gradient(135deg, rgba(138, 92, 176, 0.85), rgba(176, 136, 204, 0.85));
+    color: white;
+    backdrop-filter: blur(8px);
 }
 
 /* 스토리 카드 */
@@ -189,7 +315,7 @@
     color: #7b5a9a;
 }
 
-/* 액션 버튼 */
+/* ── 액션 버튼 ── */
 .actions {
     padding: 8px 20px 40px;
     display: flex;
@@ -197,25 +323,70 @@
     gap: 12px;
 }
 
-.actions .btn-primary {
-    background: linear-gradient(135deg, #b088cc 0%, #8a5cb0 50%, #9a6ac0 100%) !important;
-    border: none !important;
-    border-radius: 16px !important;
-    box-shadow: 0 6px 24px rgba(138, 92, 176, 0.35) !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
+/* 저장 + 공유 가로 배치 */
+.actionRow {
+    display: flex;
+    gap: 10px;
 }
 
-.actions .btn-secondary {
-    background: rgba(255, 255, 255, 0.55) !important;
-    border: 1.5px solid rgba(180, 140, 220, 0.2) !important;
-    border-radius: 14px !important;
-    color: #8a5cb0 !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
+.saveBtn,
+.shareBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: none;
+    letter-spacing: 0.04em;
+}
+
+.saveBtn {
+    background: linear-gradient(135deg, #b088cc 0%, #8a5cb0 50%, #9a6ac0 100%);
+    color: white;
+    box-shadow: 0 6px 24px rgba(138, 92, 176, 0.35);
+}
+
+.saveBtn:active {
+    transform: scale(0.97);
+    box-shadow: 0 3px 12px rgba(138, 92, 176, 0.25);
+}
+
+.shareBtn {
+    background: rgba(255, 255, 255, 0.65);
+    color: #8a5cb0;
+    border: 1.5px solid rgba(180, 140, 220, 0.25);
+    box-shadow: 0 4px 16px rgba(140, 100, 200, 0.08);
+}
+
+.shareBtn:active {
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.tryAnotherBtn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1.5px solid rgba(180, 140, 220, 0.2);
+    color: #8a5cb0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tryAnotherBtn:active {
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .resetBtn {
@@ -228,8 +399,54 @@
     cursor: pointer;
     transition: all 0.2s ease;
     border-radius: 12px;
+    background: transparent;
+    border: none;
 }
 
 .resetBtn:active {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── 토스트 알림 ── */
+.toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 20, 60, 0.9);
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 50px;
+    z-index: 9999;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards;
+    white-space: nowrap;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
 }

@@ -4,22 +4,25 @@
     max-width: 480px;
     margin: 0 auto;
     background:
-        radial-gradient(ellipse at 30% 0%, rgba(160, 120, 200, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(220, 180, 210, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 0%, rgba(130, 80, 200, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(180, 100, 200, 0.06) 0%, transparent 50%),
         linear-gradient(168deg,
-            #f0e4f8 0%,
-            #ead8f2 15%,
-            #e4ceec 30%,
-            #dfc6e8 45%,
-            #e4cce8 55%,
-            #ead4ea 65%,
-            #f0dce8 78%,
-            #f5e4ec 88%,
-            #faf0f4 100%);
+            #e8daf5 0%,
+            #e0d0f0 12%,
+            #dac5ec 25%,
+            #d4bae8 38%,
+            #d8c0ea 50%,
+            #dcc8ec 62%,
+            #e2d2ee 74%,
+            #eadcf2 84%,
+            #f2e8f8 94%,
+            #faf2fc 100%);
     padding-bottom: 100px;
     position: relative;
     overflow-x: hidden;
-    box-shadow: 0 0 60px rgba(160, 120, 200, 0.08);
+    box-shadow:
+        0 0 60px rgba(130, 80, 200, 0.08),
+        inset 0 0 120px rgba(160, 120, 200, 0.03);
 }
 
 /* ========== 헤더 ========== */
@@ -29,7 +32,7 @@
     z-index: 100;
     padding: 18px 20px 10px;
     text-align: center;
-    background: linear-gradient(180deg, rgba(240, 228, 248, 0.97) 0%, rgba(240, 228, 248, 0.85) 100%);
+    background: linear-gradient(180deg, rgba(232, 218, 245, 0.97) 0%, rgba(232, 218, 245, 0.85) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
 }
@@ -37,10 +40,9 @@
 .salonName {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 22px;
-    font-weight: 400;
-    color: #5a2d8a;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    font-weight: 500;
+    color: #4a2072;
+    letter-spacing: 0.15em;
 }
 
 /* ========== 성별 탭 — 로고 바로 아래, 매끄러운 곡선 사각형 ========== */
@@ -52,7 +54,7 @@
     position: sticky;
     top: 56px;
     z-index: 99;
-    background: linear-gradient(180deg, rgba(240, 228, 248, 0.85) 0%, transparent 100%);
+    background: linear-gradient(180deg, rgba(232, 218, 245, 0.85) 0%, transparent 100%);
 }
 
 .genderTab {

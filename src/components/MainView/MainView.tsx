@@ -186,7 +186,7 @@ export default function MainView({
         <div className={styles.main}>
             {/* 헤더 — YUKINIAN 로고 */}
             <header className={styles.header}>
-                <h1 className={styles.salonName}>YUKINIAN</h1>
+                <h1 className={styles.salonName}>AI Hair Studio</h1>
             </header>
 
             {/* 성별 선택 — 로고 바로 아래 */}

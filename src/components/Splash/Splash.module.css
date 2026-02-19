@@ -1,4 +1,4 @@
-/* ========== 스플래시 화면 ========== */
+/* ========== 스플래시 화면 — 프리미엄 디자인 ========== */
 .splash {
     position: fixed;
     inset: 0;
@@ -8,20 +8,21 @@
     justify-content: center;
     z-index: 1000;
     cursor: pointer;
+    overflow: hidden;
 
-    /* 밝은 프리미엄 그라데이션 */
+    /* 프리미엄 다크 그라데이션 */
     background:
-        radial-gradient(ellipse at 30% 70%, rgba(180, 140, 220, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 70% 30%, rgba(220, 180, 210, 0.1) 0%, transparent 50%),
-        linear-gradient(155deg,
-            #3a1a5e 0%,
-            #5a2d8a 20%,
-            #7b4fa2 38%,
-            #9b70b8 52%,
-            #b990cc 64%,
-            #d0aad8 76%,
-            #e4c4e4 88%,
-            #f0d8ee 100%);
+        radial-gradient(ellipse at 50% 0%, rgba(120, 80, 180, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(180, 100, 160, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 60%, rgba(100, 60, 160, 0.12) 0%, transparent 50%),
+        linear-gradient(170deg,
+            #1a0a2e 0%,
+            #2d1350 18%,
+            #3a1a5e 35%,
+            #4a2572 50%,
+            #5a2d8a 65%,
+            #7040a0 80%,
+            #8a58b8 100%);
 
     animation: splashIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     transition: opacity 0.6s ease, transform 0.6s ease;
@@ -29,7 +30,7 @@
 
 .fadeOut {
     opacity: 0;
-    transform: scale(1.03);
+    transform: scale(1.05);
     pointer-events: none;
 }
 
@@ -43,82 +44,263 @@
     }
 }
 
-/* 로고 래퍼 */
-.logoWrap {
+/* ── 배경 파티클 ── */
+.particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(200, 160, 255, 0.15);
+    animation: floatUp 6s ease-in-out infinite;
+}
+
+.particle:nth-child(1) {
+    width: 120px;
+    height: 120px;
+    left: 10%;
+    bottom: -60px;
+    animation-delay: 0s;
+    animation-duration: 7s;
+}
+
+.particle:nth-child(2) {
+    width: 80px;
+    height: 80px;
+    left: 65%;
+    bottom: -40px;
+    animation-delay: 1.5s;
+    animation-duration: 5.5s;
+    background: rgba(220, 180, 240, 0.1);
+}
+
+.particle:nth-child(3) {
+    width: 60px;
+    height: 60px;
+    left: 35%;
+    bottom: -30px;
+    animation-delay: 3s;
+    animation-duration: 8s;
+    background: rgba(180, 120, 220, 0.12);
+}
+
+.particle:nth-child(4) {
+    width: 100px;
+    height: 100px;
+    left: 80%;
+    bottom: -50px;
+    animation-delay: 0.8s;
+    animation-duration: 6.5s;
+    background: rgba(160, 100, 200, 0.08);
+}
+
+.particle:nth-child(5) {
+    width: 40px;
+    height: 40px;
+    left: 50%;
+    bottom: -20px;
+    animation-delay: 2.2s;
+    animation-duration: 9s;
+    background: rgba(240, 200, 255, 0.1);
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translateY(-100vh) scale(0.3);
+        opacity: 0;
+    }
+}
+
+/* ── 메인 콘텐츠 ── */
+.content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    animation: logoAppear 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    opacity: 0;
+    gap: 28px;
+    z-index: 2;
+    animation: contentAppear 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both;
 }
 
-/* YUKINIAN 로고 — 크게 */
-.brandLogo {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-weight: 300;
-    font-size: clamp(3.2rem, 14vw, 5.5rem);
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.95);
-    text-align: center;
-    margin: 0;
-    line-height: 1;
-
-    text-shadow:
-        0 0 80px rgba(220, 190, 240, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-/* 태그라인 */
-.tagline {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(0.85rem, 3vw, 1.1rem);
-    font-weight: 300;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0;
-}
-
-/* 하단 힌트 */
-.tapHint {
-    position: absolute;
-    bottom: 48px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.35);
-    letter-spacing: 0.1em;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes logoAppear {
-    0% {
+@keyframes contentAppear {
+    from {
         opacity: 0;
-        transform: scale(0.85);
-        filter: blur(12px);
+        transform: translateY(30px) scale(0.92);
+        filter: blur(8px);
     }
 
-    60% {
-        filter: blur(0);
-    }
-
-    100% {
+    to {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0) scale(1);
         filter: blur(0);
     }
 }
 
-@keyframes pulse {
+/* ── 히어로 이미지 ── */
+.heroImageWrap {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: visible;
+}
+
+.heroGlow {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180, 120, 240, 0.4) 0%, rgba(120, 60, 200, 0.1) 50%, transparent 70%);
+    animation: glowPulse 3s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes glowPulse {
 
     0%,
     100% {
-        opacity: 0.35;
+        transform: scale(1);
+        opacity: 0.7;
     }
 
     50% {
-        opacity: 0.7;
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+.heroImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 8px 40px rgba(80, 30, 160, 0.4),
+        0 0 80px rgba(140, 80, 220, 0.2),
+        inset 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.heroOverlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(180deg, transparent 50%, rgba(26, 10, 46, 0.3) 100%);
+    pointer-events: none;
+}
+
+/* ── 텍스트 ── */
+.textWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.brandTitle {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 400;
+    font-size: clamp(2rem, 10vw, 3rem);
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    margin: 0;
+    line-height: 1.1;
+    text-shadow:
+        0 0 60px rgba(200, 160, 255, 0.35),
+        0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tagline {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    color: rgba(220, 190, 255, 0.6);
+    margin: 0;
+}
+
+/* ── 하단 시작 버튼 영역 ── */
+.bottomArea {
+    position: absolute;
+    bottom: 48px;
+    z-index: 2;
+    animation: fadeInUp 1s ease 1.5s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.startBtn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.startText {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.5);
+    animation: textPulse 2.5s ease-in-out infinite;
+}
+
+.startPulse {
+    position: absolute;
+    inset: -12px -24px;
+    border-radius: 30px;
+    border: 1px solid rgba(200, 160, 255, 0.15);
+    animation: pulseBorder 2.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 0.85;
+    }
+}
+
+@keyframes pulseBorder {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.08);
+        opacity: 0.6;
     }
 }

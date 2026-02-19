@@ -18,33 +18,35 @@ export default function Splash({
 }: SplashProps) {
     const [fadeOut, setFadeOut] = useState(false);
     const onCompleteRef = useRef(onComplete);
+    const transitionedRef = useRef(false);
     onCompleteRef.current = onComplete;
 
+    const triggerTransition = () => {
+        if (transitionedRef.current) return;
+        transitionedRef.current = true;
+        setFadeOut(true);
+        setTimeout(() => onCompleteRef.current(), 400);
+    };
+
     useEffect(() => {
-        // 2.5초 후 페이드아웃 시작
-        const fadeTimer = setTimeout(() => setFadeOut(true), 2500);
-        // 3.1초 후 메인 화면으로 전환
-        const completeTimer = setTimeout(() => {
-            onCompleteRef.current();
-        }, 3100);
-        return () => {
-            clearTimeout(fadeTimer);
-            clearTimeout(completeTimer);
-        };
+        // 2.5초 후 페이드아웃 → 자동 전환
+        const autoTimer = setTimeout(() => triggerTransition(), 2500);
+        return () => clearTimeout(autoTimer);
     }, []); // 빈 배열 — 최초 1회만 실행
 
-    // 탭하면 바로 넘어가기
-    const handleTap = () => {
-        if (!fadeOut) {
-            setFadeOut(true);
-            setTimeout(() => onCompleteRef.current(), 400);
-        }
+    // 탭/클릭 시 즉시 전환 (카카오톡 인앱 브라우저 호환)
+    const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
+        triggerTransition();
     };
 
     return (
         <div
             className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}
             onClick={handleTap}
+            onTouchEnd={handleTap}
+            role="button"
+            tabIndex={0}
         >
             <div className={styles.logoWrap}>
                 <h1 className={styles.brandLogo}>YUKINIAN</h1>

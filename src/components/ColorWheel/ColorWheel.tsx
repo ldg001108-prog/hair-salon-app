@@ -9,42 +9,50 @@ interface ColorWheelProps {
     size?: number;
 }
 
-// Canvas에 컬러 휠 그리기
+// HSL → RGB → hex 변환
+function hslToHex(h: number, s: number, l: number): string {
+    s /= 100;
+    l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, "0");
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Canvas에 풀스펙트럼 컬러 휠 그리기
 function drawColorWheel(
     ctx: CanvasRenderingContext2D,
     cx: number,
     cy: number,
     outerR: number,
-    innerR: number
+    innerR: number,
+    saturation: number,
+    lightness: number
 ) {
+    // 배경 클리어
+    ctx.clearRect(0, 0, cx * 2, cy * 2);
+
     const steps = 360;
     for (let i = 0; i < steps; i++) {
         const startAngle = (i * Math.PI * 2) / steps - Math.PI / 2;
         const endAngle = ((i + 1.5) * Math.PI * 2) / steps - Math.PI / 2;
         const hue = i;
 
-        // 바깥→안쪽으로 채도 링 3개 + 명도 링 1개
-        const rings = [
-            { rOuter: outerR, rInner: outerR * 0.82, s: 35, l: 75 },      // 연한
-            { rOuter: outerR * 0.82, rInner: outerR * 0.62, s: 60, l: 55 }, // 중간
-            { rOuter: outerR * 0.62, rInner: outerR * 0.42, s: 85, l: 42 }, // 진한
-            { rOuter: outerR * 0.42, rInner: innerR, s: 70, l: 25 },         // 어두운
-        ];
-
-        for (const ring of rings) {
-            ctx.beginPath();
-            ctx.arc(cx, cy, ring.rOuter, startAngle, endAngle);
-            ctx.arc(cx, cy, ring.rInner, endAngle, startAngle, true);
-            ctx.closePath();
-            ctx.fillStyle = `hsl(${hue}, ${ring.s}%, ${ring.l}%)`;
-            ctx.fill();
-        }
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, startAngle, endAngle);
+        ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        ctx.fill();
     }
 
     // 중앙 원 (배경색)
     ctx.beginPath();
-    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-    ctx.fillStyle = "var(--bg-secondary, #f0f4f8)";
+    ctx.arc(cx, cy, innerR - 1, 0, Math.PI * 2);
+    ctx.fillStyle = "#f0f4f8";
     ctx.fill();
 }
 
@@ -53,16 +61,17 @@ function getColorAt(canvas: HTMLCanvasElement, x: number, y: number): string | n
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     const pixel = ctx.getImageData(x, y, 1, 1).data;
-    // 투명하거나 중앙 영역이면 null
     if (pixel[3] < 10) return null;
     return `#${pixel[0].toString(16).padStart(2, "0")}${pixel[1].toString(16).padStart(2, "0")}${pixel[2].toString(16).padStart(2, "0")}`;
 }
 
-export default function ColorWheel({ selectedColor, onColorSelect, size = 160 }: ColorWheelProps) {
+export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }: ColorWheelProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [saturation, setSaturation] = useState(80);
+    const [lightness, setLightness] = useState(45);
 
-    // 캔버스 그리기
+    // 캔버스 그리기 (saturation/lightness 변경 시 리드로)
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -78,10 +87,10 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 160 }:
         const cx = size / 2;
         const cy = size / 2;
         const outerR = size / 2 - 2;
-        const innerR = size * 0.14;
+        const innerR = size * 0.28;
 
-        drawColorWheel(ctx, cx, cy, outerR, innerR);
-    }, [size]);
+        drawColorWheel(ctx, cx, cy, outerR, innerR, saturation, lightness);
+    }, [size, saturation, lightness]);
 
     // 터치/클릭으로 색상 선택
     const pickColor = useCallback((clientX: number, clientY: number) => {
@@ -112,8 +121,18 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 160 }:
         setIsDragging(false);
     }, []);
 
+    // 채도/명도 변경 시 현재 선택 색상도 업데이트
+    const handleSaturationChange = useCallback((val: number) => {
+        setSaturation(val);
+    }, []);
+
+    const handleLightnessChange = useCallback((val: number) => {
+        setLightness(val);
+    }, []);
+
     return (
         <div className={styles.wheelContainer}>
+            {/* 컬러 휠 */}
             <div className={styles.wheelWrap}>
                 <canvas
                     ref={canvasRef}
@@ -128,20 +147,61 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 160 }:
                     className={styles.centerPreview}
                     style={{
                         background: selectedColor || "var(--bg-tertiary)",
-                        width: size * 0.24,
-                        height: size * 0.24,
+                        width: size * 0.48,
+                        height: size * 0.48,
                     }}
                 >
                     {!selectedColor && (
                         <span className={styles.centerText}>색상</span>
                     )}
+                    {selectedColor && (
+                        <span className={styles.centerHex}>{selectedColor}</span>
+                    )}
                 </div>
             </div>
+
+            {/* 채도 슬라이더 */}
+            <div className={styles.sliderRow}>
+                <label className={styles.sliderLabel}>채도</label>
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={saturation}
+                    onChange={(e) => handleSaturationChange(Number(e.target.value))}
+                    className={styles.slider}
+                    style={{
+                        background: `linear-gradient(90deg, hsl(0,0%,${lightness}%), hsl(0,100%,${lightness}%))`
+                    }}
+                />
+                <span className={styles.sliderValue}>{saturation}%</span>
+            </div>
+
+            {/* 명도 슬라이더 */}
+            <div className={styles.sliderRow}>
+                <label className={styles.sliderLabel}>명도</label>
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={lightness}
+                    onChange={(e) => handleLightnessChange(Number(e.target.value))}
+                    className={styles.slider}
+                    style={{
+                        background: `linear-gradient(90deg, #000, hsl(0,${saturation}%,50%), #fff)`
+                    }}
+                />
+                <span className={styles.sliderValue}>{lightness}%</span>
+            </div>
+
             {/* 리셋 버튼 */}
             <button
                 className={styles.resetBtn}
-                onClick={() => onColorSelect(null)}
-                title="색상 초기화"
+                onClick={() => {
+                    onColorSelect(null);
+                    setSaturation(80);
+                    setLightness(45);
+                }}
             >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18" />

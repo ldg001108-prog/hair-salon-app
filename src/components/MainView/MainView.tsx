@@ -1,23 +1,11 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS } from "@/data/demo";
 import ColorWheel from "@/components/ColorWheel/ColorWheel";
 import { useAppStore } from "@/store/useAppStore";
-
-// hex 색상을 intensity에 따라 조정하는 유틸
-function adjustColorIntensity(hex: string, intensity: number): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const factor = intensity / 100;
-    const nr = Math.round(255 + (r - 255) * factor);
-    const ng = Math.round(255 + (g - 255) * factor);
-    const nb = Math.round(255 + (b - 255) * factor);
-    return `rgb(${nr}, ${ng}, ${nb})`;
-}
 
 interface MainViewProps {
     salonName: string;
@@ -136,29 +124,36 @@ export default function MainView({
                 </button>
             </header>
 
-            {/* ── 성별 토글 (동일 크기) ── */}
-            <nav className={styles.genderPill}>
-                {GENDERS.map((g) => (
-                    <button
-                        key={g.id}
-                        className={`${styles.genderBtn} ${activeGender === g.id ? styles.genderActive : ""}`}
-                        onClick={() => {
-                            setActiveGender(g.id as "female" | "male");
-                            setActiveCategory("best");
-                        }}
-                    >
-                        {g.label}
-                    </button>
-                ))}
-            </nav>
+            {/* ── 섹션 1: 성별 선택 ── */}
+            <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                    <span className={styles.sectionIcon}>👤</span>
+                    <span className={styles.sectionTitle}>성별 선택</span>
+                </div>
+                <nav className={styles.genderPill}>
+                    {GENDERS.map((g) => (
+                        <button
+                            key={g.id}
+                            className={`${styles.genderBtn} ${activeGender === g.id ? styles.genderActive : ""}`}
+                            onClick={() => {
+                                setActiveGender(g.id as "female" | "male");
+                                setActiveCategory("best");
+                            }}
+                        >
+                            {g.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
 
-            {/* ── 구분선 ── */}
-            <hr className={styles.divider} />
-
-            {/* ── 사진 업로드 + 컬러 팔레트 (2컬럼) ── */}
-            <section className={styles.uploadColorRow}>
-                {/* 왼쪽: 사진 업로드 */}
-                <div className={styles.uploadCol}>
+            {/* ── 섹션 2: 사진 업로드 + 컬러 (2컬럼) ── */}
+            <div className={styles.uploadColorSection}>
+                {/* 왼쪽: 사진 업로드 카드 */}
+                <div className={styles.sectionCard}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>📷</span>
+                        <span className={styles.sectionTitle}>사진 업로드</span>
+                    </div>
                     <div className={styles.previewCard}>
                         {previewImage ? (
                             <div className={styles.previewInner}>
@@ -198,100 +193,108 @@ export default function MainView({
                             </div>
                         )}
                     </div>
+                    <p className={styles.privacyNote}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
+                            <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
+                        </svg>
+                        사진은 저장되지 않으며 일회성으로 사용됩니다
+                    </p>
                 </div>
 
-                {/* 오른쪽: 컬러 휠 */}
-                <div className={styles.colorCol}>
-                    <span className={styles.colorColTitle}>헤어 컬러</span>
+                {/* 오른쪽: 헤어 컬러 카드 */}
+                <div className={styles.sectionCard}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🎨</span>
+                        <span className={styles.sectionTitle}>헤어 컬러</span>
+                    </div>
                     <ColorWheel
                         selectedColor={selectedColor}
                         onColorSelect={onColorSelect}
-                        size={150}
+                        size={140}
                     />
                 </div>
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                />
-            </section>
+            </div>
 
-            <p className={styles.privacyNote}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
-                    <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
-                </svg>
-                사진은 저장되지 않으며 일회성으로 사용 후 삭제됩니다
-            </p>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+            />
 
-            {/* ── 구분선 ── */}
-            <hr className={styles.divider} />
+            {/* ── 섹션 3: 헤어 스타일 ── */}
+            <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                    <span className={styles.sectionIcon}>✂️</span>
+                    <span className={styles.sectionTitle}>헤어 스타일</span>
+                </div>
 
-            {/* ── 카테고리 탭 ── */}
-            <nav className={styles.categoryTabs}>
-                {CATEGORIES.map((cat) => (
-                    <button
-                        key={cat.id}
-                        className={`${styles.catTab} ${activeCategory === cat.id ? styles.catTabActive : ""}`}
-                        onClick={() => setActiveCategory(cat.id)}
-                    >
-                        {cat.label}
-                    </button>
-                ))}
-            </nav>
+                {/* 카테고리 탭 */}
+                <nav className={styles.categoryTabs}>
+                    {CATEGORIES.map((cat) => (
+                        <button
+                            key={cat.id}
+                            className={`${styles.catTab} ${activeCategory === cat.id ? styles.catTabActive : ""}`}
+                            onClick={() => setActiveCategory(cat.id)}
+                        >
+                            {cat.label}
+                        </button>
+                    ))}
+                </nav>
 
-            {/* ── 스타일 갤러리 (확대) ── */}
-            <section className={styles.styleGallery}>
-                {filteredStyles.length > 0 ? (
-                    <div className={styles.styleGrid}>
-                        {filteredStyles.map((style) => (
-                            <button
-                                key={style.id}
-                                className={`${styles.styleCard} ${selectedStyleId === style.id ? styles.styleCardSelected : ""}`}
-                                onClick={() => onStyleSelect(style.id)}
-                            >
-                                <div className={styles.styleImgWrap}>
-                                    {style.imageUrl ? (
-                                        <img
-                                            src={style.imageUrl}
-                                            alt={style.name}
-                                            className={styles.styleImg}
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div className={styles.stylePlaceholder}>
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                <path d="M20 7h-4l-2-3H10L8 7H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
-                                                <circle cx="12" cy="14" r="3" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                    {style.isBest && (
-                                        <span className={styles.bestBadge}>
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                            </svg>
-                                        </span>
-                                    )}
-                                    {selectedStyleId === style.id && (
-                                        <div className={styles.checkBadge}>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                                <span className={styles.styleName}>{style.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div className={styles.emptyState}>
-                        <p>이 카테고리에 스타일이 없습니다</p>
-                    </div>
-                )}
-            </section>
+                {/* 스타일 갤러리 */}
+                <section className={styles.styleGallery}>
+                    {filteredStyles.length > 0 ? (
+                        <div className={styles.styleGrid}>
+                            {filteredStyles.map((style) => (
+                                <button
+                                    key={style.id}
+                                    className={`${styles.styleCard} ${selectedStyleId === style.id ? styles.styleCardSelected : ""}`}
+                                    onClick={() => onStyleSelect(style.id)}
+                                >
+                                    <div className={styles.styleImgWrap}>
+                                        {style.imageUrl ? (
+                                            <img
+                                                src={style.imageUrl}
+                                                alt={style.name}
+                                                className={styles.styleImg}
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className={styles.stylePlaceholder}>
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                    <path d="M20 7h-4l-2-3H10L8 7H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                                                    <circle cx="12" cy="14" r="3" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                        {style.isBest && (
+                                            <span className={styles.bestBadge}>
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                </svg>
+                                            </span>
+                                        )}
+                                        {selectedStyleId === style.id && (
+                                            <div className={styles.checkBadge}>
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="20 6 9 17 4 12" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className={styles.styleName}>{style.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <p>이 카테고리에 스타일이 없습니다</p>
+                        </div>
+                    )}
+                </section>
+            </div>
 
             {/* ── 합성 버튼 ── */}
             {canSynthesize && (

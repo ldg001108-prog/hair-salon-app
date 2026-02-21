@@ -1,6 +1,6 @@
 /* ========================================
    MainView — 프리미엄 듀얼 테마
-   글래스모피즘 + 모바일 최적화
+   섹션 카드 레이아웃 + 글래스모피즘
    ======================================== */
 
 .main {
@@ -8,7 +8,8 @@
     background: var(--bg-primary);
     display: flex;
     flex-direction: column;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+    gap: var(--sp-3);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 90px);
     transition: background-color var(--dur-slow) var(--ease-out);
 }
 
@@ -55,18 +56,46 @@
     color: var(--accent);
 }
 
+/* ── 섹션 카드 (공통) ── */
+.sectionCard {
+    margin: 0 var(--sp-4);
+    padding: var(--sp-4);
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--sp-3);
+}
+
+.sectionIcon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.sectionTitle {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
 /* ── 성별 탭 (동일 크기) ── */
 .genderPill {
     display: flex;
-    align-self: center;
     gap: 2px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    border: 1.5px solid var(--border);
     border-radius: var(--r-full);
     padding: 3px;
-    margin: var(--sp-3) var(--sp-5) 0;
-    width: calc(100% - var(--sp-5) * 2);
+    width: 100%;
     max-width: 280px;
+    margin: 0 auto;
 }
 
 .genderBtn {
@@ -87,45 +116,28 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* ── 구분선 ── */
-.divider {
-    border: none;
-    height: 1px;
-    background: var(--border);
-    margin: var(--sp-3) var(--sp-5);
-    opacity: 0.6;
-}
-
-/* ── 사진 + 컬러 2컬럼 ── */
-.uploadColorRow {
+/* ── 사진+컬러 2컬럼 영역 ── */
+.uploadColorSection {
     display: flex;
     gap: var(--sp-3);
-    padding: 0 var(--sp-5);
-    align-items: stretch;
+    padding: 0 var(--sp-4);
 }
 
-.uploadCol {
+.uploadColorSection>.sectionCard {
     flex: 1;
     min-width: 0;
+    margin: 0;
 }
 
-.colorCol {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
-}
-
-/* 프리뷰 카드 (줄인 크기) */
+/* ── 프리뷰 카드 ── */
 .previewCard {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: var(--r-xl);
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    background: var(--bg-tertiary);
     transition: border-color var(--dur-base) var(--ease-out);
 }
 
@@ -186,7 +198,7 @@
     gap: var(--sp-1);
     cursor: pointer;
     border: 2px dashed var(--upload-border);
-    border-radius: var(--r-xl);
+    border-radius: 12px;
     background: var(--upload-bg);
     transition: all var(--dur-base) var(--ease-out);
 }
@@ -225,214 +237,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-muted);
-    margin: 4px var(--sp-5) 0;
-}
-
-/* ── 컬러 팔레트 헤더 ── */
-.colorColHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2px;
-}
-
-.colorColTitle {
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.adjustBtn {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 4px 8px;
-    border-radius: var(--r-full);
-    font-size: 10px;
-    color: var(--text-tertiary);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    transition: all var(--dur-base) var(--ease-out);
-}
-
-.adjustBtnActive {
-    color: var(--accent);
-    border-color: var(--border-accent);
-    background: var(--accent-dim);
-}
-
-/* ── 컬러 그리드 (사각형) ── */
-.colorGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    flex: 1;
-}
-
-.colorChip {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform var(--dur-fast) var(--ease-out);
-}
-
-.colorChip:active {
-    transform: scale(0.9);
-}
-
-.colorSwatch {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid transparent;
-    transition: all var(--dur-base) var(--ease-out);
-    box-shadow: var(--shadow-sm);
-}
-
-.colorChipActive .colorSwatch {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-dim), var(--shadow-sm);
-}
-
-.selectedColorInfo {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding: 4px 0;
-}
-
-.selectedColorDot {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    border: 1.5px solid var(--border);
-}
-
-/* ── 인텐시티 패널 ── */
-.intensityPanel {
-    margin: 0 var(--sp-5);
-    padding: var(--sp-3);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    animation: slideDown 0.3s var(--ease-out);
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.intensityHeader {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--sp-2);
-}
-
-.intensityLabel {
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.intensityValue {
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    color: var(--accent);
-    font-family: var(--font-display);
-}
-
-.gradientPreview {
-    position: relative;
-    height: 6px;
-    border-radius: var(--r-full);
-    overflow: hidden;
-    margin-bottom: var(--sp-2);
-}
-
-.gradientBar {
-    width: 100%;
-    height: 100%;
-    border-radius: var(--r-full);
-}
-
-.gradientMarker {
-    position: absolute;
-    top: -2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid var(--accent);
-    box-shadow: var(--shadow-sm);
-    transform: translateX(-50%);
-    transition: left var(--dur-fast) ease;
-}
-
-.slider {
-    width: 100%;
-    height: 4px;
-    appearance: none;
-    -webkit-appearance: none;
-    border-radius: var(--r-full);
-    outline: none;
-    cursor: pointer;
-    background: var(--slider-track);
-}
-
-.slider::-webkit-slider-thumb {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid #fff;
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid #fff;
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-}
-
-.sliderMarks {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 /* ── 카테고리 탭 ── */
 .categoryTabs {
     display: flex;
     gap: var(--sp-2);
-    padding: 0 var(--sp-5);
     overflow-x: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    margin-bottom: var(--sp-2);
 }
 
 .categoryTabs::-webkit-scrollbar {
@@ -460,8 +277,6 @@
 
 /* ── 스타일 갤러리 (가로 스크롤) ── */
 .styleGallery {
-    padding: var(--sp-3) 0;
-    flex: 1;
     display: flex;
     flex-direction: column;
 }
@@ -469,12 +284,11 @@
 .styleGrid {
     display: flex;
     gap: var(--sp-3);
-    padding: var(--sp-1) var(--sp-5);
+    padding: var(--sp-1) 0;
     overflow-x: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
-    flex: 1;
     align-items: stretch;
 }
 
@@ -484,7 +298,7 @@
 
 .styleCard {
     flex: 0 0 auto;
-    width: 140px;
+    width: 130px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -501,7 +315,7 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: var(--r-lg);
+    border-radius: 12px;
     overflow: hidden;
     border: 2px solid transparent;
     background: var(--bg-tertiary);

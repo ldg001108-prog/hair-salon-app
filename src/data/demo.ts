@@ -34,19 +34,19 @@ export const CATEGORIES = [
     { id: "perm", label: "Perm" },
 ];
 
-// 헤어 컬러 프리셋
+// 헤어 컬러 프리셋 (프리미엄 살롱 컬러)
 export const HAIR_COLORS = [
-    { id: "black", label: "검정", hex: "#1A1A1A" },
-    { id: "red", label: "빨강", hex: "#DC2626" },
-    { id: "orange", label: "주황", hex: "#EA580C" },
-    { id: "yellow", label: "노랑", hex: "#EAB308" },
-    { id: "green", label: "초록", hex: "#16A34A" },
-    { id: "blue", label: "파랑", hex: "#2563EB" },
-    { id: "navy", label: "남색", hex: "#1E3A5F" },
-    { id: "purple", label: "보라", hex: "#7C3AED" },
-    { id: "gold", label: "금색", hex: "#D4A017" },
-    { id: "silver", label: "은색", hex: "#B0B0B0" },
-    { id: "white", label: "흰색", hex: "#F5F5F5" },
+    { id: "natural-black", label: "내추럴 블랙", hex: "#1B1B1B" },
+    { id: "dark-brown", label: "다크 브라운", hex: "#3B2314" },
+    { id: "choco-brown", label: "초코 브라운", hex: "#5C3A1E" },
+    { id: "ash-brown", label: "애쉬 브라운", hex: "#7B6B5D" },
+    { id: "burgundy", label: "버건디", hex: "#722F37" },
+    { id: "wine-red", label: "와인 레드", hex: "#8B2252" },
+    { id: "rose-gold", label: "로즈 골드", hex: "#B76E79" },
+    { id: "honey-blonde", label: "허니 블론드", hex: "#C4956A" },
+    { id: "ash-grey", label: "애쉬 그레이", hex: "#8E8E8E" },
+    { id: "platinum", label: "플래티넘", hex: "#D4CDC6" },
+    { id: "olive-brown", label: "올리브 브라운", hex: "#6B6340" },
 ];
 
 // 데모 미용실

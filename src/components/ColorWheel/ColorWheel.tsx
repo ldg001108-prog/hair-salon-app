@@ -22,33 +22,13 @@ function hslToHex(h: number, s: number, l: number): string {
     return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// hex → HSL hue 추출 (슬라이더 연동용)
-function hexToHue(hex: string): number {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const d = max - min;
-    if (d === 0) return 0;
-    let h = 0;
-    if (max === r) h = ((g - b) / d) % 6;
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
-    h = Math.round(h * 60);
-    if (h < 0) h += 360;
-    return h;
-}
-
-// Canvas에 풀스펙트럼 컬러 휠 그리기
+// Canvas에 풀스펙트럼 컬러 휠 그리기 (항상 고정: sat=100, light=50)
 function drawColorWheel(
     ctx: CanvasRenderingContext2D,
     cx: number,
     cy: number,
     outerR: number,
-    innerR: number,
-    saturation: number,
-    lightness: number
+    innerR: number
 ) {
     ctx.clearRect(0, 0, cx * 2, cy * 2);
 
@@ -62,11 +42,12 @@ function drawColorWheel(
         ctx.arc(cx, cy, outerR, startAngle, endAngle);
         ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
         ctx.closePath();
-        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        // 항상 선명한 색상으로 표시 (채도 100%, 명도 50%)
+        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
         ctx.fill();
     }
 
-    // 중앙 원 (배경색)
+    // 중앙 원 (배경색) — 선택 색상 미리보기 영역 뒤에 깔림
     ctx.beginPath();
     ctx.arc(cx, cy, innerR - 1, 0, Math.PI * 2);
     ctx.fillStyle = "#f0f4f8";
@@ -100,15 +81,16 @@ function getHueFromPosition(
 export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }: ColorWheelProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [saturation, setSaturation] = useState(80);
-    const [lightness, setLightness] = useState(45);
-    // 현재 선택된 hue 각도 (슬라이더 변경 시 이 hue 기반으로 색상 재계산)
+    // 기본값: 채도 50%, 명도 100% (밝고 부드러운 파스텔)
+    const [saturation, setSaturation] = useState(50);
+    const [lightness, setLightness] = useState(50);
+    // 현재 선택된 hue 각도
     const [selectedHue, setSelectedHue] = useState<number | null>(null);
 
     const innerR = size * 0.28;
     const outerR = size / 2 - 2;
 
-    // 캔버스 그리기 (saturation/lightness 변경 시 리드로)
+    // 캔버스 그리기 — 휠 색상은 항상 고정 (채도/명도 변경해도 휠은 안 변함)
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -124,8 +106,8 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
         const cx = size / 2;
         const cy = size / 2;
 
-        drawColorWheel(ctx, cx, cy, outerR, innerR, saturation, lightness);
-    }, [size, saturation, lightness, outerR, innerR]);
+        drawColorWheel(ctx, cx, cy, outerR, innerR);
+    }, [size, outerR, innerR]); // ← saturation/lightness 의존성 제거됨
 
     // 터치/클릭으로 색상 선택 (hue 기반)
     const pickColor = useCallback((clientX: number, clientY: number) => {
@@ -155,7 +137,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
         setIsDragging(false);
     }, []);
 
-    // ★ 채도 변경 시 선택 색상 실시간 업데이트
+    // ★ 채도 변경 시 → 중앙 동그라미 색만 업데이트 (휠은 그대로)
     const handleSaturationChange = useCallback((val: number) => {
         setSaturation(val);
         if (selectedHue !== null) {
@@ -164,7 +146,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
         }
     }, [selectedHue, lightness, onColorSelect]);
 
-    // ★ 명도 변경 시 선택 색상 실시간 업데이트
+    // ★ 명도 변경 시 → 중앙 동그라미 색만 업데이트 (휠은 그대로)
     const handleLightnessChange = useCallback((val: number) => {
         setLightness(val);
         if (selectedHue !== null) {
@@ -175,7 +157,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
 
     return (
         <div className={styles.wheelContainer}>
-            {/* 컬러 휠 */}
+            {/* 컬러 휠 — 항상 고정 색상 */}
             <div className={styles.wheelWrap}>
                 <canvas
                     ref={canvasRef}
@@ -185,7 +167,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                     onPointerUp={handlePointerUp}
                     onPointerLeave={handlePointerUp}
                 />
-                {/* 중앙: 선택된 색상 미리보기 */}
+                {/* 중앙: 선택된 색상 미리보기 (이것만 채도/명도 변경에 반응) */}
                 <div
                     className={styles.centerPreview}
                     style={{
@@ -243,8 +225,8 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                 onClick={() => {
                     onColorSelect(null);
                     setSelectedHue(null);
-                    setSaturation(80);
-                    setLightness(45);
+                    setSaturation(50);
+                    setLightness(50);
                 }}
             >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

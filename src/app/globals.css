@@ -11,11 +11,18 @@
 /* ── 라이트 테마 (기본) — 소프트 라벤더 ── */
 :root,
 [data-theme="light"] {
-    /* 배경 — 라벤더 파스텔 */
+    /* 배경 — 라벤더 파스텔 + 그라데이션 레이어 */
     --bg-primary: #ede0f5;
     --bg-secondary: #e2d1f0;
     --bg-tertiary: #d6c2ea;
-    --bg-card: rgba(255, 255, 255, 0.65);
+    --bg-gradient: linear-gradient(160deg,
+            #f2e4fa 0%,
+            #ede0f5 20%,
+            #e4d5f0 40%,
+            #eedcf7 60%,
+            #e7d0f2 80%,
+            #f0e1f8 100%);
+    --bg-card: rgba(255, 255, 255, 0.60);
     --bg-card-hover: rgba(255, 255, 255, 0.82);
     --bg-glass: rgba(255, 255, 255, 0.45);
     --bg-glass-strong: rgba(255, 255, 255, 0.65);
@@ -188,7 +195,8 @@ html {
 body {
     font-family: var(--font-primary);
     color: var(--text-primary);
-    background-color: var(--bg-primary);
+    background: var(--bg-gradient, var(--bg-primary));
+    background-attachment: fixed;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -203,7 +211,7 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    transition: background-color var(--dur-slow) var(--ease-out),
+    transition: background var(--dur-slow) var(--ease-out),
         color var(--dur-slow) var(--ease-out);
 }
 

@@ -5,7 +5,7 @@
  * - 이미지 리사이징 및 재시도 로직 포함
  */
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 
 // === 타입 정의 ===
 export interface HairTransformRequest {
@@ -153,14 +153,14 @@ export async function transformHair(
             // 프롬프트 생성
             const prompt = buildHairPrompt(request);
 
-            // Gemini API 호출 - 공식 문서 이미지 편집 형식
+            // Gemini API 호출 — 이미지 편집
             // AbortController로 타임아웃 관리
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60초 타임아웃
+            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90초 타임아웃
 
             try {
                 const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash-image",
+                    model: "gemini-2.5-flash-preview-04-17",
                     contents: [
                         {
                             text: prompt,
@@ -172,6 +172,15 @@ export async function transformHair(
                             },
                         },
                     ],
+                    config: {
+                        responseModalities: ["Text", "Image"],
+                        safetySettings: [
+                            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                        ],
+                    },
                 });
 
                 clearTimeout(timeoutId);

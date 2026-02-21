@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./Splash.module.css";
 
 interface SplashProps {
@@ -11,9 +11,6 @@ interface SplashProps {
 }
 
 export default function Splash({
-    salonName,
-    logoUrl,
-    themeColor = "#2563EB",
     onComplete,
 }: SplashProps) {
     const [fadeOut, setFadeOut] = useState(false);
@@ -25,7 +22,7 @@ export default function Splash({
         if (transitionedRef.current) return;
         transitionedRef.current = true;
         setFadeOut(true);
-        setTimeout(() => onCompleteRef.current(), 500);
+        setTimeout(() => onCompleteRef.current(), 600);
     };
 
     useEffect(() => {
@@ -33,56 +30,39 @@ export default function Splash({
         return () => clearTimeout(autoTimer);
     }, []);
 
-    const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
-        e.preventDefault();
-        triggerTransition();
-    };
-
     return (
         <div
             className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}
-            onClick={handleTap}
-            onTouchEnd={handleTap}
-            role="button"
-            tabIndex={0}
+            onClick={triggerTransition}
+            onTouchEnd={triggerTransition}
         >
             {/* 배경 파티클 */}
             <div className={styles.particles}>
-                <div className={styles.particle} />
-                <div className={styles.particle} />
-                <div className={styles.particle} />
-                <div className={styles.particle} />
-                <div className={styles.particle} />
+                {Array.from({ length: 6 }, (_, i) => (
+                    <span key={i} className={styles.particle} style={{ animationDelay: `${i * 0.4}s` }} />
+                ))}
             </div>
 
-            {/* 메인 콘텐츠 */}
-            <div className={styles.content}>
-                {/* 히어로 이미지 */}
-                <div className={styles.heroImageWrap}>
-                    <div className={styles.heroGlow} />
-                    <img
-                        src="/images/splash_model.png"
-                        alt="AI Hair Styling"
-                        className={styles.heroImage}
-                    />
-                    <div className={styles.heroOverlay} />
-                </div>
-
-                {/* 텍스트 */}
-                <div className={styles.textWrap}>
-                    <h1 className={styles.brandTitle}>AI Hair Studio</h1>
-                    <p className={styles.tagline}>
-                        당신만의 스타일을 찾아보세요
-                    </p>
-                </div>
+            {/* 히어로 이미지 */}
+            <div className={styles.heroWrap}>
+                <div className={styles.heroGlow} />
+                <img
+                    src="/images/splash_model.png"
+                    alt="AI Hair Studio"
+                    className={styles.heroImage}
+                />
             </div>
 
-            {/* 하단 */}
-            <div className={styles.bottomArea}>
-                <div className={styles.startBtn}>
-                    <span className={styles.startText}>탭하여 시작하기</span>
-                    <div className={styles.startPulse} />
-                </div>
+            {/* 텍스트 */}
+            <div className={styles.textGroup}>
+                <h1 className={styles.title}>AI Hair Studio</h1>
+                <p className={styles.subtitle}>당신만의 스타일을 찾아보세요</p>
+            </div>
+
+            {/* 시작 인디케이터 */}
+            <div className={styles.tapHint}>
+                <span className={styles.tapDot} />
+                <span className={styles.tapText}>Tap to start</span>
             </div>
         </div>
     );

@@ -1,39 +1,181 @@
-/* ========== 스플래시 화면 — 프리미엄 디자인 ========== */
+/* ========== 스플래시 화면 — 프리미엄 듀얼 테마 ========== */
+
 .splash {
     position: fixed;
     inset: 0;
+    z-index: 100;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    cursor: pointer;
+    gap: 28px;
+    background: var(--bg-primary);
     overflow: hidden;
-
-    /* 프리미엄 다크 그라데이션 */
-    background:
-        radial-gradient(ellipse at 50% 0%, rgba(120, 80, 180, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 20% 80%, rgba(180, 100, 160, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 60%, rgba(100, 60, 160, 0.12) 0%, transparent 50%),
-        linear-gradient(170deg,
-            #1a0a2e 0%,
-            #2d1350 18%,
-            #3a1a5e 35%,
-            #4a2572 50%,
-            #5a2d8a 65%,
-            #7040a0 80%,
-            #8a58b8 100%);
-
-    animation: splashIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    animation: splashIn 0.7s var(--ease-out);
 }
 
-.fadeOut {
-    opacity: 0;
-    transform: scale(1.05);
+/* ── 파티클 ── */
+.particles {
+    position: absolute;
+    inset: 0;
     pointer-events: none;
+    overflow: hidden;
 }
 
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.18;
+    animation: floatParticle 8s ease-in-out infinite;
+}
+
+.particle:nth-child(1) {
+    left: 15%;
+    top: 20%;
+    width: 4px;
+    height: 4px;
+}
+
+.particle:nth-child(2) {
+    left: 80%;
+    top: 15%;
+    width: 8px;
+    height: 8px;
+    animation-delay: 1.2s;
+}
+
+.particle:nth-child(3) {
+    left: 40%;
+    top: 75%;
+    width: 5px;
+    height: 5px;
+    animation-delay: 2.4s;
+}
+
+.particle:nth-child(4) {
+    left: 70%;
+    top: 60%;
+    width: 3px;
+    height: 3px;
+    animation-delay: 0.8s;
+}
+
+.particle:nth-child(5) {
+    left: 25%;
+    top: 55%;
+    width: 7px;
+    height: 7px;
+    animation-delay: 3.0s;
+}
+
+.particle:nth-child(6) {
+    left: 60%;
+    top: 85%;
+    width: 4px;
+    height: 4px;
+    animation-delay: 1.6s;
+}
+
+@keyframes floatParticle {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.18;
+    }
+
+    50% {
+        transform: translateY(-40px) scale(1.3);
+        opacity: 0.35;
+    }
+}
+
+/* ── 히어로 이미지 ── */
+.heroWrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    animation: heroEnter 0.9s var(--ease-out) 0.2s both;
+}
+
+.heroGlow {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+.heroImage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2.5px solid var(--border-accent);
+    box-shadow: var(--shadow-glow);
+    z-index: 1;
+}
+
+/* ── 텍스트 ── */
+.textGroup {
+    text-align: center;
+    animation: textEnter 0.8s var(--ease-out) 0.4s both;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+/* ── 시작 힌트 ── */
+.tapHint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: hintEnter 0.6s var(--ease-out) 0.8s both;
+}
+
+.tapDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+.tapText {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+}
+
+/* ── 페이드아웃 ── */
+.fadeOut {
+    animation: splashOut 0.6s var(--ease-out) forwards;
+}
+
+/* ── 애니메이션 ── */
 @keyframes splashIn {
     from {
         opacity: 0;
@@ -44,209 +186,29 @@
     }
 }
 
-/* ── 배경 파티클 ── */
-.particles {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.particle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(200, 160, 255, 0.15);
-    animation: floatUp 6s ease-in-out infinite;
-}
-
-.particle:nth-child(1) {
-    width: 120px;
-    height: 120px;
-    left: 10%;
-    bottom: -60px;
-    animation-delay: 0s;
-    animation-duration: 7s;
-}
-
-.particle:nth-child(2) {
-    width: 80px;
-    height: 80px;
-    left: 65%;
-    bottom: -40px;
-    animation-delay: 1.5s;
-    animation-duration: 5.5s;
-    background: rgba(220, 180, 240, 0.1);
-}
-
-.particle:nth-child(3) {
-    width: 60px;
-    height: 60px;
-    left: 35%;
-    bottom: -30px;
-    animation-delay: 3s;
-    animation-duration: 8s;
-    background: rgba(180, 120, 220, 0.12);
-}
-
-.particle:nth-child(4) {
-    width: 100px;
-    height: 100px;
-    left: 80%;
-    bottom: -50px;
-    animation-delay: 0.8s;
-    animation-duration: 6.5s;
-    background: rgba(160, 100, 200, 0.08);
-}
-
-.particle:nth-child(5) {
-    width: 40px;
-    height: 40px;
-    left: 50%;
-    bottom: -20px;
-    animation-delay: 2.2s;
-    animation-duration: 9s;
-    background: rgba(240, 200, 255, 0.1);
-}
-
-@keyframes floatUp {
-    0% {
-        transform: translateY(0) scale(1);
+@keyframes splashOut {
+    to {
         opacity: 0;
-    }
-
-    20% {
-        opacity: 1;
-    }
-
-    80% {
-        opacity: 0.6;
-    }
-
-    100% {
-        transform: translateY(-100vh) scale(0.3);
-        opacity: 0;
+        transform: scale(1.03);
     }
 }
 
-/* ── 메인 콘텐츠 ── */
-.content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    z-index: 2;
-    animation: contentAppear 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both;
-}
-
-@keyframes contentAppear {
+@keyframes heroEnter {
     from {
         opacity: 0;
-        transform: translateY(30px) scale(0.92);
-        filter: blur(8px);
+        transform: scale(0.85) translateY(20px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
+        transform: scale(1) translateY(0);
     }
 }
 
-/* ── 히어로 이미지 ── */
-.heroImageWrap {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    overflow: visible;
-}
-
-.heroGlow {
-    position: absolute;
-    inset: -20px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(180, 120, 240, 0.4) 0%, rgba(120, 60, 200, 0.1) 50%, transparent 70%);
-    animation: glowPulse 3s ease-in-out infinite;
-    z-index: -1;
-}
-
-@keyframes glowPulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-
-    50% {
-        transform: scale(1.15);
-        opacity: 1;
-    }
-}
-
-.heroImage {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    box-shadow:
-        0 8px 40px rgba(80, 30, 160, 0.4),
-        0 0 80px rgba(140, 80, 220, 0.2),
-        inset 0 0 30px rgba(0, 0, 0, 0.1);
-}
-
-.heroOverlay {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(180deg, transparent 50%, rgba(26, 10, 46, 0.3) 100%);
-    pointer-events: none;
-}
-
-/* ── 텍스트 ── */
-.textWrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.brandTitle {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-weight: 400;
-    font-size: clamp(2rem, 10vw, 3rem);
-    letter-spacing: 0.15em;
-    color: rgba(255, 255, 255, 0.95);
-    text-align: center;
-    margin: 0;
-    line-height: 1.1;
-    text-shadow:
-        0 0 60px rgba(200, 160, 255, 0.35),
-        0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.tagline {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(0.85rem, 3.5vw, 1rem);
-    font-weight: 300;
-    letter-spacing: 0.2em;
-    color: rgba(220, 190, 255, 0.6);
-    margin: 0;
-}
-
-/* ── 하단 시작 버튼 영역 ── */
-.bottomArea {
-    position: absolute;
-    bottom: 48px;
-    z-index: 2;
-    animation: fadeInUp 1s ease 1.5s both;
-}
-
-@keyframes fadeInUp {
+@keyframes textEnter {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(16px);
     }
 
     to {
@@ -255,52 +217,40 @@
     }
 }
 
-.startBtn {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+@keyframes hintEnter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-.startText {
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.12em;
-    color: rgba(255, 255, 255, 0.5);
-    animation: textPulse 2.5s ease-in-out infinite;
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
 }
 
-.startPulse {
-    position: absolute;
-    inset: -12px -24px;
-    border-radius: 30px;
-    border: 1px solid rgba(200, 160, 255, 0.15);
-    animation: pulseBorder 2.5s ease-in-out infinite;
-}
-
-@keyframes textPulse {
+@keyframes dotPulse {
 
     0%,
     100% {
         opacity: 0.5;
-    }
-
-    50% {
-        opacity: 0.85;
-    }
-}
-
-@keyframes pulseBorder {
-
-    0%,
-    100% {
         transform: scale(1);
-        opacity: 0.3;
     }
 
     50% {
-        transform: scale(1.08);
-        opacity: 0.6;
+        opacity: 1;
+        transform: scale(1.4);
     }
 }

@@ -1,73 +1,175 @@
-/* Pretendard 폰트 로드 — CDN 안정 버전 */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
-
-/* 프리미엄 브랜드 로고용 고급 세리프 + 모던 산세리프 */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
-
 /* ========================================
-   HairApp - 글로벌 디자인 시스템
-   미용실 헤어스타일 가상 체험 웹앱
+   AI Hair Studio — 프리미엄 듀얼 테마 디자인 시스템
+   ▸ 라이트: 소프트 블루-라벤더 (트렌디 파스텔)
+   ▸ 다크: 딥 네이비/퍼플
    ======================================== */
 
-/* CSS Variables - 디자인 토큰 */
-:root {
-    /* 컬러 */
-    --color-bg: #FAFAFA;
-    --color-surface: #FFFFFF;
-    --color-surface-hover: #F5F5F5;
-    --color-border: #E8E8E8;
-    --color-border-light: #F0F0F0;
-    --color-text-primary: #1A1A1A;
-    --color-text-secondary: #6B7280;
-    --color-text-tertiary: #9CA3AF;
-    --color-accent: #2563EB;
-    --color-accent-hover: #1D4ED8;
-    --color-accent-light: #EFF6FF;
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-danger: #EF4444;
+/* 폰트 로드 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* 타이포그래피 */
-    --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-size-3xl: 1.875rem;
+/* ── 라이트 테마 (기본) — 소프트 블루-라벤더 ── */
+:root,
+[data-theme="light"] {
+    /* 배경 — 블루-라벤더 파스텔 */
+    --bg-primary: #eef1f8;
+    --bg-secondary: #e4e9f4;
+    --bg-tertiary: #dae0f0;
+    --bg-card: rgba(255, 255, 255, 0.72);
+    --bg-card-hover: rgba(255, 255, 255, 0.88);
+    --bg-glass: rgba(255, 255, 255, 0.52);
+    --bg-glass-strong: rgba(255, 255, 255, 0.72);
 
-    /* 간격 */
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
+    /* 텍스트 */
+    --text-primary: #191d2b;
+    --text-secondary: #4a5068;
+    --text-tertiary: #7e849a;
+    --text-muted: #adb2c4;
 
-    /* 라운드 */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-2xl: 1.5rem;
-    --radius-full: 9999px;
+    /* 액센트 — 블루-바이올렛 */
+    --accent: #7c6dd8;
+    --accent-light: #9d90e8;
+    --accent-dim: rgba(124, 109, 216, 0.10);
+    --accent-glow: rgba(124, 109, 216, 0.18);
+    --accent-gradient: linear-gradient(135deg, #9d90e8 0%, #7c6dd8 50%, #6558c0 100%);
+
+    /* 상태 */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+
+    /* 테두리 */
+    --border: rgba(124, 109, 216, 0.12);
+    --border-light: rgba(124, 109, 216, 0.06);
+    --border-accent: rgba(124, 109, 216, 0.25);
 
     /* 그림자 */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(80, 70, 140, 0.08);
+    --shadow-md: 0 4px 12px rgba(80, 70, 140, 0.10);
+    --shadow-lg: 0 8px 30px rgba(80, 70, 140, 0.12);
+    --shadow-glow: 0 0 20px rgba(124, 109, 216, 0.15);
+    --shadow-glow-strong: 0 0 40px rgba(124, 109, 216, 0.25);
 
-    /* 트랜지션 */
-    --transition-fast: 150ms ease;
-    --transition-base: 250ms ease;
-    --transition-slow: 350ms ease;
+    /* 특수 */
+    --overlay-bg: rgba(238, 241, 248, 0.92);
+    --header-bg: rgba(238, 241, 248, 0.85);
+    --input-bg: rgba(255, 255, 255, 0.65);
+    --upload-border: rgba(124, 109, 216, 0.22);
+    --upload-bg: rgba(255, 255, 255, 0.45);
+    --tab-indicator: var(--accent);
+    --tab-active-text: #fff;
+    --tab-active-bg: var(--accent);
+    --tab-inactive-text: var(--text-secondary);
+    --slider-track: rgba(124, 109, 216, 0.12);
+    --toast-bg: rgba(25, 29, 43, 0.9);
+    --toast-text: #fff;
+
+    color-scheme: light;
 }
 
-/* 리셋 & 글로벌 */
+/* ── 다크 테마 ── */
+[data-theme="dark"] {
+    --bg-primary: #0a0a12;
+    --bg-secondary: #111119;
+    --bg-tertiary: #18181f;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-hover: rgba(255, 255, 255, 0.07);
+    --bg-glass: rgba(255, 255, 255, 0.06);
+    --bg-glass-strong: rgba(255, 255, 255, 0.10);
+
+    --text-primary: #f0f0f5;
+    --text-secondary: #a0a0b0;
+    --text-tertiary: #65657a;
+    --text-muted: #45455a;
+
+    --accent: #a78bfa;
+    --accent-light: #c4b5fd;
+    --accent-dim: rgba(167, 139, 250, 0.15);
+    --accent-glow: rgba(167, 139, 250, 0.22);
+    --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.04);
+    --border-accent: rgba(167, 139, 250, 0.25);
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 20px rgba(167, 139, 250, 0.2);
+    --shadow-glow-strong: 0 0 40px rgba(167, 139, 250, 0.3);
+
+    --overlay-bg: rgba(10, 10, 18, 0.92);
+    --header-bg: rgba(10, 10, 18, 0.85);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --upload-border: rgba(167, 139, 250, 0.2);
+    --upload-bg: rgba(255, 255, 255, 0.03);
+    --tab-indicator: var(--accent);
+    --tab-active-text: #fff;
+    --tab-active-bg: var(--accent);
+    --tab-inactive-text: var(--text-secondary);
+    --slider-track: rgba(167, 139, 250, 0.15);
+    --toast-bg: rgba(255, 255, 255, 0.12);
+    --toast-text: #f0f0f5;
+
+    color-scheme: dark;
+}
+
+/* ── 타이포그래피 & 스페이싱 (테마 무관) ── */
+:root {
+    --font-primary: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Inter', var(--font-primary);
+
+    --fs-xs: 0.6875rem;
+    --fs-sm: 0.8125rem;
+    --fs-base: 0.9375rem;
+    --fs-lg: 1.0625rem;
+    --fs-xl: 1.25rem;
+    --fs-2xl: 1.5rem;
+    --fs-3xl: 2rem;
+
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+    --r-2xl: 24px;
+    --r-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --dur-fast: 150ms;
+    --dur-base: 250ms;
+    --dur-slow: 400ms;
+}
+
+/* P3 색영역 — 웹/모바일 색상 통일 */
+@supports (color: color(display-p3 1 0 0)) {
+
+    :root,
+    [data-theme="light"] {
+        --accent: color(display-p3 0.486 0.427 0.847);
+        --accent-light: color(display-p3 0.616 0.565 0.91);
+    }
+
+    [data-theme="dark"] {
+        --accent: color(display-p3 0.655 0.545 0.98);
+        --accent-light: color(display-p3 0.77 0.71 0.99);
+    }
+}
+
+/* ── 리셋 & 글로벌 ── */
 *,
 *::before,
 *::after {
@@ -83,25 +185,24 @@ html {
 }
 
 body {
-    font-family: var(--font-family);
-    color: var(--color-text-primary);
-    background-color: var(--color-bg);
-    line-height: 1.6;
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
-    /* 모바일 최적화 */
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
-    /* iOS safe area (노치 대응) */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    transition: background-color var(--dur-slow) var(--ease-out),
+        color var(--dur-slow) var(--ease-out);
 }
 
-/* 모바일 환경 최적화 */
 input,
 button,
 textarea,
@@ -128,7 +229,7 @@ a {
     text-decoration: none;
 }
 
-/* 유틸리티 */
+/* ── 유틸리티 ── */
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -141,7 +242,6 @@ a {
     border: 0;
 }
 
-/* 스크롤바 숨김 (터치 스크롤용) */
 .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -151,68 +251,17 @@ a {
     display: none;
 }
 
-/* 반응형 컨테이너 */
-.container {
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
+/* ── 글래스모피즘 ── */
+.glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border: 1px solid var(--border);
 }
 
-/* 주요 버튼 스타일 */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-6);
-    border-radius: var(--radius-xl);
-    font-weight: 600;
-    font-size: var(--font-size-base);
-    transition: all var(--transition-fast);
-    touch-action: manipulation;
-    user-select: none;
-}
-
-.btn-primary {
-    background: var(--color-accent);
-    color: white;
-    box-shadow: var(--shadow-md);
-}
-
-.btn-primary:hover {
-    background: var(--color-accent-hover);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-primary:active {
-    transform: scale(0.97);
-}
-
-.btn-secondary {
-    background: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-}
-
-.btn-secondary:hover {
-    background: var(--color-surface-hover);
-}
-
-.btn-full {
-    width: 100%;
-}
-
-.btn-lg {
-    padding: var(--space-4) var(--space-8);
-    font-size: var(--font-size-lg);
-    border-radius: var(--radius-2xl);
-}
-
-/* 카드 */
-.card {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border-light);
-    box-shadow: var(--shadow-sm);
+.glass-strong {
+    background: var(--bg-glass-strong);
+    backdrop-filter: blur(30px) saturate(1.4);
+    -webkit-backdrop-filter: blur(30px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }

@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeInitScript } from "@/components/ThemeInit";
 
 export const metadata: Metadata = {
-    title: "HairApp - 헤어스타일 가상 체험",
+    title: "AI Hair Studio — 헤어스타일 가상 체험",
     description: "AI로 나에게 어울리는 헤어스타일을 미리 체험해보세요",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "HairApp",
+        title: "AI Hair Studio",
     },
     formatDetection: {
         telephone: false,
@@ -20,7 +21,7 @@ export const viewport: Viewport = {
     maximumScale: 1,
     userScalable: false,
     viewportFit: "cover",
-    themeColor: "#2d1650",
+    themeColor: "#f5f0fa",
 };
 
 export default function RootLayout({
@@ -30,7 +31,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ko">
-            <body>{children}</body>
+            <body>
+                <ThemeInitScript />
+                {children}
+            </body>
         </html>
     );
 }

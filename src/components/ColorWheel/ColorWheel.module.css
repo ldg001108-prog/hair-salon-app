@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
 }
 
@@ -32,26 +32,26 @@
 }
 
 .centerText {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-tertiary);
     font-weight: 600;
 }
 
 .centerHex {
-    font-size: 9px;
+    font-size: 8px;
     color: #fff;
     font-weight: 700;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     letter-spacing: 0.3px;
 }
 
-/* 슬라이더 행 */
+/* 슬라이더 행 — 길고 굵게 (모바일 터치 최적화) */
 .sliderRow {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
-    padding: 0 2px;
+    padding: 0 4px;
 }
 
 .sliderLabel {
@@ -65,32 +65,32 @@
 .slider {
     flex: 1;
     min-width: 0;
-    height: 6px;
+    height: 10px;
     -webkit-appearance: none;
     appearance: none;
-    border-radius: 3px;
+    border-radius: 5px;
     outline: none;
     cursor: pointer;
 }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #fff;
-    border: 2px solid var(--accent);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border: 2.5px solid var(--accent);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
     cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #fff;
-    border: 2px solid var(--accent);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border: 2.5px solid var(--accent);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
     cursor: pointer;
 }
 
@@ -108,7 +108,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 12px;
+    padding: 5px 14px;
     border: 1px solid var(--border-default);
     border-radius: 999px;
     background: var(--bg-secondary);

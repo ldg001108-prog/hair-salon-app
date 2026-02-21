@@ -210,7 +210,7 @@ export default function MainView({
                     <ColorWheel
                         selectedColor={selectedColor}
                         onColorSelect={onColorSelect}
-                        size={140}
+                        size={120}
                     />
                 </div>
             </div>

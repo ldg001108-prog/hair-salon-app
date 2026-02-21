@@ -96,6 +96,23 @@ export default function SalonPage() {
                 return;
             }
 
+            // hex → HSL 변환 (채도/명도를 API에 전달)
+            let colorSaturation: number | undefined;
+            let colorLightness: number | undefined;
+            if (colorHex) {
+                const r = parseInt(colorHex.slice(1, 3), 16) / 255;
+                const g = parseInt(colorHex.slice(3, 5), 16) / 255;
+                const b = parseInt(colorHex.slice(5, 7), 16) / 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                const l = (max + min) / 2;
+                let s = 0;
+                if (max !== min) {
+                    s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+                }
+                colorSaturation = Math.round(s * 100);
+                colorLightness = Math.round(l * 100);
+            }
+
             const response = await fetch("/api/transform", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -105,7 +122,9 @@ export default function SalonPage() {
                     styleDescription: style.story,
                     colorName: colorHex ? `Custom (${colorHex})` : undefined,
                     colorHex: colorHex,
-                    colorIntensity: 70,
+                    colorIntensity: 85,
+                    colorSaturation,
+                    colorLightness,
                 }),
             });
 

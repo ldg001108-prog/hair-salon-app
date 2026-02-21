@@ -8,30 +8,30 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── 라이트 테마 (기본) — 소프트 블루-라벤더 ── */
+/* ── 라이트 테마 (기본) — 소프트 스카이블루 ── */
 :root,
 [data-theme="light"] {
-    /* 배경 — 블루-라벤더 파스텔 */
-    --bg-primary: #eef1f8;
-    --bg-secondary: #e4e9f4;
-    --bg-tertiary: #dae0f0;
-    --bg-card: rgba(255, 255, 255, 0.72);
-    --bg-card-hover: rgba(255, 255, 255, 0.88);
-    --bg-glass: rgba(255, 255, 255, 0.52);
-    --bg-glass-strong: rgba(255, 255, 255, 0.72);
+    /* 배경 — 하늘색 파스텔 */
+    --bg-primary: #dce8f5;
+    --bg-secondary: #cddcf0;
+    --bg-tertiary: #bdd0ea;
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --bg-card-hover: rgba(255, 255, 255, 0.82);
+    --bg-glass: rgba(255, 255, 255, 0.45);
+    --bg-glass-strong: rgba(255, 255, 255, 0.65);
 
     /* 텍스트 */
-    --text-primary: #191d2b;
-    --text-secondary: #4a5068;
-    --text-tertiary: #7e849a;
-    --text-muted: #adb2c4;
+    --text-primary: #1a2236;
+    --text-secondary: #3d4f6f;
+    --text-tertiary: #6e7fa0;
+    --text-muted: #9dabc4;
 
-    /* 액센트 — 블루-바이올렛 */
-    --accent: #7c6dd8;
-    --accent-light: #9d90e8;
-    --accent-dim: rgba(124, 109, 216, 0.10);
-    --accent-glow: rgba(124, 109, 216, 0.18);
-    --accent-gradient: linear-gradient(135deg, #9d90e8 0%, #7c6dd8 50%, #6558c0 100%);
+    /* 액센트 — 스카이블루 */
+    --accent: #5b8dd9;
+    --accent-light: #7da8e8;
+    --accent-dim: rgba(91, 141, 217, 0.12);
+    --accent-glow: rgba(91, 141, 217, 0.20);
+    --accent-gradient: linear-gradient(135deg, #7da8e8 0%, #5b8dd9 50%, #4a78c4 100%);
 
     /* 상태 */
     --success: #10b981;
@@ -39,29 +39,29 @@
     --danger: #ef4444;
 
     /* 테두리 */
-    --border: rgba(124, 109, 216, 0.12);
-    --border-light: rgba(124, 109, 216, 0.06);
-    --border-accent: rgba(124, 109, 216, 0.25);
+    --border: rgba(91, 141, 217, 0.15);
+    --border-light: rgba(91, 141, 217, 0.08);
+    --border-accent: rgba(91, 141, 217, 0.30);
 
     /* 그림자 */
-    --shadow-sm: 0 1px 3px rgba(80, 70, 140, 0.08);
-    --shadow-md: 0 4px 12px rgba(80, 70, 140, 0.10);
-    --shadow-lg: 0 8px 30px rgba(80, 70, 140, 0.12);
-    --shadow-glow: 0 0 20px rgba(124, 109, 216, 0.15);
-    --shadow-glow-strong: 0 0 40px rgba(124, 109, 216, 0.25);
+    --shadow-sm: 0 1px 3px rgba(50, 80, 140, 0.10);
+    --shadow-md: 0 4px 12px rgba(50, 80, 140, 0.12);
+    --shadow-lg: 0 8px 30px rgba(50, 80, 140, 0.14);
+    --shadow-glow: 0 0 20px rgba(91, 141, 217, 0.18);
+    --shadow-glow-strong: 0 0 40px rgba(91, 141, 217, 0.28);
 
     /* 특수 */
-    --overlay-bg: rgba(238, 241, 248, 0.92);
-    --header-bg: rgba(238, 241, 248, 0.85);
-    --input-bg: rgba(255, 255, 255, 0.65);
-    --upload-border: rgba(124, 109, 216, 0.22);
-    --upload-bg: rgba(255, 255, 255, 0.45);
+    --overlay-bg: rgba(220, 232, 245, 0.92);
+    --header-bg: rgba(220, 232, 245, 0.85);
+    --input-bg: rgba(255, 255, 255, 0.55);
+    --upload-border: rgba(91, 141, 217, 0.25);
+    --upload-bg: rgba(255, 255, 255, 0.40);
     --tab-indicator: var(--accent);
     --tab-active-text: #fff;
     --tab-active-bg: var(--accent);
     --tab-inactive-text: var(--text-secondary);
-    --slider-track: rgba(124, 109, 216, 0.12);
-    --toast-bg: rgba(25, 29, 43, 0.9);
+    --slider-track: rgba(91, 141, 217, 0.15);
+    --toast-bg: rgba(26, 34, 54, 0.9);
     --toast-text: #fff;
 
     color-scheme: light;
@@ -159,8 +159,8 @@
 
     :root,
     [data-theme="light"] {
-        --accent: color(display-p3 0.486 0.427 0.847);
-        --accent-light: color(display-p3 0.616 0.565 0.91);
+        --accent: color(display-p3 0.357 0.553 0.851);
+        --accent-light: color(display-p3 0.49 0.659 0.91);
     }
 
     [data-theme="dark"] {
@@ -182,6 +182,7 @@ html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    background-color: var(--bg-primary);
 }
 
 body {
@@ -195,6 +196,9 @@ body {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
+    /* 중앙 정렬 — 데스크탑에서도 모바일 레이아웃 유지 */
+    max-width: 480px;
+    margin: 0 auto;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);

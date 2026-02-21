@@ -22,6 +22,24 @@ function hslToHex(h: number, s: number, l: number): string {
     return `#${f(0)}${f(8)}${f(4)}`;
 }
 
+// hex → HSL hue 추출 (슬라이더 연동용)
+function hexToHue(hex: string): number {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const d = max - min;
+    if (d === 0) return 0;
+    let h = 0;
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+    return h;
+}
+
 // Canvas에 풀스펙트럼 컬러 휠 그리기
 function drawColorWheel(
     ctx: CanvasRenderingContext2D,
@@ -32,7 +50,6 @@ function drawColorWheel(
     saturation: number,
     lightness: number
 ) {
-    // 배경 클리어
     ctx.clearRect(0, 0, cx * 2, cy * 2);
 
     const steps = 360;
@@ -56,13 +73,28 @@ function drawColorWheel(
     ctx.fill();
 }
 
-// 좌표에서 색상 추출
-function getColorAt(canvas: HTMLCanvasElement, x: number, y: number): string | null {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-    const pixel = ctx.getImageData(x, y, 1, 1).data;
-    if (pixel[3] < 10) return null;
-    return `#${pixel[0].toString(16).padStart(2, "0")}${pixel[1].toString(16).padStart(2, "0")}${pixel[2].toString(16).padStart(2, "0")}`;
+// 좌표에서 hue 각도 계산 (Canvas 중심 기준)
+function getHueFromPosition(
+    canvas: HTMLCanvasElement,
+    clientX: number,
+    clientY: number,
+    innerR: number,
+    outerR: number
+): number | null {
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const x = clientX - rect.left - cx;
+    const y = clientY - rect.top - cy;
+    const dist = Math.sqrt(x * x + y * y);
+
+    // 클릭이 휠 링 범위 안에 있는지 확인
+    if (dist < innerR || dist > outerR) return null;
+
+    // 각도 계산 (12시 방향 = 0°, 시계 방향)
+    let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+    if (angle < 0) angle += 360;
+    return Math.round(angle) % 360;
 }
 
 export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }: ColorWheelProps) {
@@ -70,6 +102,11 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
     const [isDragging, setIsDragging] = useState(false);
     const [saturation, setSaturation] = useState(80);
     const [lightness, setLightness] = useState(45);
+    // 현재 선택된 hue 각도 (슬라이더 변경 시 이 hue 기반으로 색상 재계산)
+    const [selectedHue, setSelectedHue] = useState<number | null>(null);
+
+    const innerR = size * 0.28;
+    const outerR = size / 2 - 2;
 
     // 캔버스 그리기 (saturation/lightness 변경 시 리드로)
     useEffect(() => {
@@ -86,25 +123,22 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
 
         const cx = size / 2;
         const cy = size / 2;
-        const outerR = size / 2 - 2;
-        const innerR = size * 0.28;
 
         drawColorWheel(ctx, cx, cy, outerR, innerR, saturation, lightness);
-    }, [size, saturation, lightness]);
+    }, [size, saturation, lightness, outerR, innerR]);
 
-    // 터치/클릭으로 색상 선택
+    // 터치/클릭으로 색상 선택 (hue 기반)
     const pickColor = useCallback((clientX: number, clientY: number) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        const x = Math.round((clientX - rect.left) * dpr);
-        const y = Math.round((clientY - rect.top) * dpr);
-        const color = getColorAt(canvas, x, y);
-        if (color) {
-            onColorSelect(color);
+
+        const hue = getHueFromPosition(canvas, clientX, clientY, innerR, outerR);
+        if (hue !== null) {
+            setSelectedHue(hue);
+            const hex = hslToHex(hue, saturation, lightness);
+            onColorSelect(hex);
         }
-    }, [onColorSelect]);
+    }, [innerR, outerR, saturation, lightness, onColorSelect]);
 
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
         setIsDragging(true);
@@ -121,14 +155,23 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
         setIsDragging(false);
     }, []);
 
-    // 채도/명도 변경 시 현재 선택 색상도 업데이트
+    // ★ 채도 변경 시 선택 색상 실시간 업데이트
     const handleSaturationChange = useCallback((val: number) => {
         setSaturation(val);
-    }, []);
+        if (selectedHue !== null) {
+            const hex = hslToHex(selectedHue, val, lightness);
+            onColorSelect(hex);
+        }
+    }, [selectedHue, lightness, onColorSelect]);
 
+    // ★ 명도 변경 시 선택 색상 실시간 업데이트
     const handleLightnessChange = useCallback((val: number) => {
         setLightness(val);
-    }, []);
+        if (selectedHue !== null) {
+            const hex = hslToHex(selectedHue, saturation, val);
+            onColorSelect(hex);
+        }
+    }, [selectedHue, saturation, onColorSelect]);
 
     return (
         <div className={styles.wheelContainer}>
@@ -171,7 +214,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                     onChange={(e) => handleSaturationChange(Number(e.target.value))}
                     className={styles.slider}
                     style={{
-                        background: `linear-gradient(90deg, hsl(0,0%,${lightness}%), hsl(0,100%,${lightness}%))`
+                        background: `linear-gradient(90deg, hsl(${selectedHue ?? 0},0%,${lightness}%), hsl(${selectedHue ?? 0},100%,${lightness}%))`
                     }}
                 />
                 <span className={styles.sliderValue}>{saturation}%</span>
@@ -188,7 +231,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                     onChange={(e) => handleLightnessChange(Number(e.target.value))}
                     className={styles.slider}
                     style={{
-                        background: `linear-gradient(90deg, #000, hsl(0,${saturation}%,50%), #fff)`
+                        background: `linear-gradient(90deg, #000, hsl(${selectedHue ?? 0},${saturation}%,50%), #fff)`
                     }}
                 />
                 <span className={styles.sliderValue}>{lightness}%</span>
@@ -199,6 +242,7 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                 className={styles.resetBtn}
                 onClick={() => {
                     onColorSelect(null);
+                    setSelectedHue(null);
                     setSaturation(80);
                     setLightness(45);
                 }}

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { DEMO_SALON, DEMO_HAIRSTYLES, HAIR_COLORS } from "@/data/demo";
+import { DEMO_SALON, DEMO_HAIRSTYLES } from "@/data/demo";
 import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
 import ResultView from "@/components/ResultView/ResultView";
@@ -16,8 +16,8 @@ export default function SalonPage() {
         setUserPhoto,
         selectedStyleId,
         setSelectedStyleId,
-        selectedColorId,
-        setSelectedColorId,
+        selectedColor,
+        setSelectedColor,
         resultImage,
         setResultImage,
         isLoading,
@@ -77,8 +77,8 @@ export default function SalonPage() {
     const handlePhotoChange = useCallback(() => {
         setUserPhoto(null);
         setSelectedStyleId(null);
-        setSelectedColorId(null);
-    }, [setUserPhoto, setSelectedStyleId, setSelectedColorId]);
+        setSelectedColor(null);
+    }, [setUserPhoto, setSelectedStyleId, setSelectedColor]);
 
     // 합성 실행 — Gemini AI API
     const handleSynthesize = useCallback(async () => {
@@ -88,10 +88,7 @@ export default function SalonPage() {
 
         try {
             const style = hairstyles.find((h) => h.id === selectedStyleId);
-            const color = selectedColorId
-                ? HAIR_COLORS.find((c) => c.id === selectedColorId)
-                : null;
-            const colorIntensity = useAppStore.getState().colorIntensity ?? 70;
+            const colorHex = selectedColor || undefined;
 
             if (!style) {
                 alert("헤어스타일을 선택해주세요.");
@@ -106,9 +103,9 @@ export default function SalonPage() {
                     photo: userPhoto,
                     styleName: style.name,
                     styleDescription: style.story,
-                    colorName: color?.label || undefined,
-                    colorHex: color?.hex || undefined,
-                    colorIntensity: colorIntensity,
+                    colorName: colorHex ? `Custom (${colorHex})` : undefined,
+                    colorHex: colorHex,
+                    colorIntensity: 70,
                 }),
             });
 
@@ -126,15 +123,14 @@ export default function SalonPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColorId, hairstyles]);
+    }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColor, hairstyles]);
 
     // 다시 시도
     const handleRetry = useCallback(() => {
-        setSelectedStyleId(null);
-        setSelectedColorId(null);
+        setSelectedColor(null);
         setResultImage(null);
         setStep("main");
-    }, [setSelectedStyleId, setSelectedColorId, setResultImage, setStep]);
+    }, [setSelectedStyleId, setSelectedColor, setResultImage, setStep]);
 
     // 뒤로 가기
     const handleBack = useCallback(() => {
@@ -144,7 +140,6 @@ export default function SalonPage() {
 
     // 선택된 스타일/색상 정보
     const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId) || null;
-    const colorIntensity = useAppStore.getState().colorIntensity ?? 70;
 
     return (
         <>
@@ -165,11 +160,11 @@ export default function SalonPage() {
                     hairstyles={hairstyles}
                     userPhoto={userPhoto}
                     selectedStyleId={selectedStyleId}
-                    selectedColorId={selectedColorId}
+                    selectedColor={selectedColor}
                     onPhotoSelect={handlePhotoSelect}
                     onPhotoChange={handlePhotoChange}
                     onStyleSelect={setSelectedStyleId}
-                    onColorSelect={setSelectedColorId}
+                    onColorSelect={setSelectedColor}
                     onSynthesize={handleSynthesize}
                     isLoading={isLoading}
                 />
@@ -181,8 +176,8 @@ export default function SalonPage() {
                     resultImage={resultImage}
                     userPhoto={userPhoto}
                     selectedStyle={selectedStyle}
-                    selectedColorId={selectedColorId}
-                    colorIntensity={colorIntensity}
+                    selectedColor={selectedColor}
+                    colorIntensity={70}
                     onBack={handleBack}
                     onRetry={handleRetry}
                 />

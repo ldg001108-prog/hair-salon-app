@@ -3,14 +3,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./ResultView.module.css";
 import type { Hairstyle } from "@/data/demo";
-import { HAIR_COLORS } from "@/data/demo";
 import { useAppStore } from "@/store/useAppStore";
 
 interface ResultViewProps {
     resultImage: string;
     userPhoto: string;
     selectedStyle: Hairstyle | null;
-    selectedColorId: string | null;
+    selectedColor: string | null;
     colorIntensity: number;
     onBack: () => void;
     onRetry: () => void;
@@ -20,7 +19,7 @@ export default function ResultView({
     resultImage,
     userPhoto,
     selectedStyle,
-    selectedColorId,
+    selectedColor,
     colorIntensity,
     onBack,
     onRetry,
@@ -38,7 +37,6 @@ export default function ResultView({
     }, []);
     const theme = useAppStore((s) => s.theme);
 
-    const selectedColor = selectedColorId ? HAIR_COLORS.find((c) => c.id === selectedColorId) : null;
     const displayImage = resultImage;
 
     // 슬라이더 로직
@@ -202,10 +200,10 @@ export default function ResultView({
                             <div className={styles.infoColorWrap}>
                                 <div
                                     className={styles.infoColorDot}
-                                    style={{ background: selectedColor.hex }}
+                                    style={{ background: selectedColor }}
                                 />
                                 <span className={styles.infoValue}>
-                                    {selectedColor.label} ({colorIntensity}%)
+                                    {selectedColor}
                                 </span>
                             </div>
                         </div>

@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
-import { CATEGORIES, GENDERS, HAIR_COLORS } from "@/data/demo";
+import { CATEGORIES, GENDERS } from "@/data/demo";
+import ColorWheel from "@/components/ColorWheel/ColorWheel";
 import { useAppStore } from "@/store/useAppStore";
 
 // hex 색상을 intensity에 따라 조정하는 유틸
@@ -23,11 +24,11 @@ interface MainViewProps {
     hairstyles: Hairstyle[];
     userPhoto: string | null;
     selectedStyleId: string | null;
-    selectedColorId: string | null;
+    selectedColor: string | null;
     onPhotoSelect: (dataUrl: string) => void;
     onPhotoChange: () => void;
     onStyleSelect: (id: string) => void;
-    onColorSelect: (id: string | null) => void;
+    onColorSelect: (hex: string | null) => void;
     onSynthesize: () => void;
     isLoading: boolean;
 }
@@ -36,7 +37,7 @@ export default function MainView({
     hairstyles,
     userPhoto,
     selectedStyleId,
-    selectedColorId,
+    selectedColor,
     onPhotoSelect,
     onPhotoChange,
     onStyleSelect,
@@ -48,11 +49,8 @@ export default function MainView({
     const [activeGender, setActiveGender] = useState<"female" | "male">("female");
     const [activeCategory, setActiveCategory] = useState("best");
 
-    const colorIntensity = useAppStore((s) => s.colorIntensity ?? 70);
-    const setColorIntensity = useAppStore((s) => s.setColorIntensity);
     const theme = useAppStore((s) => s.theme);
     const toggleTheme = useAppStore((s) => s.toggleTheme);
-    const [showColorPicker, setShowColorPicker] = useState(false);
 
     // 테마 초기화 (hydration 시 DOM 동기화)
     useEffect(() => {
@@ -107,12 +105,6 @@ export default function MainView({
     const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId);
     const previewImage = userPhoto;
     const canSynthesize = userPhoto && selectedStyleId;
-
-    const selectedColor = selectedColorId ? HAIR_COLORS.find((c) => c.id === selectedColorId) : null;
-    const previewColor = useMemo(() => {
-        if (!selectedColor) return null;
-        return adjustColorIntensity(selectedColor.hex, colorIntensity);
-    }, [selectedColor, colorIntensity]);
 
     return (
         <div className={styles.main}>
@@ -208,67 +200,14 @@ export default function MainView({
                     </div>
                 </div>
 
-                {/* 오른쪽: 컬러 팔레트 (사각형 그리드) */}
+                {/* 오른쪽: 컬러 휠 */}
                 <div className={styles.colorCol}>
-                    <div className={styles.colorColHeader}>
-                        <span className={styles.colorColTitle}>헤어 컬러</span>
-                        <button
-                            className={`${styles.adjustBtn} ${showColorPicker ? styles.adjustBtnActive : ''}`}
-                            onClick={() => setShowColorPicker(!showColorPicker)}
-                        >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="4" y1="21" x2="4" y2="14" />
-                                <line x1="4" y1="10" x2="4" y2="3" />
-                                <line x1="12" y1="21" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12" y2="3" />
-                                <line x1="20" y1="21" x2="20" y2="16" />
-                                <line x1="20" y1="12" x2="20" y2="3" />
-                                <line x1="1" y1="14" x2="7" y2="14" />
-                                <line x1="9" y1="8" x2="15" y2="8" />
-                                <line x1="17" y1="16" x2="23" y2="16" />
-                            </svg>
-                            <span>색상 조절</span>
-                        </button>
-                    </div>
-                    <div className={styles.colorGrid}>
-                        {/* Original (색상 없음) */}
-                        <button
-                            className={`${styles.colorChip} ${!selectedColorId ? styles.colorChipActive : ""}`}
-                            onClick={() => onColorSelect(null)}
-                            title="Original"
-                        >
-                            <div className={styles.colorSwatch} style={{ background: 'var(--bg-tertiary)' }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            </div>
-                        </button>
-                        {HAIR_COLORS.map((color) => (
-                            <button
-                                key={color.id}
-                                className={`${styles.colorChip} ${selectedColorId === color.id ? styles.colorChipActive : ""}`}
-                                onClick={() => onColorSelect(color.id)}
-                                title={color.label}
-                            >
-                                <div
-                                    className={styles.colorSwatch}
-                                    style={{
-                                        background: selectedColorId === color.id
-                                            ? `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, Math.max(colorIntensity - 20, 10))}, ${color.hex})`
-                                            : `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, 50)}, ${color.hex})`,
-                                    }}
-                                />
-                            </button>
-                        ))}
-                    </div>
-                    {/* 선택된 색상 표시 */}
-                    {selectedColor && (
-                        <div className={styles.selectedColorInfo}>
-                            <div className={styles.selectedColorDot} style={{ background: previewColor || selectedColor.hex }} />
-                            <span>{selectedColor.label}</span>
-                        </div>
-                    )}
+                    <span className={styles.colorColTitle}>헤어 컬러</span>
+                    <ColorWheel
+                        selectedColor={selectedColor}
+                        onColorSelect={onColorSelect}
+                        size={150}
+                    />
                 </div>
                 <input
                     ref={fileInputRef}
@@ -278,44 +217,6 @@ export default function MainView({
                     onChange={handleFileChange}
                 />
             </section>
-
-            {/* 인텐시티 슬라이더 (확장 시) */}
-            {showColorPicker && (
-                <div className={styles.intensityPanel}>
-                    <div className={styles.intensityHeader}>
-                        <span className={styles.intensityLabel}>색상 강도</span>
-                        <span className={styles.intensityValue}>{colorIntensity}%</span>
-                    </div>
-                    {selectedColor && (
-                        <div className={styles.gradientPreview}>
-                            <div
-                                className={styles.gradientBar}
-                                style={{ background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)}, ${selectedColor.hex})` }}
-                            />
-                            <div
-                                className={styles.gradientMarker}
-                                style={{ left: `${(colorIntensity - 10) / 90 * 100}%` }}
-                            />
-                        </div>
-                    )}
-                    <input
-                        type="range"
-                        min="10"
-                        max="100"
-                        value={colorIntensity}
-                        onChange={(e) => setColorIntensity(Number(e.target.value))}
-                        className={styles.slider}
-                        style={selectedColor ? {
-                            background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)} 0%, ${selectedColor.hex} 100%)`
-                        } : {}}
-                    />
-                    <div className={styles.sliderMarks}>
-                        <span>연하게</span>
-                        <span>자연스럽게</span>
-                        <span>진하게</span>
-                    </div>
-                </div>
-            )}
 
             <p className={styles.privacyNote}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>

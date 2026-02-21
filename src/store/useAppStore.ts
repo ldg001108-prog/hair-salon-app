@@ -21,9 +21,9 @@ interface AppState {
     selectedStyleId: string | null;
     setSelectedStyleId: (id: string | null) => void;
 
-    // 선택된 컬러
-    selectedColorId: string | null;
-    setSelectedColorId: (id: string | null) => void;
+    // 선택된 컬러 (hex 값)
+    selectedColor: string | null;
+    setSelectedColor: (hex: string | null) => void;
 
     // 색상 강도 (0~100)
     colorIntensity: number;
@@ -66,8 +66,8 @@ export const useAppStore = create<AppState>()(
             selectedStyleId: null,
             setSelectedStyleId: (id) => set({ selectedStyleId: id }),
 
-            selectedColorId: null,
-            setSelectedColorId: (id) => set({ selectedColorId: id }),
+            selectedColor: null,
+            setSelectedColor: (hex) => set({ selectedColor: hex }),
 
             colorIntensity: 70,
             setColorIntensity: (intensity) => set({ colorIntensity: intensity }),
@@ -83,7 +83,7 @@ export const useAppStore = create<AppState>()(
                     step: "main",
                     userPhoto: null,
                     selectedStyleId: null,
-                    selectedColorId: null,
+                    selectedColor: null,
                     colorIntensity: 70,
                     resultImage: null,
                     isLoading: false,

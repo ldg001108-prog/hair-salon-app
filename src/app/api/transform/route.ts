@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
             colorName,
             colorHex,
             colorIntensity,
+            colorSaturation,
+            colorLightness,
         } = body;
 
         // 필수 파라미터 검증
@@ -55,11 +57,13 @@ export async function POST(request: NextRequest) {
             styleDescription: styleDescription || undefined,
             colorName: colorName || undefined,
             colorHex: colorHex || undefined,
-            colorIntensity: colorIntensity ?? 70,
+            colorIntensity: colorIntensity ?? 85,
+            colorSaturation: colorSaturation ?? undefined,
+            colorLightness: colorLightness ?? undefined,
         };
 
         console.log(
-            `[Transform API] 요청: 스타일="${styleName}", 색상="${colorName || "Original"}", 강도=${colorIntensity ?? 70}%`
+            `[Transform API] 요청: 스타일="${styleName}", 색상="${colorName || "Original"}", hex=${colorHex || "none"}, 강도=${colorIntensity ?? 85}%`
         );
 
         const result = await transformHair(apiKey, transformRequest);

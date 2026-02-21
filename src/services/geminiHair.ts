@@ -19,8 +19,12 @@ export interface HairTransformRequest {
     colorName?: string;
     /** 헤어 색상 hex 코드 (예: "#3d2314") */
     colorHex?: string;
-    /** 색상 강도 0~100 (기본 70) */
+    /** 색상 강도 0~100 (기본 85) */
     colorIntensity?: number;
+    /** HSL 채도 0~100 */
+    colorSaturation?: number;
+    /** HSL 명도 0~100 */
+    colorLightness?: number;
 }
 
 export interface HairTransformResult {
@@ -44,39 +48,130 @@ function getBase64SizeKB(base64Data: string): number {
     return Math.round((base64Data.length * 3) / 4 - padding) / 1024;
 }
 
+// === Hex → 가장 가까운 색상 이름 변환 ===
+function hexToHSL(hex: string): { h: number; s: number; l: number } {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+        }
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function getColorDescription(hex: string): string {
+    const { h, s, l } = hexToHSL(hex);
+
+    // 무채색 판단
+    if (s < 10) {
+        if (l < 15) return "jet black";
+        if (l < 30) return "very dark charcoal";
+        if (l < 45) return "dark gray";
+        if (l < 60) return "medium gray";
+        if (l < 75) return "light gray";
+        if (l < 90) return "silver / platinum";
+        return "white / platinum blonde";
+    }
+
+    // 톤 설명
+    let tone = "";
+    if (l < 15) tone = "very dark ";
+    else if (l < 30) tone = "dark ";
+    else if (l < 45) tone = "medium-dark ";
+    else if (l < 55) tone = "medium ";
+    else if (l < 70) tone = "light ";
+    else if (l < 85) tone = "bright ";
+    else tone = "very light / pastel ";
+
+    // 채도 설명
+    let satDesc = "";
+    if (s < 25) satDesc = "muted ";
+    else if (s < 50) satDesc = "soft ";
+    else if (s > 80) satDesc = "vivid ";
+
+    // 색상 이름 (hue 범위 기준)
+    let colorName = "";
+    if (h < 15 || h >= 345) colorName = "red";
+    else if (h < 30) colorName = "red-orange";
+    else if (h < 45) colorName = "orange";
+    else if (h < 60) colorName = "golden / amber";
+    else if (h < 75) colorName = "yellow-gold";
+    else if (h < 90) colorName = "yellow";
+    else if (h < 120) colorName = "yellow-green";
+    else if (h < 150) colorName = "green";
+    else if (h < 180) colorName = "teal / cyan-green";
+    else if (h < 210) colorName = "cyan / aqua";
+    else if (h < 240) colorName = "blue";
+    else if (h < 270) colorName = "indigo / blue-violet";
+    else if (h < 300) colorName = "purple / violet";
+    else if (h < 330) colorName = "magenta / pink";
+    else colorName = "rose / hot pink";
+
+    // 헤어 색상 컨텍스트 매핑
+    if (h >= 15 && h < 45 && l < 40) colorName = "dark brown / chestnut";
+    if (h >= 15 && h < 45 && l >= 40 && l < 60) colorName = "warm brown / caramel";
+    if (h >= 15 && h < 45 && l >= 60) colorName = "light brown / honey blonde";
+    if (h >= 30 && h < 50 && s > 60 && l > 50) colorName = "copper / ginger";
+    if (h >= 0 && h < 20 && l < 25) colorName = "dark auburn / burgundy";
+    if (h >= 45 && h < 65 && l > 65) colorName = "golden blonde";
+    if (h >= 45 && h < 65 && l > 80) colorName = "platinum blonde";
+
+    return `${satDesc}${tone}${colorName}`;
+}
+
 // === 프롬프트 빌더 ===
 function buildHairPrompt(request: HairTransformRequest): string {
-    const { styleName, styleDescription, colorName, colorHex, colorIntensity = 70 } = request;
+    const {
+        styleName, styleDescription, colorName, colorHex,
+        colorIntensity = 85, colorSaturation, colorLightness
+    } = request;
 
     // 헤어스타일 설명
     const styleInfo = styleDescription
         ? `${styleName} - ${styleDescription}`
         : styleName;
 
-    // 색상 설명
+    // 색상 설명 — 강화된 버전
     let colorInstruction = "";
-    if (colorName && colorName !== "Original") {
-        const intensityDesc =
-            colorIntensity <= 30
-                ? "very subtle and natural"
-                : colorIntensity <= 60
-                    ? "moderate and balanced"
-                    : colorIntensity <= 80
-                        ? "vivid and noticeable"
-                        : "bold and dramatic";
+    if (colorHex && colorName && colorName !== "Original") {
+        const colorDesc = getColorDescription(colorHex);
+        const hsl = hexToHSL(colorHex);
+
+        // 채도/명도 정보 (프론트엔드에서 전달된 값 or hex에서 계산)
+        const sat = colorSaturation ?? hsl.s;
+        const light = colorLightness ?? hsl.l;
 
         colorInstruction = `
-HAIR COLOR: Apply "${colorName}" hair color${colorHex ? ` (similar to hex ${colorHex})` : ""}.
-COLOR INTENSITY: ${colorIntensity}% — the color should look ${intensityDesc}.
-The color should have natural highlights, lowlights, and depth variation to look realistic.`;
+HAIR COLOR (CRITICAL — FOLLOW EXACTLY):
+Target color: ${colorDesc}
+Exact hex code: ${colorHex}
+HSL values: Hue ${hsl.h}°, Saturation ${sat}%, Lightness ${light}%
+
+COLOR APPLICATION RULES:
+1. The ENTIRE hair must be dyed to match hex ${colorHex} as closely as possible.
+2. The overall visual impression of the hair color MUST match the target hex code — a viewer should recognize it as "${colorDesc}" hair.
+3. Color intensity: ${colorIntensity}% — ${colorIntensity >= 80 ? "the color should be STRONG, VIVID, and CLEARLY the target color with minimal natural undertone showing through" : colorIntensity >= 50 ? "the color should be clearly visible and noticeable, blending naturally with hair texture" : "the color should be subtle, like a tint or wash over the natural hair color"}.
+4. Apply the color UNIFORMLY across all hair — roots, mid-lengths, and ends should all clearly show the target color.
+5. Maintain subtle highlights and lowlights within ±10% lightness of the target color for realism, but the DOMINANT color must unmistakably be ${colorHex}.
+6. Do NOT default to brown or black — if the target is red, make it RED. If blonde, make it BLONDE. If blue, make it BLUE.
+7. The dyed color should look like a PROFESSIONAL salon color job, not a cheap wig.`;
     } else {
         colorInstruction = `
-HAIR COLOR: Keep the original natural hair color of the person.`;
+HAIR COLOR: Keep the original natural hair color of the person in the photo. Do NOT change the hair color at all.`;
     }
 
     return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
 
-TASK: Transform the hairstyle in this photo to the TARGET HAIRSTYLE below. The change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.
+TASK: Transform the hairstyle (and optionally the hair color) in this photo. The change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${colorInstruction}
@@ -87,20 +182,20 @@ PHOTO ANGLE AWARENESS (CRITICAL):
 - For 3/4 ANGLE photos: Show the hairstyle transformation on both the visible front portion and the side portion — adjust bangs, side volume, and layering visible from this angle.
 - For BACK VIEW photos: Completely transform the back hair — nape shape, back layers, length, and overall rear silhouette of the style.
 - For FRONT-FACING photos: Focus on bangs, face-framing layers, parting, crown volume, and overall front silhouette.
-- Regardless of angle, the NEW HAIRSTYLE must be OBVIOUSLY DIFFERENT from the original — change the shape, length, volume, texture, and silhouette significantly.
+- Regardless of angle, the NEW HAIRSTYLE must be OBVIOUSLY DIFFERENT from the original.
 
 MANDATORY TRANSFORMATION RULES:
-1. The hairstyle MUST look COMPLETELY DIFFERENT from the original — if the original has long straight hair and the target is a short bob, make it a SHORT BOB. Do NOT leave it looking similar to the original.
+1. The hairstyle MUST look COMPLETELY DIFFERENT from the original.
 2. Change the HAIR LENGTH to match the target style precisely.
 3. Change the HAIR VOLUME and BODY to match the target style.
 4. Change the HAIR TEXTURE (straight/wavy/curly) to match the target style.
 5. Change the HAIR SILHOUETTE and SHAPE to match the target style.
-6. The transformation should be so obvious that anyone can instantly see the hairstyle is different.
+6. The transformation should be so obvious that anyone can instantly see it.
 
 PRESERVATION RULES (do NOT change these):
-1. The person's FACE must remain 100% IDENTICAL — same eyes, nose, mouth, skin, expression, facial structure
+1. The person's FACE must remain 100% IDENTICAL — same eyes, nose, mouth, skin, expression
 2. SKIN TONE, COMPLEXION, and all FACIAL FEATURES must be completely preserved
-3. BACKGROUND must remain exactly the same — same scene, colors, objects, lighting
+3. BACKGROUND must remain exactly the same
 4. CLOTHES, ACCESSORIES, and BODY POSITION must stay unchanged
 
 QUALITY AND REALISM:
@@ -109,7 +204,7 @@ QUALITY AND REALISM:
 3. Hair should naturally follow the person's head shape
 4. Output a CRISP, HIGH-QUALITY, SHARP photograph with fine strand-level detail
 5. Maintain realistic lighting, shadows that match the original photo
-6. Hair texture, individual strands, and highlights should be photorealistic
+6. Hair texture, individual strands should be photorealistic
 7. The result should look like a PROFESSIONAL SALON PHOTOGRAPH
 
 Generate the edited photo now.`;

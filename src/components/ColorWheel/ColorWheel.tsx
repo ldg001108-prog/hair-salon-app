@@ -187,7 +187,10 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
 
             {/* 채도 슬라이더 */}
             <div className={styles.sliderRow}>
-                <label className={styles.sliderLabel}>채도</label>
+                <div className={styles.sliderHeader}>
+                    <label className={styles.sliderLabel}>채도</label>
+                    <span className={styles.sliderValue}>{saturation}%</span>
+                </div>
                 <input
                     type="range"
                     min="0"
@@ -199,12 +202,14 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                         background: `linear-gradient(90deg, hsl(${selectedHue ?? 0},0%,${lightness}%), hsl(${selectedHue ?? 0},100%,${lightness}%))`
                     }}
                 />
-                <span className={styles.sliderValue}>{saturation}%</span>
             </div>
 
             {/* 명도 슬라이더 */}
             <div className={styles.sliderRow}>
-                <label className={styles.sliderLabel}>명도</label>
+                <div className={styles.sliderHeader}>
+                    <label className={styles.sliderLabel}>명도</label>
+                    <span className={styles.sliderValue}>{lightness}%</span>
+                </div>
                 <input
                     type="range"
                     min="0"
@@ -216,7 +221,6 @@ export default function ColorWheel({ selectedColor, onColorSelect, size = 150 }:
                         background: `linear-gradient(90deg, #000, hsl(${selectedHue ?? 0},${saturation}%,50%), #fff)`
                     }}
                 />
-                <span className={styles.sliderValue}>{lightness}%</span>
             </div>
 
             {/* 리셋 버튼 */}

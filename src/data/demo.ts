@@ -34,8 +34,9 @@ export const CATEGORIES = [
     { id: "perm", label: "Perm" },
 ];
 
-// 헤어 컬러 프리셋 (빨주노초파남보금은)
+// 헤어 컬러 프리셋
 export const HAIR_COLORS = [
+    { id: "black", label: "검정", hex: "#1A1A1A" },
     { id: "red", label: "빨강", hex: "#DC2626" },
     { id: "orange", label: "주황", hex: "#EA580C" },
     { id: "yellow", label: "노랑", hex: "#EAB308" },
@@ -45,6 +46,7 @@ export const HAIR_COLORS = [
     { id: "purple", label: "보라", hex: "#7C3AED" },
     { id: "gold", label: "금색", hex: "#D4A017" },
     { id: "silver", label: "은색", hex: "#B0B0B0" },
+    { id: "white", label: "흰색", hex: "#F5F5F5" },
 ];
 
 // 데모 미용실

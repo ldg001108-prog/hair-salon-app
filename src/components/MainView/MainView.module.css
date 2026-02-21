@@ -55,7 +55,7 @@
     color: var(--accent);
 }
 
-/* ── 성별 탭 (필 형태) ── */
+/* ── 성별 탭 (동일 크기) ── */
 .genderPill {
     display: flex;
     align-self: center;
@@ -65,17 +65,20 @@
     border-radius: var(--r-full);
     padding: 3px;
     margin: var(--sp-3) var(--sp-5) 0;
+    width: calc(100% - var(--sp-5) * 2);
+    max-width: 280px;
 }
 
 .genderBtn {
     flex: 1;
-    padding: 7px 28px;
+    padding: 8px 0;
     border-radius: var(--r-full);
     font-size: var(--fs-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--tab-inactive-text);
     transition: all var(--dur-base) var(--ease-out);
     white-space: nowrap;
+    text-align: center;
 }
 
 .genderActive {
@@ -84,16 +87,41 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* ── 프리뷰 카드 ── */
-.previewSection {
-    padding: var(--sp-4) var(--sp-5);
+/* ── 구분선 ── */
+.divider {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: var(--sp-3) var(--sp-5);
+    opacity: 0.6;
 }
 
+/* ── 사진 + 컬러 2컬럼 ── */
+.uploadColorRow {
+    display: flex;
+    gap: var(--sp-3);
+    padding: 0 var(--sp-5);
+    align-items: stretch;
+}
+
+.uploadCol {
+    flex: 1;
+    min-width: 0;
+}
+
+.colorCol {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+
+/* 프리뷰 카드 (줄인 크기) */
 .previewCard {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    max-height: 340px;
     border-radius: var(--r-xl);
     overflow: hidden;
     border: 1px solid var(--border);
@@ -115,10 +143,10 @@
 
 .changePhotoBtn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 32px;
-    height: 32px;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
     border-radius: var(--r-full);
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(8px);
@@ -140,10 +168,10 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: var(--sp-3) var(--sp-4);
+    padding: var(--sp-2) var(--sp-3);
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
     color: #fff;
-    font-size: var(--fs-sm);
+    font-size: 11px;
     font-weight: 500;
 }
 
@@ -155,7 +183,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--sp-2);
+    gap: var(--sp-1);
     cursor: pointer;
     border: 2px dashed var(--upload-border);
     border-radius: var(--r-xl);
@@ -169,8 +197,8 @@
 }
 
 .uploadIcon {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--r-full);
     display: flex;
     align-items: center;
@@ -181,14 +209,16 @@
 }
 
 .uploadText {
-    font-size: var(--fs-base);
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .uploadHint {
-    font-size: var(--fs-xs);
+    font-size: 10px;
     color: var(--text-tertiary);
+    text-align: center;
+    line-height: 1.4;
 }
 
 .privacyNote {
@@ -197,98 +227,30 @@
     justify-content: center;
     font-size: 10px;
     color: var(--text-muted);
-    margin-top: 6px;
+    margin: 4px var(--sp-5) 0;
 }
 
-/* ── 카테고리 탭 ── */
-.categoryTabs {
-    display: flex;
-    gap: var(--sp-2);
-    padding: 0 var(--sp-5);
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.categoryTabs::-webkit-scrollbar {
-    display: none;
-}
-
-.catTab {
-    flex-shrink: 0;
-    padding: 6px 14px;
-    border-radius: var(--r-full);
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    color: var(--text-tertiary);
-    background: transparent;
-    transition: all var(--dur-base) var(--ease-out);
-    white-space: nowrap;
-    border: 1px solid transparent;
-}
-
-.catTabActive {
-    color: var(--accent);
-    background: var(--accent-dim);
-    border-color: var(--border-accent);
-}
-
-/* ── 컬러 선택 ── */
-.colorSection {
-    padding: var(--sp-4) var(--sp-5);
-}
-
-.colorHeader {
+/* ── 컬러 팔레트 헤더 ── */
+.colorColHeader {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--sp-3);
+    margin-bottom: 2px;
 }
 
-.sectionLabel {
+.colorColTitle {
     font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-primary);
-    display: flex;
-    align-items: center;
-}
-
-.colorHeaderActions {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-}
-
-.colorPreview {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-full);
-}
-
-.colorPreviewDot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border);
-}
-
-.colorPreviewName {
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 500;
 }
 
 .adjustBtn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 5px 10px;
+    gap: 3px;
+    padding: 4px 8px;
     border-radius: var(--r-full);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-tertiary);
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -301,36 +263,29 @@
     background: var(--accent-dim);
 }
 
-.colorPalette {
-    display: flex;
-    gap: var(--sp-2);
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.colorPalette::-webkit-scrollbar {
-    display: none;
+/* ── 컬러 그리드 (사각형) ── */
+.colorGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    flex: 1;
 }
 
 .colorChip {
-    flex-shrink: 0;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
     transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .colorChip:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
 }
 
 .colorSwatch {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -341,20 +296,30 @@
 
 .colorChipActive .colorSwatch {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-dim), var(--shadow-sm);
+    box-shadow: 0 0 0 2px var(--accent-dim), var(--shadow-sm);
 }
 
-.colorLabel {
-    font-size: 10px;
-    color: var(--text-tertiary);
+.selectedColorInfo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
     font-weight: 500;
-    white-space: nowrap;
+    padding: 4px 0;
+}
+
+.selectedColorDot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
 }
 
 /* ── 인텐시티 패널 ── */
 .intensityPanel {
-    margin-top: var(--sp-3);
-    padding: var(--sp-4);
+    margin: 0 var(--sp-5);
+    padding: var(--sp-3);
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
@@ -460,34 +425,56 @@
     margin-top: 4px;
 }
 
-/* ── 스타일 갤러리 ── */
-.styleGallery {
-    padding: var(--sp-3) 0;
-}
-
-.styleStrip {
+/* ── 카테고리 탭 ── */
+.categoryTabs {
     display: flex;
-    gap: var(--sp-3);
-    padding: var(--sp-1) var(--sp-5);
+    gap: var(--sp-2);
+    padding: 0 var(--sp-5);
     overflow-x: auto;
-    cursor: grab;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    scroll-snap-type: x proximity;
 }
 
-.styleStrip::-webkit-scrollbar {
+.categoryTabs::-webkit-scrollbar {
     display: none;
 }
 
+.catTab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: var(--r-full);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-tertiary);
+    background: transparent;
+    transition: all var(--dur-base) var(--ease-out);
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.catTabActive {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--border-accent);
+}
+
+/* ── 스타일 갤러리 (그리드 확대) ── */
+.styleGallery {
+    padding: var(--sp-3) var(--sp-5);
+    flex: 1;
+}
+
+.styleGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3);
+}
+
 .styleCard {
-    flex: 0 0 auto;
-    width: 88px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    scroll-snap-align: start;
     transition: transform var(--dur-fast) var(--ease-out);
 }
 
@@ -497,8 +484,8 @@
 
 .styleImgWrap {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    aspect-ratio: 1;
     border-radius: var(--r-lg);
     overflow: hidden;
     border: 2px solid transparent;
@@ -533,7 +520,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
+    max-width: 100%;
     text-align: center;
 }
 
@@ -571,27 +558,6 @@
     justify-content: center;
 }
 
-.pageIndicator {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin-top: var(--sp-2);
-}
-
-.dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--text-muted);
-    transition: all var(--dur-base) var(--ease-out);
-}
-
-.dotActive {
-    width: 16px;
-    border-radius: 3px;
-    background: var(--accent);
-}
-
 .emptyState {
     text-align: center;
     padding: var(--sp-8);
@@ -603,8 +569,10 @@
 .ctaWrap {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
     padding: var(--sp-4) var(--sp-5);
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--sp-4));
     background: linear-gradient(transparent, var(--bg-primary) 30%);

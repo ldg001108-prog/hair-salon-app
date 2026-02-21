@@ -45,7 +45,6 @@ export default function MainView({
     isLoading,
 }: MainViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const stripRef = useRef<HTMLDivElement>(null);
     const [activeGender, setActiveGender] = useState<"female" | "male">("female");
     const [activeCategory, setActiveCategory] = useState("best");
 
@@ -54,63 +53,11 @@ export default function MainView({
     const theme = useAppStore((s) => s.theme);
     const toggleTheme = useAppStore((s) => s.toggleTheme);
     const [showColorPicker, setShowColorPicker] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0);
 
     // 테마 초기화 (hydration 시 DOM 동기화)
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
     }, [theme]);
-
-    // 드래그 스크롤 상태
-    const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0, moved: false });
-
-    const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        const strip = stripRef.current;
-        if (!strip) return;
-        dragState.current = { isDragging: true, startX: e.pageX - strip.offsetLeft, scrollLeft: strip.scrollLeft, moved: false };
-        strip.style.cursor = 'grabbing';
-    }, []);
-
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        if (!dragState.current.isDragging) return;
-        e.preventDefault();
-        const strip = stripRef.current;
-        if (!strip) return;
-        const x = e.pageX - strip.offsetLeft;
-        const walk = (x - dragState.current.startX) * 1.5;
-        if (Math.abs(walk) > 5) dragState.current.moved = true;
-        strip.scrollLeft = dragState.current.scrollLeft - walk;
-    }, []);
-
-    const handleMouseUp = useCallback(() => {
-        dragState.current.isDragging = false;
-        const strip = stripRef.current;
-        if (strip) strip.style.cursor = 'grab';
-    }, []);
-
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        const strip = stripRef.current;
-        if (!strip) return;
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-            e.preventDefault();
-            strip.scrollLeft += e.deltaY;
-        }
-    }, []);
-
-    const handleScroll = useCallback(() => {
-        const strip = stripRef.current;
-        if (!strip || strip.scrollWidth <= strip.clientWidth) return;
-        const maxScroll = strip.scrollWidth - strip.clientWidth;
-        const progress = strip.scrollLeft / maxScroll;
-        const pages = Math.ceil(strip.children.length / 4);
-        const page = Math.min(Math.round(progress * (pages - 1)), pages - 1);
-        setCurrentPage(page);
-    }, []);
-
-    useEffect(() => {
-        if (stripRef.current) stripRef.current.scrollLeft = 0;
-        setCurrentPage(0);
-    }, [activeGender, activeCategory]);
 
     // 사진 업로드
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,7 +107,6 @@ export default function MainView({
     const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId);
     const previewImage = userPhoto;
     const canSynthesize = userPhoto && selectedStyleId;
-    const totalPages = Math.ceil(filteredStyles.length / 4);
 
     const selectedColor = selectedColorId ? HAIR_COLORS.find((c) => c.id === selectedColorId) : null;
     const previewColor = useMemo(() => {
@@ -198,7 +144,7 @@ export default function MainView({
                 </button>
             </header>
 
-            {/* ── 성별 토글 (필 형태) ── */}
+            {/* ── 성별 토글 (동일 크기) ── */}
             <nav className={styles.genderPill}>
                 {GENDERS.map((g) => (
                     <button
@@ -214,55 +160,116 @@ export default function MainView({
                 ))}
             </nav>
 
-            {/* ── 프리뷰 카드 ── */}
-            <section className={styles.previewSection}>
-                <div className={styles.previewCard}>
-                    {previewImage ? (
-                        <div className={styles.previewInner}>
-                            <img
-                                src={previewImage}
-                                alt="Preview"
-                                className={styles.previewImg}
-                            />
-                            {/* 사진 변경 버튼 */}
-                            <button
-                                className={styles.changePhotoBtn}
-                                onClick={() => onPhotoChange()}
+            {/* ── 구분선 ── */}
+            <hr className={styles.divider} />
+
+            {/* ── 사진 업로드 + 컬러 팔레트 (2컬럼) ── */}
+            <section className={styles.uploadColorRow}>
+                {/* 왼쪽: 사진 업로드 */}
+                <div className={styles.uploadCol}>
+                    <div className={styles.previewCard}>
+                        {previewImage ? (
+                            <div className={styles.previewInner}>
+                                <img
+                                    src={previewImage}
+                                    alt="Preview"
+                                    className={styles.previewImg}
+                                />
+                                <button
+                                    className={styles.changePhotoBtn}
+                                    onClick={() => onPhotoChange()}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                        <polyline points="21 3 21 9 15 9" />
+                                    </svg>
+                                </button>
+                                {selectedStyle && (
+                                    <div className={styles.styleOverlay}>
+                                        <span>✨ {selectedStyle.name}</span>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div
+                                className={styles.uploadArea}
+                                onClick={() => fileInputRef.current?.click()}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M21 12a9 9 0 11-6.219-8.56" />
-                                    <polyline points="21 3 21 9 15 9" />
-                                </svg>
-                            </button>
-                            {/* 선택된 스타일 오버레이 */}
-                            {selectedStyle && (
-                                <div className={styles.styleOverlay}>
-                                    <span>✨ {selectedStyle.name}</span>
+                                <div className={styles.uploadIcon}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                        <circle cx="12" cy="13" r="4" />
+                                    </svg>
                                 </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div
-                            className={styles.uploadArea}
-                            onClick={() => fileInputRef.current?.click()}
+                                <span className={styles.uploadText}>사진 업로드</span>
+                                <span className={styles.uploadHint}>터치하여 선택<br />Ctrl+V 붙여넣기</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 오른쪽: 컬러 팔레트 (사각형 그리드) */}
+                <div className={styles.colorCol}>
+                    <div className={styles.colorColHeader}>
+                        <span className={styles.colorColTitle}>헤어 컬러</span>
+                        <button
+                            className={`${styles.adjustBtn} ${showColorPicker ? styles.adjustBtnActive : ''}`}
+                            onClick={() => setShowColorPicker(!showColorPicker)}
                         >
-                            <div className={styles.uploadIcon}>
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                                    <circle cx="12" cy="13" r="4" />
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="4" y1="21" x2="4" y2="14" />
+                                <line x1="4" y1="10" x2="4" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12" y2="3" />
+                                <line x1="20" y1="21" x2="20" y2="16" />
+                                <line x1="20" y1="12" x2="20" y2="3" />
+                                <line x1="1" y1="14" x2="7" y2="14" />
+                                <line x1="9" y1="8" x2="15" y2="8" />
+                                <line x1="17" y1="16" x2="23" y2="16" />
+                            </svg>
+                            <span>색상 조절</span>
+                        </button>
+                    </div>
+                    <div className={styles.colorGrid}>
+                        {/* Original (색상 없음) */}
+                        <button
+                            className={`${styles.colorChip} ${!selectedColorId ? styles.colorChipActive : ""}`}
+                            onClick={() => onColorSelect(null)}
+                            title="Original"
+                        >
+                            <div className={styles.colorSwatch} style={{ background: 'var(--bg-tertiary)' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
                                 </svg>
                             </div>
-                            <span className={styles.uploadText}>사진 업로드</span>
-                            <span className={styles.uploadHint}>터치하여 선택 또는 Ctrl+V 붙여넣기</span>
+                        </button>
+                        {HAIR_COLORS.map((color) => (
+                            <button
+                                key={color.id}
+                                className={`${styles.colorChip} ${selectedColorId === color.id ? styles.colorChipActive : ""}`}
+                                onClick={() => onColorSelect(color.id)}
+                                title={color.label}
+                            >
+                                <div
+                                    className={styles.colorSwatch}
+                                    style={{
+                                        background: selectedColorId === color.id
+                                            ? `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, Math.max(colorIntensity - 20, 10))}, ${color.hex})`
+                                            : `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, 50)}, ${color.hex})`,
+                                    }}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                    {/* 선택된 색상 표시 */}
+                    {selectedColor && (
+                        <div className={styles.selectedColorInfo}>
+                            <div className={styles.selectedColorDot} style={{ background: previewColor || selectedColor.hex }} />
+                            <span>{selectedColor.label}</span>
                         </div>
                     )}
                 </div>
-                <p className={styles.privacyNote}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
-                        <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
-                    </svg>
-                    사진은 저장되지 않으며 일회성으로 사용 후 삭제됩니다
-                </p>
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -271,6 +278,54 @@ export default function MainView({
                     onChange={handleFileChange}
                 />
             </section>
+
+            {/* 인텐시티 슬라이더 (확장 시) */}
+            {showColorPicker && (
+                <div className={styles.intensityPanel}>
+                    <div className={styles.intensityHeader}>
+                        <span className={styles.intensityLabel}>색상 강도</span>
+                        <span className={styles.intensityValue}>{colorIntensity}%</span>
+                    </div>
+                    {selectedColor && (
+                        <div className={styles.gradientPreview}>
+                            <div
+                                className={styles.gradientBar}
+                                style={{ background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)}, ${selectedColor.hex})` }}
+                            />
+                            <div
+                                className={styles.gradientMarker}
+                                style={{ left: `${(colorIntensity - 10) / 90 * 100}%` }}
+                            />
+                        </div>
+                    )}
+                    <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={colorIntensity}
+                        onChange={(e) => setColorIntensity(Number(e.target.value))}
+                        className={styles.slider}
+                        style={selectedColor ? {
+                            background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)} 0%, ${selectedColor.hex} 100%)`
+                        } : {}}
+                    />
+                    <div className={styles.sliderMarks}>
+                        <span>연하게</span>
+                        <span>자연스럽게</span>
+                        <span>진하게</span>
+                    </div>
+                </div>
+            )}
+
+            <p className={styles.privacyNote}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
+                    <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
+                </svg>
+                사진은 저장되지 않으며 일회성으로 사용 후 삭제됩니다
+            </p>
+
+            {/* ── 구분선 ── */}
+            <hr className={styles.divider} />
 
             {/* ── 카테고리 탭 ── */}
             <nav className={styles.categoryTabs}>
@@ -285,184 +340,51 @@ export default function MainView({
                 ))}
             </nav>
 
-            {/* ── 컬러 선택 ── */}
-            <section className={styles.colorSection}>
-                <div className={styles.colorHeader}>
-                    <h3 className={styles.sectionLabel}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: 'middle' }}>
-                            <circle cx="12" cy="12" r="10" />
-                            <circle cx="12" cy="12" r="6" />
-                            <circle cx="12" cy="12" r="2" />
-                        </svg>
-                        Hair Color
-                    </h3>
-                    <div className={styles.colorHeaderActions}>
-                        {previewColor && (
-                            <div className={styles.colorPreview}>
-                                <div
-                                    className={styles.colorPreviewDot}
-                                    style={{ background: previewColor }}
-                                />
-                                <span className={styles.colorPreviewName}>{selectedColor?.label}</span>
-                            </div>
-                        )}
-                        <button
-                            className={`${styles.adjustBtn} ${showColorPicker ? styles.adjustBtnActive : ''}`}
-                            onClick={() => setShowColorPicker(!showColorPicker)}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="4" y1="21" x2="4" y2="14" />
-                                <line x1="4" y1="10" x2="4" y2="3" />
-                                <line x1="12" y1="21" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12" y2="3" />
-                                <line x1="20" y1="21" x2="20" y2="16" />
-                                <line x1="20" y1="12" x2="20" y2="3" />
-                                <line x1="1" y1="14" x2="7" y2="14" />
-                                <line x1="9" y1="8" x2="15" y2="8" />
-                                <line x1="17" y1="16" x2="23" y2="16" />
-                            </svg>
-                            <span>Adjust</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className={styles.colorPalette}>
-                    <button
-                        className={`${styles.colorChip} ${!selectedColorId ? styles.colorChipActive : ""}`}
-                        onClick={() => onColorSelect(null)}
-                    >
-                        <div className={styles.colorSwatch} style={{ background: 'var(--bg-tertiary)' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </div>
-                        <span className={styles.colorLabel}>Original</span>
-                    </button>
-                    {HAIR_COLORS.map((color) => (
-                        <button
-                            key={color.id}
-                            className={`${styles.colorChip} ${selectedColorId === color.id ? styles.colorChipActive : ""}`}
-                            onClick={() => onColorSelect(color.id)}
-                        >
-                            <div
-                                className={styles.colorSwatch}
-                                style={{
-                                    background: selectedColorId === color.id
-                                        ? `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, Math.max(colorIntensity - 20, 10))}, ${color.hex})`
-                                        : `radial-gradient(circle at 30% 30%, ${adjustColorIntensity(color.hex, 50)}, ${color.hex})`,
-                                }}
-                            />
-                            <span className={styles.colorLabel}>{color.label}</span>
-                        </button>
-                    ))}
-                </div>
-
-                {/* 인텐시티 슬라이더 */}
-                {showColorPicker && (
-                    <div className={styles.intensityPanel}>
-                        <div className={styles.intensityHeader}>
-                            <span className={styles.intensityLabel}>Color Intensity</span>
-                            <span className={styles.intensityValue}>{colorIntensity}%</span>
-                        </div>
-                        {selectedColor && (
-                            <div className={styles.gradientPreview}>
-                                <div
-                                    className={styles.gradientBar}
-                                    style={{ background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)}, ${selectedColor.hex})` }}
-                                />
-                                <div
-                                    className={styles.gradientMarker}
-                                    style={{ left: `${(colorIntensity - 10) / 90 * 100}%` }}
-                                />
-                            </div>
-                        )}
-                        <input
-                            type="range"
-                            min="10"
-                            max="100"
-                            value={colorIntensity}
-                            onChange={(e) => setColorIntensity(Number(e.target.value))}
-                            className={styles.slider}
-                            style={selectedColor ? {
-                                background: `linear-gradient(90deg, ${adjustColorIntensity(selectedColor.hex, 10)} 0%, ${selectedColor.hex} 100%)`
-                            } : {}}
-                        />
-                        <div className={styles.sliderMarks}>
-                            <span>Subtle</span>
-                            <span>Natural</span>
-                            <span>Vivid</span>
-                        </div>
-                    </div>
-                )}
-            </section>
-
-            {/* ── 스타일 썸네일 ── */}
+            {/* ── 스타일 갤러리 (확대) ── */}
             <section className={styles.styleGallery}>
                 {filteredStyles.length > 0 ? (
-                    <>
-                        <div
-                            className={styles.styleStrip}
-                            ref={stripRef}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                            onMouseLeave={handleMouseUp}
-                            onWheel={handleWheel}
-                            onScroll={handleScroll}
-                        >
-                            {filteredStyles.map((style) => (
-                                <button
-                                    key={style.id}
-                                    className={`${styles.styleCard} ${selectedStyleId === style.id ? styles.styleCardSelected : ""}`}
-                                    onClick={() => onStyleSelect(style.id)}
-                                >
-                                    <div className={styles.styleImgWrap}>
-                                        {style.imageUrl ? (
-                                            <img
-                                                src={style.imageUrl}
-                                                alt={style.name}
-                                                className={styles.styleImg}
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div className={styles.stylePlaceholder}>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                    <path d="M20 7h-4l-2-3H10L8 7H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
-                                                    <circle cx="12" cy="14" r="3" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                        {style.isBest && (
-                                            <span className={styles.bestBadge}>
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                                </svg>
-                                            </span>
-                                        )}
-                                        {selectedStyleId === style.id && (
-                                            <div className={styles.checkBadge}>
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="20 6 9 17 4 12" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className={styles.styleName}>{style.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                        {totalPages > 1 && (
-                            <div className={styles.pageIndicator}>
-                                {Array.from({ length: totalPages }, (_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`${styles.dot} ${i === currentPage ? styles.dotActive : ""}`}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </>
+                    <div className={styles.styleGrid}>
+                        {filteredStyles.map((style) => (
+                            <button
+                                key={style.id}
+                                className={`${styles.styleCard} ${selectedStyleId === style.id ? styles.styleCardSelected : ""}`}
+                                onClick={() => onStyleSelect(style.id)}
+                            >
+                                <div className={styles.styleImgWrap}>
+                                    {style.imageUrl ? (
+                                        <img
+                                            src={style.imageUrl}
+                                            alt={style.name}
+                                            className={styles.styleImg}
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div className={styles.stylePlaceholder}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path d="M20 7h-4l-2-3H10L8 7H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                                                <circle cx="12" cy="14" r="3" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                    {style.isBest && (
+                                        <span className={styles.bestBadge}>
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                            </svg>
+                                        </span>
+                                    )}
+                                    {selectedStyleId === style.id && (
+                                        <div className={styles.checkBadge}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+                                <span className={styles.styleName}>{style.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 ) : (
                     <div className={styles.emptyState}>
                         <p>이 카테고리에 스타일이 없습니다</p>

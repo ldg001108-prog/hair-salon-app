@@ -25,22 +25,21 @@ export default function SalonPage() {
         reset,
     } = useAppStore();
 
-    // 데모 데이터 (추후 salonId로 서버에서 가져옴)
+    // 데모 데이터
     const salon = DEMO_SALON;
     const hairstyles = DEMO_HAIRSTYLES;
 
-    // 스플래시 완료 → 메인 화면
+    // 스플래시 완료 → 메인
     const handleSplashComplete = useCallback(() => {
         setStep("main");
     }, [setStep]);
 
-    // 이미지 리사이징 유틸 (최대 1024px, 품질 0.85)
+    // 이미지 리사이징 (최대 1280px, 품질 0.85)
     const resizeImage = useCallback((dataUrl: string, maxSize: number = 1280): Promise<string> => {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
                 const { width, height } = img;
-                // 이미 충분히 작으면 그대로 반환
                 if (width <= maxSize && height <= maxSize) {
                     resolve(dataUrl);
                     return;
@@ -74,27 +73,24 @@ export default function SalonPage() {
         [setUserPhoto, resizeImage]
     );
 
-    // 사진 변경 (기존 사진 제거 → 다시 선택)
+    // 사진 변경
     const handlePhotoChange = useCallback(() => {
         setUserPhoto(null);
         setSelectedStyleId(null);
         setSelectedColorId(null);
     }, [setUserPhoto, setSelectedStyleId, setSelectedColorId]);
 
-    // 합성 실행 — Gemini AI API 호출
+    // 합성 실행 — Gemini AI API
     const handleSynthesize = useCallback(async () => {
         if (!userPhoto || !selectedStyleId) return;
 
         setIsLoading(true);
 
         try {
-            // 선택된 스타일/색상 정보 가져오기
             const style = hairstyles.find((h) => h.id === selectedStyleId);
             const color = selectedColorId
                 ? HAIR_COLORS.find((c) => c.id === selectedColorId)
                 : null;
-
-            // 앱 스토어에서 색상 강도 가져오기
             const colorIntensity = useAppStore.getState().colorIntensity ?? 70;
 
             if (!style) {
@@ -103,7 +99,6 @@ export default function SalonPage() {
                 return;
             }
 
-            // API 호출
             const response = await fetch("/api/transform", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -133,38 +128,23 @@ export default function SalonPage() {
         }
     }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColorId, hairstyles]);
 
-    // 다른 스타일 시도
-    const handleTryAnother = useCallback(() => {
+    // 다시 시도
+    const handleRetry = useCallback(() => {
         setSelectedStyleId(null);
         setSelectedColorId(null);
         setResultImage(null);
         setStep("main");
     }, [setSelectedStyleId, setSelectedColorId, setResultImage, setStep]);
 
-    // 저장
-    const handleSave = useCallback(() => {
-        const image = resultImage || userPhoto;
-        if (!image) return;
+    // 뒤로 가기
+    const handleBack = useCallback(() => {
+        setResultImage(null);
+        setStep("main");
+    }, [setResultImage, setStep]);
 
-        // 이미지 다운로드
-        const link = document.createElement("a");
-        link.href = image;
-        link.download = `hairstyle-${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }, [resultImage, userPhoto]);
-
-    // 완전 리셋
-    const handleReset = useCallback(() => {
-        reset();
-    }, [reset]);
-
-    // 선택된 스타일 정보
-    const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId);
-    const selectedColor = selectedColorId
-        ? HAIR_COLORS.find((c) => c.id === selectedColorId)
-        : null;
+    // 선택된 스타일/색상 정보
+    const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId) || null;
+    const colorIntensity = useAppStore.getState().colorIntensity ?? 70;
 
     return (
         <>
@@ -196,15 +176,15 @@ export default function SalonPage() {
             )}
 
             {/* 결과 */}
-            {step === "result" && userPhoto && (
+            {step === "result" && userPhoto && resultImage && (
                 <ResultView
-                    userPhoto={userPhoto}
                     resultImage={resultImage}
+                    userPhoto={userPhoto}
                     selectedStyle={selectedStyle}
-                    selectedColorLabel={selectedColor?.label || null}
-                    onTryAnother={handleTryAnother}
-                    onReset={handleReset}
-                    onSave={handleSave}
+                    selectedColorId={selectedColorId}
+                    colorIntensity={colorIntensity}
+                    onBack={handleBack}
+                    onRetry={handleRetry}
                 />
             )}
         </>

@@ -458,23 +458,38 @@
     border-color: var(--border-accent);
 }
 
-/* ── 스타일 갤러리 (그리드 확대) ── */
+/* ── 스타일 갤러리 (가로 스크롤) ── */
 .styleGallery {
-    padding: var(--sp-3) var(--sp-5);
+    padding: var(--sp-3) 0;
     flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .styleGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
     gap: var(--sp-3);
+    padding: var(--sp-1) var(--sp-5);
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    flex: 1;
+    align-items: stretch;
+}
+
+.styleGrid::-webkit-scrollbar {
+    display: none;
 }
 
 .styleCard {
+    flex: 0 0 auto;
+    width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    scroll-snap-align: start;
     transition: transform var(--dur-fast) var(--ease-out);
 }
 

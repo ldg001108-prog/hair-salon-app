@@ -120,6 +120,7 @@ export default function SalonPage() {
                     photo: userPhoto,
                     styleName: style.name,
                     styleDescription: style.story,
+                    category: style.category,
                     colorName: colorHex ? `Custom (${colorHex})` : undefined,
                     colorHex: colorHex,
                     colorIntensity: 85,

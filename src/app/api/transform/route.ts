@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
             colorIntensity,
             colorSaturation,
             colorLightness,
+            category,
         } = body;
 
         // 필수 파라미터 검증
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
             colorIntensity: colorIntensity ?? 85,
             colorSaturation: colorSaturation ?? undefined,
             colorLightness: colorLightness ?? undefined,
+            category: category || undefined,
         };
 
         console.log(

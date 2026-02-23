@@ -25,6 +25,8 @@ export interface HairTransformRequest {
     colorSaturation?: number;
     /** HSL 명도 0~100 */
     colorLightness?: number;
+    /** 스타일 카테고리 (short/medium/long/perm) */
+    category?: string;
 }
 
 export interface HairTransformResult {
@@ -132,13 +134,33 @@ function getColorDescription(hex: string): string {
 function buildHairPrompt(request: HairTransformRequest): string {
     const {
         styleName, styleDescription, colorName, colorHex,
-        colorIntensity = 85, colorSaturation, colorLightness
+        colorIntensity = 85, colorSaturation, colorLightness,
+        category
     } = request;
 
     // 헤어스타일 설명
     const styleInfo = styleDescription
         ? `${styleName} - ${styleDescription}`
         : styleName;
+
+    // 카테고리별 길이 정보
+    let lengthInstruction = "";
+    switch (category) {
+        case "short":
+            lengthInstruction = `\nHAIR LENGTH CATEGORY: SHORT (단발/숏컷)\nThe resulting hair MUST be SHORT — above the shoulders, typically chin-length or shorter (approximately ear to jaw length, 5~20cm).\nIf the person in the photo currently has long hair, you MUST cut it short to match the target style. Do NOT keep the original long hair length.\n`;
+            break;
+        case "medium":
+            lengthInstruction = `\nHAIR LENGTH CATEGORY: MEDIUM (중간 길이)\nThe resulting hair MUST be MEDIUM length — around shoulder-length (approximately 20~35cm, from chin to collarbone).\nIf the person currently has very short or very long hair, you MUST change the length to medium.\n`;
+            break;
+        case "long":
+            lengthInstruction = `\nHAIR LENGTH CATEGORY: LONG (긴 머리/장발)\nThe resulting hair MUST be LONG — below the shoulders, reaching chest level or longer (approximately 35~60cm+).\nCRITICAL: If the person in the photo currently has SHORT hair (above shoulders), you MUST EXTEND the hair to be LONG. This is the #1 priority. The hair MUST reach well below the shoulders. Do NOT keep the original short hair length.\n`;
+            break;
+        case "perm":
+            lengthInstruction = `\nHAIR TEXTURE CATEGORY: PERM (펌)\nThe resulting hair MUST have clear wave/curl texture as defined by the target perm style. The curls/waves should be clearly visible and well-defined.\n`;
+            break;
+        default:
+            lengthInstruction = "";
+    }
 
     // 색상 설명 — 강화된 버전
     let colorInstruction = "";
@@ -174,6 +196,7 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
 TASK: Transform ONLY the hairstyle (and optionally the hair color) in this photo. The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.
 
 TARGET HAIRSTYLE: ${styleInfo}
+${lengthInstruction}
 ${colorInstruction}
 
 PHOTO ANGLE AWARENESS (CRITICAL):
@@ -185,12 +208,14 @@ PHOTO ANGLE AWARENESS (CRITICAL):
 - Regardless of angle, the NEW HAIRSTYLE must be OBVIOUSLY DIFFERENT from the original.
 
 MANDATORY TRANSFORMATION RULES:
-1. The hairstyle MUST look COMPLETELY DIFFERENT from the original.
-2. Change the HAIR LENGTH to match the target style precisely.
-3. Change the HAIR VOLUME and BODY to match the target style.
-4. Change the HAIR TEXTURE (straight/wavy/curly) to match the target style.
-5. Change the HAIR SILHOUETTE and SHAPE to match the target style.
-6. The transformation should be so obvious that anyone can instantly see it.
+1. HAIR LENGTH CHANGE IS THE #1 PRIORITY — if the target is "long" hair, the result MUST show long hair regardless of the original photo's hair length. If the target is "short", the result MUST show short hair. NEVER keep the original hair length if it doesn't match the target.
+2. The hairstyle MUST look COMPLETELY DIFFERENT from the original.
+3. Change the HAIR LENGTH to match the target style precisely — this is NON-NEGOTIABLE.
+4. Change the HAIR VOLUME and BODY to match the target style.
+5. Change the HAIR TEXTURE (straight/wavy/curly) to match the target style.
+6. Change the HAIR SILHOUETTE and SHAPE to match the target style.
+7. The transformation should be so obvious that anyone can instantly see it.
+8. IGNORE the original hair length completely — only the TARGET style's length matters.
 
 CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 1. Apply the target hairstyle in the most STANDARD, TEXTBOOK, REPRESENTATIVE way possible.

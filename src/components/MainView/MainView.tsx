@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS } from "@/data/demo";
-import ColorWheel from "@/components/ColorWheel/ColorWheel";
+import ColorPalette from "@/components/ColorPalette/ColorPalette";
 import { useAppStore } from "@/store/useAppStore";
 
 interface MainViewProps {
@@ -207,10 +207,9 @@ export default function MainView({
                         <span className={styles.sectionIcon}>🎨</span>
                         <span className={styles.sectionTitle}>헤어 컬러</span>
                     </div>
-                    <ColorWheel
+                    <ColorPalette
                         selectedColor={selectedColor}
                         onColorSelect={onColorSelect}
-                        size={120}
                     />
                 </div>
             </div>

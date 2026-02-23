@@ -123,8 +123,14 @@
     padding: 0 var(--sp-4);
 }
 
-.uploadColorSection>.sectionCard {
-    flex: 1;
+.uploadColorSection>:first-child {
+    flex: 6;
+    min-width: 0;
+    margin: 0;
+}
+
+.uploadColorSection>:last-child {
+    flex: 4;
     min-width: 0;
     margin: 0;
 }

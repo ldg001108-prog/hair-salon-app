@@ -171,7 +171,7 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
 
     return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
 
-TASK: Transform the hairstyle (and optionally the hair color) in this photo. The change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.
+TASK: Transform ONLY the hairstyle (and optionally the hair color) in this photo. The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${colorInstruction}
@@ -192,11 +192,29 @@ MANDATORY TRANSFORMATION RULES:
 5. Change the HAIR SILHOUETTE and SHAPE to match the target style.
 6. The transformation should be so obvious that anyone can instantly see it.
 
-PRESERVATION RULES (do NOT change these):
-1. The person's FACE must remain 100% IDENTICAL — same eyes, nose, mouth, skin, expression
-2. SKIN TONE, COMPLEXION, and all FACIAL FEATURES must be completely preserved
-3. BACKGROUND must remain exactly the same
-4. CLOTHES, ACCESSORIES, and BODY POSITION must stay unchanged
+CONSISTENCY RULES (CRITICAL — for producing the same result every time):
+1. Apply the target hairstyle in the most STANDARD, TEXTBOOK, REPRESENTATIVE way possible.
+2. Do NOT add creative variations, artistic interpretations, or random styling choices.
+3. Follow the most CONVENTIONAL and TYPICAL version of the "${styleName}" hairstyle.
+4. Hair parting, bang length, layer placement should follow the CLASSIC definition of this style.
+5. Do NOT randomly change the hair parting direction or add asymmetric elements unless the style specifically requires it.
+6. The result should look the same regardless of how many times this exact style is applied to this exact photo.
+
+FACE PRESERVATION RULES (MOST CRITICAL — do NOT violate):
+1. The person's FACE must remain EXACTLY IDENTICAL to the original photo — this is the #1 priority.
+2. Do NOT alter, beautify, smooth, reshape, or enhance ANY facial features whatsoever.
+3. Keep ALL original facial characteristics: skin texture, pores, blemishes, moles, freckles, wrinkles, laugh lines, under-eye circles, facial hair — everything.
+4. SKIN TONE and COMPLEXION must be pixel-level identical to the original.
+5. Do NOT change the face shape, jawline, chin, cheekbones, or any bone structure.
+6. Do NOT enlarge or reshape eyes, nose, lips, or ears in any way.
+7. Do NOT apply any skin smoothing, whitening, or beauty filter effects.
+8. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
+9. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair."
+10. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
+
+OTHER PRESERVATION RULES:
+1. BACKGROUND must remain exactly the same
+2. CLOTHES, ACCESSORIES, and BODY POSITION must stay unchanged
 
 QUALITY AND REALISM:
 1. The hairstyle must look COMPLETELY NATURAL — NOT like a wig or Photoshop

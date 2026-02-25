@@ -368,3 +368,56 @@
         transform: translateX(-50%) translateY(0);
     }
 }
+
+/* =========================================
+   반응형 — 태블릿 (768px ~)
+   ========================================= */
+@media (min-width: 768px) {
+    .result {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .historyThumb {
+        width: 72px;
+        height: 72px;
+    }
+
+    .historyCard {
+        width: 80px;
+    }
+}
+
+/* =========================================
+   반응형 — PC / 키오스크 (1024px ~)
+   ========================================= */
+@media (min-width: 1024px) {
+    .result {
+        max-width: 960px;
+    }
+
+    .imageSection {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .historyThumb {
+        width: 80px;
+        height: 80px;
+    }
+
+    .historyCard {
+        width: 88px;
+    }
+
+    .historyLabel {
+        font-size: 10px;
+        max-width: 80px;
+    }
+
+    .actionBtn:hover {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border-color: var(--border-accent);
+    }
+}

@@ -477,3 +477,70 @@
         transform: rotate(360deg);
     }
 }
+
+/* =========================================
+   반응형 — 태블릿 (768px ~)
+   ========================================= */
+@media (min-width: 768px) {
+    .main {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .ctaWrap {
+        max-width: 720px;
+    }
+
+    .styleCard {
+        width: 150px;
+    }
+
+    .uploadMethodBtn {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+}
+
+/* =========================================
+   반응형 — PC / 키오스크 (1024px ~)
+   ========================================= */
+@media (min-width: 1024px) {
+    .main {
+        max-width: 960px;
+        gap: var(--sp-4);
+    }
+
+    .ctaWrap {
+        max-width: 960px;
+    }
+
+    /* 스타일 그리드를 wrap으로 전환 */
+    .styleGrid {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        justify-content: flex-start;
+    }
+
+    .styleCard {
+        width: 140px;
+    }
+
+    /* 업로드/컬러 2컬럼 — 5:5 비율 */
+    .uploadColorSection> :first-child {
+        flex: 5;
+    }
+
+    .uploadColorSection> :last-child {
+        flex: 5;
+    }
+
+    .previewCard {
+        aspect-ratio: 4 / 5;
+    }
+
+    .uploadMethodBtn:hover {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+    }
+}

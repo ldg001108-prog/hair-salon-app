@@ -179,7 +179,10 @@ export default function MainView({
                                 )}
                             </div>
                         ) : (
-                            <div className={styles.uploadArea}>
+                            <div
+                                className={styles.uploadArea}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
                                 <div className={styles.uploadIcon}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
@@ -187,30 +190,7 @@ export default function MainView({
                                     </svg>
                                 </div>
                                 <span className={styles.uploadText}>사진 선택</span>
-                                <div className={styles.uploadBtns}>
-                                    <button
-                                        className={styles.uploadMethodBtn}
-                                        onClick={() => cameraInputRef.current?.click()}
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                                            <circle cx="12" cy="13" r="4" />
-                                        </svg>
-                                        촬영
-                                    </button>
-                                    <button
-                                        className={styles.uploadMethodBtn}
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                            <circle cx="8.5" cy="8.5" r="1.5" />
-                                            <polyline points="21 15 16 10 5 21" />
-                                        </svg>
-                                        갤러리
-                                    </button>
-                                </div>
-                                <span className={styles.uploadHint}>Ctrl+V 붙여넣기도 가능</span>
+                                <span className={styles.uploadHint}>터치하여 선택<br />Ctrl+V 붙여넣기</span>
                             </div>
                         )}
                     </div>

@@ -11,19 +11,20 @@
 /* ── 라이트 테마 (기본) — 소프트 핑크 ~ 라벤더 ── */
 :root,
 [data-theme="light"] {
-    /* 배경 — 핑크 ~ 라벤더 파스텔 그라데이션 */
-    --bg-primary: #f5dce8;
-    --bg-secondary: #f0d0e2;
-    --bg-tertiary: #e8c4db;
-    --bg-gradient: linear-gradient(160deg,
-            #fce4ec 0%,
-            #f8d0e0 15%,
-            #f2c6dc 30%,
-            #edc4e0 45%,
-            #e6c2e8 60%,
-            #dfc0ee 75%,
-            #ddc5f2 90%,
-            #e0caf5 100%);
+    /* 배경 — 아래 따뜻한 핑크 → 중간 밝은 핑크화이트 → 위 파스텔 라벤더 */
+    --bg-primary: #f0dce8;
+    --bg-secondary: #eed4e0;
+    --bg-tertiary: #e6c8d8;
+    --bg-gradient: linear-gradient(to top,
+            #f3b5e2 0%,
+            #f6c4e4 12%,
+            #f9d6e8 25%,
+            #fce8ef 38%,
+            #fdf2f4 48%,
+            #f5eef6 58%,
+            #e8e0f4 70%,
+            #ddd6f2 82%,
+            #cccafb 100%);
     --bg-card: rgba(255, 255, 255, 0.60);
     --bg-card-hover: rgba(255, 255, 255, 0.82);
     --bg-glass: rgba(255, 255, 255, 0.45);
@@ -191,14 +192,17 @@ html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
-    background-color: var(--bg-primary);
+    /* 전체 화면 그라데이션: 아래 핑크 → 중간 밝은 핑크 → 위 파스텔 라벤더 */
+    background: var(--bg-gradient, var(--bg-primary));
+    background-attachment: fixed;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
 body {
     font-family: var(--font-primary);
     color: var(--text-primary);
-    background: var(--bg-gradient, var(--bg-primary));
-    background-attachment: fixed;
+    background: transparent;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -213,8 +217,7 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    transition: background var(--dur-slow) var(--ease-out),
-        color var(--dur-slow) var(--ease-out);
+    transition: color var(--dur-slow) var(--ease-out);
 }
 
 input,

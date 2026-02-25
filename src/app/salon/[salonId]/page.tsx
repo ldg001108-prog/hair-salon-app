@@ -23,6 +23,7 @@ export default function SalonPage() {
         setResultImage,
         isLoading,
         setIsLoading,
+        addHistory,
         reset,
     } = useAppStore();
 
@@ -144,6 +145,12 @@ export default function SalonPage() {
 
             if (data.success && data.resultImage) {
                 setResultImage(data.resultImage);
+                // 히스토리에 저장
+                addHistory({
+                    resultImage: data.resultImage,
+                    styleName: style.name,
+                    colorHex: colorHex || null,
+                });
                 setStep("result");
             } else {
                 setToastMessage(data.error || "합성에 실패했습니다. 다시 시도해주세요.");
@@ -154,7 +161,7 @@ export default function SalonPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColor, hairstyles]);
+    }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory]);
 
     // 다시 시도
     const handleRetry = useCallback(() => {

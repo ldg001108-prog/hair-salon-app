@@ -202,17 +202,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--sp-1);
-    cursor: pointer;
+    gap: var(--sp-2);
     border: 2px dashed var(--upload-border);
     border-radius: 12px;
     background: var(--upload-bg);
     transition: all var(--dur-base) var(--ease-out);
-}
-
-.uploadArea:active {
-    background: var(--accent-dim);
-    border-color: var(--accent);
 }
 
 .uploadIcon {
@@ -224,13 +218,40 @@
     justify-content: center;
     background: var(--accent-dim);
     color: var(--accent);
-    margin-bottom: var(--sp-1);
 }
 
 .uploadText {
     font-size: var(--fs-base);
     font-weight: 600;
     color: var(--text-primary);
+}
+
+/* 촬영 / 갤러리 2버튼 */
+.uploadBtns {
+    display: flex;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.uploadMethodBtn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    border-radius: var(--r-full);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1.5px solid var(--border-accent);
+    cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+}
+
+.uploadMethodBtn:active {
+    transform: scale(0.95);
+    background: var(--accent);
+    color: #fff;
 }
 
 .uploadHint {

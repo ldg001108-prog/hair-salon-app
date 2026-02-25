@@ -188,6 +188,96 @@
     border: 1.5px solid var(--border);
 }
 
+/* ── 히스토리 갤러리 ── */
+.historySection {
+    padding: var(--sp-2) var(--sp-5);
+}
+
+.historyHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sp-2);
+}
+
+.historyTitle {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.historyCount {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.historyScroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+
+.historyScroll::-webkit-scrollbar {
+    display: none;
+}
+
+.historyCard {
+    flex-shrink: 0;
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--r-lg);
+    background: var(--bg-card);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+    position: relative;
+}
+
+.historyCard:active {
+    transform: scale(0.95);
+}
+
+.historyCardActive {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+.historyThumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--r-base);
+}
+
+.historyLabel {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+}
+
+.historyColorDot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* ── 비교 토글 ── */
 .compareToggle {
     align-self: center;

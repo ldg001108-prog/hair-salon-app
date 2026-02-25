@@ -34,7 +34,6 @@ export default function MainView({
     isLoading,
 }: MainViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const cameraInputRef = useRef<HTMLInputElement>(null);
     const [activeGender, setActiveGender] = useState<"female" | "male">("female");
     const [activeCategory, setActiveCategory] = useState("best");
 
@@ -147,75 +146,60 @@ export default function MainView({
                 </nav>
             </div>
 
-            {/* ── 섹션 2: 사진 업로드 + 컬러 (2컬럼) ── */}
-            <div className={styles.uploadColorSection}>
-                {/* 왼쪽: 사진 업로드 카드 */}
-                <div className={styles.sectionCard}>
-                    <div className={styles.sectionHeader}>
-                        <span className={styles.sectionIcon}>📷</span>
-                        <span className={styles.sectionTitle}>사진 업로드</span>
-                    </div>
-                    <div className={styles.previewCard}>
-                        {previewImage ? (
-                            <div className={styles.previewInner}>
-                                <img
-                                    src={previewImage}
-                                    alt="Preview"
-                                    className={styles.previewImg}
-                                />
-                                <button
-                                    className={styles.changePhotoBtn}
-                                    onClick={() => onPhotoChange()}
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M21 12a9 9 0 11-6.219-8.56" />
-                                        <polyline points="21 3 21 9 15 9" />
-                                    </svg>
-                                </button>
-                                {selectedStyle && (
-                                    <div className={styles.styleOverlay}>
-                                        <span>✨ {selectedStyle.name}</span>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div
-                                className={styles.uploadArea}
-                                onClick={() => fileInputRef.current?.click()}
+            {/* ── 섹션 2: 사진 업로드 (전체 너비) ── */}
+            <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                    <span className={styles.sectionIcon}>📷</span>
+                    <span className={styles.sectionTitle}>사진 업로드</span>
+                </div>
+                <div className={styles.previewCard}>
+                    {previewImage ? (
+                        <div className={styles.previewInner}>
+                            <img
+                                src={previewImage}
+                                alt="Preview"
+                                className={styles.previewImg}
+                            />
+                            <button
+                                className={styles.changePhotoBtn}
+                                onClick={() => onPhotoChange()}
                             >
-                                <div className={styles.uploadIcon}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                                        <circle cx="12" cy="13" r="4" />
-                                    </svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                    <polyline points="21 3 21 9 15 9" />
+                                </svg>
+                            </button>
+                            {selectedStyle && (
+                                <div className={styles.styleOverlay}>
+                                    <span>✨ {selectedStyle.name}</span>
                                 </div>
-                                <span className={styles.uploadText}>사진 선택</span>
-                                <span className={styles.uploadHint}>터치하여 선택<br />Ctrl+V 붙여넣기</span>
+                            )}
+                        </div>
+                    ) : (
+                        <div
+                            className={styles.uploadArea}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <div className={styles.uploadIcon}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                    <circle cx="12" cy="13" r="4" />
+                                </svg>
                             </div>
-                        )}
-                    </div>
-                    <p className={styles.privacyNote}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
-                            <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
-                        </svg>
-                        사진은 저장되지 않으며 일회성으로 사용됩니다
-                    </p>
+                            <span className={styles.uploadText}>사진 선택</span>
+                            <span className={styles.uploadHint}>터치하여 선택<br />Ctrl+V 붙여넣기</span>
+                        </div>
+                    )}
                 </div>
-
-                {/* 오른쪽: 헤어 컬러 카드 */}
-                <div className={styles.sectionCard}>
-                    <div className={styles.sectionHeader}>
-                        <span className={styles.sectionIcon}>🎨</span>
-                        <span className={styles.sectionTitle}>헤어 컬러</span>
-                    </div>
-                    <ColorPalette
-                        selectedColor={selectedColor}
-                        onColorSelect={onColorSelect}
-                    />
-                </div>
+                <p className={styles.privacyNote}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
+                        <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
+                    </svg>
+                    사진은 저장되지 않으며 일회성으로 사용됩니다
+                </p>
             </div>
 
-            {/* 갤러리 선택용 */}
+            {/* 파일 선택용 */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -223,15 +207,18 @@ export default function MainView({
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
             />
-            {/* 카메라 촬영용 (모바일 전면 카메라) */}
-            <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="user"
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-            />
+
+            {/* ── 섹션 2.5: 헤어 컬러 (별도 줄) ── */}
+            <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                    <span className={styles.sectionIcon}>🎨</span>
+                    <span className={styles.sectionTitle}>헤어 컬러</span>
+                </div>
+                <ColorPalette
+                    selectedColor={selectedColor}
+                    onColorSelect={onColorSelect}
+                />
+            </div>
 
             {/* ── 섹션 3: 헤어 스타일 ── */}
             <div className={styles.sectionCard}>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { DEMO_SALON, DEMO_HAIRSTYLES } from "@/data/demo";
 import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
 import ResultView from "@/components/ResultView/ResultView";
+import LoadingOverlay from "@/components/LoadingOverlay/LoadingOverlay";
 
 export default function SalonPage() {
     // Zustand 스토어
@@ -24,6 +25,16 @@ export default function SalonPage() {
         setIsLoading,
         reset,
     } = useAppStore();
+
+    // 토스트 에러 메시지
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+    // 토스트 자동 숨김
+    useEffect(() => {
+        if (!toastMessage) return;
+        const timer = setTimeout(() => setToastMessage(null), 4000);
+        return () => clearTimeout(timer);
+    }, [toastMessage]);
 
     // 데모 데이터
     const salon = DEMO_SALON;
@@ -91,7 +102,7 @@ export default function SalonPage() {
             const colorHex = selectedColor || undefined;
 
             if (!style) {
-                alert("헤어스타일을 선택해주세요.");
+                setToastMessage("헤어스타일을 선택해주세요.");
                 setIsLoading(false);
                 return;
             }
@@ -135,11 +146,11 @@ export default function SalonPage() {
                 setResultImage(data.resultImage);
                 setStep("result");
             } else {
-                alert(data.error || "합성에 실패했습니다. 다시 시도해주세요.");
+                setToastMessage(data.error || "합성에 실패했습니다. 다시 시도해주세요.");
             }
         } catch (error) {
             console.error("[Synthesize] Error:", error);
-            alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+            setToastMessage("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
         } finally {
             setIsLoading(false);
         }
@@ -163,6 +174,9 @@ export default function SalonPage() {
 
     return (
         <>
+            {/* 풀스크린 로딩 오버레이 */}
+            <LoadingOverlay isVisible={isLoading} />
+
             {/* 스플래시 */}
             {step === "splash" && (
                 <Splash
@@ -201,6 +215,32 @@ export default function SalonPage() {
                     onBack={handleBack}
                     onRetry={handleRetry}
                 />
+            )}
+
+            {/* 토스트 에러 메시지 */}
+            {toastMessage && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: 100,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 10000,
+                        background: 'var(--text-primary)',
+                        color: 'var(--bg-primary)',
+                        padding: '12px 20px',
+                        borderRadius: 12,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        maxWidth: '80%',
+                        textAlign: 'center',
+                        animation: 'fadeIn 0.3s ease-out',
+                    }}
+                    onClick={() => setToastMessage(null)}
+                >
+                    ⚠️ {toastMessage}
+                </div>
             )}
         </>
     );

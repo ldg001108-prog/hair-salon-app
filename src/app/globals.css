@@ -8,37 +8,39 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── 라이트 테마 (기본) — 소프트 라벤더 ── */
+/* ── 라이트 테마 (기본) — 소프트 핑크 ~ 라벤더 ── */
 :root,
 [data-theme="light"] {
-    /* 배경 — 라벤더 파스텔 + 그라데이션 레이어 */
-    --bg-primary: #ede0f5;
-    --bg-secondary: #e2d1f0;
-    --bg-tertiary: #d6c2ea;
+    /* 배경 — 핑크 ~ 라벤더 파스텔 그라데이션 */
+    --bg-primary: #f5dce8;
+    --bg-secondary: #f0d0e2;
+    --bg-tertiary: #e8c4db;
     --bg-gradient: linear-gradient(160deg,
-            #f2e4fa 0%,
-            #ede0f5 20%,
-            #e4d5f0 40%,
-            #eedcf7 60%,
-            #e7d0f2 80%,
-            #f0e1f8 100%);
+            #fce4ec 0%,
+            #f8d0e0 15%,
+            #f2c6dc 30%,
+            #edc4e0 45%,
+            #e6c2e8 60%,
+            #dfc0ee 75%,
+            #ddc5f2 90%,
+            #e0caf5 100%);
     --bg-card: rgba(255, 255, 255, 0.60);
     --bg-card-hover: rgba(255, 255, 255, 0.82);
     --bg-glass: rgba(255, 255, 255, 0.45);
     --bg-glass-strong: rgba(255, 255, 255, 0.65);
 
     /* 텍스트 */
-    --text-primary: #2a1f3d;
-    --text-secondary: #524168;
-    --text-tertiary: #7e6e99;
-    --text-muted: #a99bbe;
+    --text-primary: #3d1f35;
+    --text-secondary: #6b3a5c;
+    --text-tertiary: #997089;
+    --text-muted: #b999ab;
 
-    /* 액센트 — 퍼플 */
-    --accent: #9b6bbf;
-    --accent-light: #b58ed6;
-    --accent-dim: rgba(155, 107, 191, 0.12);
-    --accent-glow: rgba(155, 107, 191, 0.22);
-    --accent-gradient: linear-gradient(135deg, #b58ed6 0%, #9b6bbf 50%, #8254a8 100%);
+    /* 액센트 — 로즈 핑크 */
+    --accent: #c06c8e;
+    --accent-light: #d48fa8;
+    --accent-dim: rgba(192, 108, 142, 0.12);
+    --accent-glow: rgba(192, 108, 142, 0.22);
+    --accent-gradient: linear-gradient(135deg, #d48fa8 0%, #c06c8e 50%, #a85578 100%);
 
     /* 상태 */
     --success: #10b981;
@@ -46,29 +48,29 @@
     --danger: #ef4444;
 
     /* 테두리 */
-    --border: rgba(155, 107, 191, 0.18);
-    --border-light: rgba(155, 107, 191, 0.08);
-    --border-accent: rgba(155, 107, 191, 0.35);
+    --border: rgba(192, 108, 142, 0.18);
+    --border-light: rgba(192, 108, 142, 0.08);
+    --border-accent: rgba(192, 108, 142, 0.35);
 
     /* 그림자 */
-    --shadow-sm: 0 1px 3px rgba(80, 50, 120, 0.10);
-    --shadow-md: 0 4px 12px rgba(80, 50, 120, 0.12);
-    --shadow-lg: 0 8px 30px rgba(80, 50, 120, 0.14);
-    --shadow-glow: 0 0 20px rgba(155, 107, 191, 0.20);
-    --shadow-glow-strong: 0 0 40px rgba(155, 107, 191, 0.30);
+    --shadow-sm: 0 1px 3px rgba(120, 50, 80, 0.10);
+    --shadow-md: 0 4px 12px rgba(120, 50, 80, 0.12);
+    --shadow-lg: 0 8px 30px rgba(120, 50, 80, 0.14);
+    --shadow-glow: 0 0 20px rgba(192, 108, 142, 0.20);
+    --shadow-glow-strong: 0 0 40px rgba(192, 108, 142, 0.30);
 
     /* 특수 */
-    --overlay-bg: rgba(237, 224, 245, 0.92);
-    --header-bg: rgba(237, 224, 245, 0.85);
+    --overlay-bg: rgba(245, 220, 232, 0.92);
+    --header-bg: rgba(245, 220, 232, 0.85);
     --input-bg: rgba(255, 255, 255, 0.55);
-    --upload-border: rgba(155, 107, 191, 0.25);
+    --upload-border: rgba(192, 108, 142, 0.25);
     --upload-bg: rgba(255, 255, 255, 0.40);
     --tab-indicator: var(--accent);
     --tab-active-text: #fff;
     --tab-active-bg: var(--accent);
     --tab-inactive-text: var(--text-secondary);
-    --slider-track: rgba(155, 107, 191, 0.15);
-    --toast-bg: rgba(42, 31, 61, 0.9);
+    --slider-track: rgba(192, 108, 142, 0.15);
+    --toast-bg: rgba(61, 31, 53, 0.9);
     --toast-text: #fff;
 
     color-scheme: light;
@@ -166,8 +168,8 @@
 
     :root,
     [data-theme="light"] {
-        --accent: color(display-p3 0.608 0.420 0.749);
-        --accent-light: color(display-p3 0.710 0.557 0.839);
+        --accent: color(display-p3 0.753 0.424 0.557);
+        --accent-light: color(display-p3 0.831 0.561 0.659);
     }
 
     [data-theme="dark"] {

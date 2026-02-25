@@ -3,6 +3,15 @@ import { persist } from "zustand/middleware";
 
 type Theme = "light" | "dark";
 
+// 합성 히스토리 항목
+export interface HistoryItem {
+    id: string;
+    resultImage: string;
+    styleName: string;
+    colorHex: string | null;
+    timestamp: number;
+}
+
 interface AppState {
     // 현재 단계
     step: "splash" | "main" | "result";
@@ -36,6 +45,11 @@ interface AppState {
     // 로딩
     isLoading: boolean;
     setIsLoading: (loading: boolean) => void;
+
+    // 합성 히스토리
+    history: HistoryItem[];
+    addHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
+    clearHistory: () => void;
 
     // 리셋
     reset: () => void;
@@ -78,6 +92,20 @@ export const useAppStore = create<AppState>()(
             isLoading: false,
             setIsLoading: (loading) => set({ isLoading: loading }),
 
+            history: [],
+            addHistory: (item) =>
+                set((state) => ({
+                    history: [
+                        {
+                            ...item,
+                            id: `h-${Date.now()}`,
+                            timestamp: Date.now(),
+                        },
+                        ...state.history,
+                    ].slice(0, 10), // 최대 10개 유지
+                })),
+            clearHistory: () => set({ history: [] }),
+
             reset: () =>
                 set({
                     step: "main",
@@ -87,6 +115,7 @@ export const useAppStore = create<AppState>()(
                     colorIntensity: 70,
                     resultImage: null,
                     isLoading: false,
+                    // history는 보존 (여러 스타일 비교 가능)
                 }),
         }),
         {

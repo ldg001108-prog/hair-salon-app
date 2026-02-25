@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./ResultView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { useAppStore } from "@/store/useAppStore";
+import type { HistoryItem } from "@/store/useAppStore";
 
 interface ResultViewProps {
     resultImage: string;
@@ -29,6 +30,7 @@ export default function ResultView({
     const [isSaved, setIsSaved] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [canShare, setCanShare] = useState(false);
+    const [activeImage, setActiveImage] = useState(resultImage);
     const containerRef = useRef<HTMLDivElement>(null);
     const isDraggingRef = useRef(false);
 
@@ -36,8 +38,9 @@ export default function ResultView({
         setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
     }, []);
     const theme = useAppStore((s) => s.theme);
+    const history = useAppStore((s) => s.history);
 
-    const displayImage = resultImage;
+    const displayImage = activeImage;
 
     // 슬라이더 로직
     const updateSlider = useCallback((clientX: number) => {
@@ -208,6 +211,41 @@ export default function ResultView({
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* 히스토리 갤러리 */}
+            {history.length > 1 && (
+                <div className={styles.historySection}>
+                    <div className={styles.historyHeader}>
+                        <span className={styles.historyTitle}>🕐 이전 결과</span>
+                        <span className={styles.historyCount}>{history.length}개</span>
+                    </div>
+                    <div className={styles.historyScroll}>
+                        {history.map((item: HistoryItem) => (
+                            <button
+                                key={item.id}
+                                className={`${styles.historyCard} ${activeImage === item.resultImage ? styles.historyCardActive : ''}`}
+                                onClick={() => {
+                                    setActiveImage(item.resultImage);
+                                    setShowCompare(false);
+                                }}
+                            >
+                                <img
+                                    src={item.resultImage}
+                                    alt={item.styleName}
+                                    className={styles.historyThumb}
+                                />
+                                <span className={styles.historyLabel}>{item.styleName}</span>
+                                {item.colorHex && (
+                                    <div
+                                        className={styles.historyColorDot}
+                                        style={{ background: item.colorHex }}
+                                    />
+                                )}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 

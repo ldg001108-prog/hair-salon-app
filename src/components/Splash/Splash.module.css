@@ -9,7 +9,7 @@
     align-items: center;
     justify-content: center;
     gap: 28px;
-    background: var(--bg-primary);
+    background: var(--bg-gradient, var(--bg-primary));
     overflow: hidden;
     cursor: pointer;
     user-select: none;

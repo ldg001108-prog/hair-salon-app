@@ -1,11 +1,12 @@
 /* ========================================
    MainView — 프리미엄 듀얼 테마
    섹션 카드 레이아웃 + 글래스모피즘
+   인라인 합성 결과 + 블러 리빌 효과
    ======================================== */
 
 .main {
     min-height: 100dvh;
-    background: var(--bg-primary);
+    background: transparent;
     display: flex;
     flex-direction: column;
     gap: var(--sp-3);
@@ -20,13 +21,12 @@
     justify-content: space-between;
     padding: var(--sp-4) var(--sp-5);
     padding-top: calc(env(safe-area-inset-top) + var(--sp-4));
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: var(--header-bg);
-    backdrop-filter: blur(20px) saturate(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(1.3);
-    border-bottom: 1px solid var(--border-light);
+    position: relative;
+    top: auto;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
 }
 
 .logo {
@@ -83,6 +83,18 @@
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.01em;
+}
+
+.resultBadge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--r-full);
+    background: var(--accent-gradient);
+    color: #fff;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 /* ── 성별 탭 (동일 크기) ── */
@@ -257,6 +269,460 @@
     margin-top: 6px;
 }
 
+/* ══════════════════════════════════════════
+   합성 결과 블러 리빌 애니메이션
+   ══════════════════════════════════════════ */
+
+@keyframes blurReveal {
+    0% {
+        filter: blur(24px);
+        opacity: 0;
+        transform: scale(1.04);
+    }
+
+    40% {
+        filter: blur(10px);
+        opacity: 0.6;
+    }
+
+    100% {
+        filter: blur(0px);
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.resultReveal {
+    animation: blurReveal 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* ══════════════════════════════════════════
+   합성 진행 단계 오버레이
+   ══════════════════════════════════════════ */
+
+.synthProcessing {
+    filter: brightness(0.6) blur(2px);
+    transition: filter 0.3s ease;
+}
+
+.synthOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 16px;
+}
+
+.synthIcon {
+    font-size: 40px;
+    animation: synthPulse 2s ease-in-out infinite;
+}
+
+@keyframes synthPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+.synthMessage {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    animation: synthFadeIn 0.4s ease-out;
+}
+
+@keyframes synthFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.synthSteps {
+    display: flex;
+    gap: 0;
+    width: 80%;
+    max-width: 260px;
+}
+
+.synthStep {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+
+.synthStepDot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease;
+    z-index: 1;
+}
+
+.synthStepActive .synthStepDot {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+    animation: synthDotPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes synthDotPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px transparent;
+    }
+}
+
+.synthStepDone .synthStepDot {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+}
+
+.synthStepLabel {
+    margin-top: 4px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+}
+
+.synthStepActive .synthStepLabel {
+    color: #fff;
+    font-weight: 600;
+}
+
+.synthStepDone .synthStepLabel {
+    color: #86efac;
+}
+
+/* 스텝 커넥터 라인 */
+.synthStep:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: calc(50% + 14px);
+    right: calc(-50% + 14px);
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 0;
+}
+
+.synthStepDone:not(:last-child)::after {
+    background: #22c55e;
+}
+
+.synthProgressBar {
+    width: 80%;
+    max-width: 260px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+}
+
+.synthProgressFill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent-gradient);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.synthProgressFill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.synthPercent {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+}
+
+/* ══════════════════════════════════════════
+   인라인 결과 액션 버튼
+   ══════════════════════════════════════════ */
+
+.resultActions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.resultActionBtn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 12px;
+    border-radius: var(--r-full);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    transition: all var(--dur-base) var(--ease-out);
+    white-space: nowrap;
+}
+
+.resultActionBtn:active {
+    transform: scale(0.95);
+}
+
+.resultActionActive {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-color: var(--border-accent);
+}
+
+.retryActionBtn {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-color: var(--border-accent);
+}
+
+/* ══════════════════════════════════════════
+   Before / After 비교 슬라이더
+   ══════════════════════════════════════════ */
+
+.compareContainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: col-resize;
+    user-select: none;
+    touch-action: none;
+}
+
+.compareImg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.beforeOverlay {
+    position: absolute;
+    inset: 0;
+}
+
+.sliderLine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    transform: translateX(-50%);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sliderHandle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.compareLabel {
+    position: absolute;
+    bottom: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+.labelBefore {
+    left: 10px;
+}
+
+.labelAfter {
+    right: 10px;
+}
+
+/* ══════════════════════════════════════════
+   후처리 컬러 조절 패널
+   ══════════════════════════════════════════ */
+
+.colorAdjustPanel {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: panelSlideIn 0.3s ease-out;
+}
+
+@keyframes panelSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.colorAdjustRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.colorAdjustRow label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    width: 30px;
+    flex-shrink: 0;
+}
+
+.colorAdjustSlider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.colorAdjustSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.colorAdjustSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.colorAdjustValue {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.colorAdjustActions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.colorResetBtn {
+    padding: 6px 14px;
+    border-radius: var(--r-full);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    transition: all var(--dur-fast) var(--ease-out);
+}
+
+.colorResetBtn:active {
+    transform: scale(0.95);
+}
+
+.colorApplyBtn {
+    padding: 6px 14px;
+    border-radius: var(--r-full);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent-gradient);
+    border: none;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--dur-fast) var(--ease-out);
+}
+
+.colorApplyBtn:active {
+    transform: scale(0.95);
+}
+
 /* ── 카테고리 탭 ── */
 .categoryTabs {
     display: flex;
@@ -419,7 +885,7 @@
     max-width: 480px;
     padding: var(--sp-4) var(--sp-5);
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--sp-4));
-    background: linear-gradient(transparent, var(--bg-primary) 30%);
+    background: linear-gradient(transparent, rgba(243, 181, 226, 0.6) 40%);
     z-index: 10;
 }
 
@@ -462,6 +928,35 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* ── 토스트 ── */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: toastIn 0.3s ease-out;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
     }
 }
 

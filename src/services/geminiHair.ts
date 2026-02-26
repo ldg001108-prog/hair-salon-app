@@ -249,8 +249,10 @@ QUALITY AND REALISM:
 5. Maintain realistic lighting, shadows that match the original photo
 6. Hair texture, individual strands should be photorealistic
 7. The result should look like a PROFESSIONAL SALON PHOTOGRAPH
+8. OUTPUT RESOLUTION MUST BE AT LEAST 2K (2048px on the longer side) — generate the HIGHEST RESOLUTION image possible
+9. Every hair strand should be individually distinguishable — no blurriness or softness
 
-Generate the edited photo now.`;
+Generate the edited photo now. Output at the MAXIMUM possible resolution.`;
 }
 
 // === 재시도 유틸 ===

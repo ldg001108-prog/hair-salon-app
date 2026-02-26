@@ -47,7 +47,7 @@ export default function Splash({
             <div className={styles.heroWrap}>
                 <div className={styles.heroGlow} />
                 <img
-                    src="/images/splash_model.png"
+                    src="/splash-model.jpg"
                     alt="AI Hair Studio"
                     className={styles.heroImage}
                 />

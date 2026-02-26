@@ -5,8 +5,6 @@ import { useAppStore } from "@/store/useAppStore";
 import { DEMO_SALON, DEMO_HAIRSTYLES } from "@/data/demo";
 import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
-import ResultView from "@/components/ResultView/ResultView";
-import LoadingOverlay from "@/components/LoadingOverlay/LoadingOverlay";
 
 export default function SalonPage() {
     // Zustand 스토어
@@ -24,7 +22,6 @@ export default function SalonPage() {
         isLoading,
         setIsLoading,
         addHistory,
-        reset,
     } = useAppStore();
 
     // 토스트 에러 메시지
@@ -46,8 +43,8 @@ export default function SalonPage() {
         setStep("main");
     }, [setStep]);
 
-    // 이미지 리사이징 (최대 1280px, 품질 0.85)
-    const resizeImage = useCallback((dataUrl: string, maxSize: number = 1280): Promise<string> => {
+    // 이미지 리사이징 (최대 2048px, 품질 0.92 — 2K 대응)
+    const resizeImage = useCallback((dataUrl: string, maxSize: number = 2048): Promise<string> => {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
@@ -66,7 +63,7 @@ export default function SalonPage() {
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, newW, newH);
-                    resolve(canvas.toDataURL("image/jpeg", 0.85));
+                    resolve(canvas.toDataURL("image/jpeg", 0.92));
                 } else {
                     resolve(dataUrl);
                 }
@@ -81,8 +78,10 @@ export default function SalonPage() {
         async (dataUrl: string) => {
             const resized = await resizeImage(dataUrl);
             setUserPhoto(resized);
+            // 새 사진 업로드 시 이전 결과 초기화
+            setResultImage(null);
         },
-        [setUserPhoto, resizeImage]
+        [setUserPhoto, setResultImage, resizeImage]
     );
 
     // 사진 변경
@@ -90,7 +89,8 @@ export default function SalonPage() {
         setUserPhoto(null);
         setSelectedStyleId(null);
         setSelectedColor(null);
-    }, [setUserPhoto, setSelectedStyleId, setSelectedColor]);
+        setResultImage(null);
+    }, [setUserPhoto, setSelectedStyleId, setSelectedColor, setResultImage]);
 
     // 합성 실행 — Gemini AI API
     const handleSynthesize = useCallback(async () => {
@@ -108,7 +108,7 @@ export default function SalonPage() {
                 return;
             }
 
-            // hex → HSL 변환 (채도/명도를 API에 전달)
+            // hex → HSL 변환
             let colorSaturation: number | undefined;
             let colorLightness: number | undefined;
             if (colorHex) {
@@ -151,7 +151,7 @@ export default function SalonPage() {
                     styleName: style.name,
                     colorHex: colorHex || null,
                 });
-                setStep("result");
+                // step은 "main"에 유지 — 인라인 결과 표시
             } else {
                 setToastMessage(data.error || "합성에 실패했습니다. 다시 시도해주세요.");
             }
@@ -161,29 +161,75 @@ export default function SalonPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [setIsLoading, setResultImage, setStep, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory]);
+    }, [setIsLoading, setResultImage, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory]);
 
-    // 다시 시도
-    const handleRetry = useCallback(() => {
-        setSelectedColor(null);
+    // 재합성 (후처리 컬러 변경)
+    const handleResynthesize = useCallback(async (newColorHex: string) => {
+        if (!userPhoto || !selectedStyleId) return;
+
+        setSelectedColor(newColorHex);
+        setIsLoading(true);
+
+        try {
+            const style = hairstyles.find((h) => h.id === selectedStyleId);
+            if (!style) {
+                setIsLoading(false);
+                return;
+            }
+
+            const r = parseInt(newColorHex.slice(1, 3), 16) / 255;
+            const g = parseInt(newColorHex.slice(3, 5), 16) / 255;
+            const b = parseInt(newColorHex.slice(5, 7), 16) / 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+            let s = 0;
+            if (max !== min) {
+                s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+            }
+
+            const response = await fetch("/api/transform", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    photo: userPhoto,
+                    styleName: style.name,
+                    styleDescription: style.story,
+                    category: style.category,
+                    colorName: `Custom (${newColorHex})`,
+                    colorHex: newColorHex,
+                    colorIntensity: 85,
+                    colorSaturation: Math.round(s * 100),
+                    colorLightness: Math.round(l * 100),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.resultImage) {
+                setResultImage(data.resultImage);
+                addHistory({
+                    resultImage: data.resultImage,
+                    styleName: style.name,
+                    colorHex: newColorHex,
+                });
+            } else {
+                setToastMessage(data.error || "재합성에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("[Resynthesize] Error:", error);
+            setToastMessage("네트워크 오류가 발생했습니다.");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [userPhoto, selectedStyleId, hairstyles, setSelectedColor, setIsLoading, setResultImage, addHistory]);
+
+    // 결과 초기화 (다시 시도)
+    const handleClearResult = useCallback(() => {
         setResultImage(null);
-        setStep("main");
-    }, [setSelectedStyleId, setSelectedColor, setResultImage, setStep]);
-
-    // 뒤로 가기
-    const handleBack = useCallback(() => {
-        setResultImage(null);
-        setStep("main");
-    }, [setResultImage, setStep]);
-
-    // 선택된 스타일/색상 정보
-    const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId) || null;
+    }, [setResultImage]);
 
     return (
         <>
-            {/* 풀스크린 로딩 오버레이 */}
-            <LoadingOverlay isVisible={isLoading} />
-
             {/* 스플래시 */}
             {step === "splash" && (
                 <Splash
@@ -194,7 +240,7 @@ export default function SalonPage() {
                 />
             )}
 
-            {/* 메인 */}
+            {/* 메인 (합성 결과도 여기서 인라인 표시) */}
             {step === "main" && (
                 <MainView
                     salonName={salon.name}
@@ -202,25 +248,15 @@ export default function SalonPage() {
                     userPhoto={userPhoto}
                     selectedStyleId={selectedStyleId}
                     selectedColor={selectedColor}
+                    resultImage={resultImage}
                     onPhotoSelect={handlePhotoSelect}
                     onPhotoChange={handlePhotoChange}
                     onStyleSelect={setSelectedStyleId}
                     onColorSelect={setSelectedColor}
                     onSynthesize={handleSynthesize}
+                    onResynthesize={handleResynthesize}
+                    onClearResult={handleClearResult}
                     isLoading={isLoading}
-                />
-            )}
-
-            {/* 결과 */}
-            {step === "result" && userPhoto && resultImage && (
-                <ResultView
-                    resultImage={resultImage}
-                    userPhoto={userPhoto}
-                    selectedStyle={selectedStyle}
-                    selectedColor={selectedColor}
-                    colorIntensity={70}
-                    onBack={handleBack}
-                    onRetry={handleRetry}
                 />
             )}
 

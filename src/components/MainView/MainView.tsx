@@ -6,6 +6,21 @@ import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS } from "@/data/demo";
 import ColorPalette from "@/components/ColorPalette/ColorPalette";
 import { useAppStore } from "@/store/useAppStore";
+import {
+    extractHairMask,
+    applyHairColor,
+    imageUrlToImageData,
+    imageDataToDataUrl,
+    type HairMaskResult,
+} from "@/services/hairColorService";
+
+// 합성 진행 단계
+const SYNTHESIS_STAGES = [
+    { id: 1, label: "분석", message: "사진을 분석하고 있어요", icon: "🔍" },
+    { id: 2, label: "변환", message: "헤어스타일을 적용 중", icon: "✂️" },
+    { id: 3, label: "보정", message: "자연스럽게 보정 중", icon: "✨" },
+    { id: 4, label: "완성", message: "거의 다 됐어요!", icon: "🎨" },
+];
 
 interface MainViewProps {
     salonName: string;
@@ -13,11 +28,14 @@ interface MainViewProps {
     userPhoto: string | null;
     selectedStyleId: string | null;
     selectedColor: string | null;
+    resultImage: string | null;
     onPhotoSelect: (dataUrl: string) => void;
     onPhotoChange: () => void;
     onStyleSelect: (id: string) => void;
     onColorSelect: (hex: string | null) => void;
     onSynthesize: () => void;
+    onResynthesize: (colorHex: string) => void;
+    onClearResult: () => void;
     isLoading: boolean;
 }
 
@@ -26,24 +44,106 @@ export default function MainView({
     userPhoto,
     selectedStyleId,
     selectedColor,
+    resultImage,
     onPhotoSelect,
     onPhotoChange,
     onStyleSelect,
     onColorSelect,
     onSynthesize,
+    onResynthesize,
+    onClearResult,
     isLoading,
 }: MainViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const styleGridRef = useRef<HTMLDivElement>(null);
     const [activeGender, setActiveGender] = useState<"female" | "male">("female");
     const [activeCategory, setActiveCategory] = useState("best");
+
+    // 합성 진행 단계 시뮬레이션
+    const [synthStage, setSynthStage] = useState(0);
+    const [synthProgress, setSynthProgress] = useState(0);
+
+    // 블러 reveal 상태
+    const [showReveal, setShowReveal] = useState(false);
+
+    // Before/After 비교 모드
+    const [showCompare, setShowCompare] = useState(false);
+    const [sliderPos, setSliderPos] = useState(50);
+    const compareRef = useRef<HTMLDivElement>(null);
+    const isDraggingRef = useRef(false);
+
+    // 실시간 머리색 변경
+    const [postColorHex, setPostColorHex] = useState<string | null>(null);
+    const [showColorAdjust, setShowColorAdjust] = useState(false);
+    const [hairMask, setHairMask] = useState<HairMaskResult | null>(null);
+    const [originalImageData, setOriginalImageData] = useState<ImageData | null>(null);
+    const [colorPreviewUrl, setColorPreviewUrl] = useState<string | null>(null);
+    const [isMaskLoading, setIsMaskLoading] = useState(false);
+    const [maskLoadMsg, setMaskLoadMsg] = useState("");
+
+    // 저장/공유 상태
+    const [isSaved, setIsSaved] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [canShare, setCanShare] = useState(false);
 
     const theme = useAppStore((s) => s.theme);
     const toggleTheme = useAppStore((s) => s.toggleTheme);
 
-    // 테마 초기화 (hydration 시 DOM 동기화)
+    // 테마 초기화
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
     }, [theme]);
+
+    // 공유 가능 여부 확인
+    useEffect(() => {
+        setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
+    }, []);
+
+    // 합성 로딩 시뮬레이션
+    useEffect(() => {
+        if (!isLoading) {
+            setSynthStage(0);
+            setSynthProgress(0);
+            return;
+        }
+
+        // 프로그레스 증가
+        const progressInterval = setInterval(() => {
+            setSynthProgress((prev) => {
+                if (prev >= 92) return prev;
+                const increment = prev < 30 ? 2 : prev < 60 ? 1.2 : prev < 80 ? 0.6 : 0.3;
+                return Math.min(prev + increment, 92);
+            });
+        }, 300);
+
+        // 단계 전환
+        const stageTimers = [
+            setTimeout(() => setSynthStage(1), 2000),
+            setTimeout(() => setSynthStage(2), 6000),
+            setTimeout(() => setSynthStage(3), 12000),
+        ];
+
+        return () => {
+            clearInterval(progressInterval);
+            stageTimers.forEach(clearTimeout);
+        };
+    }, [isLoading]);
+
+    // 결과 이미지 등장 시 블러 reveal 트리거
+    useEffect(() => {
+        if (resultImage) {
+            setShowReveal(true);
+            setIsSaved(false);
+            setShowCompare(false);
+            setShowColorAdjust(false);
+            setPostColorHex(null);
+            setColorPreviewUrl(null);
+            setHairMask(null);
+            setOriginalImageData(null);
+            const timer = setTimeout(() => setShowReveal(false), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [resultImage]);
 
     // 사진 업로드
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +183,151 @@ export default function MainView({
         return () => document.removeEventListener('paste', handlePaste);
     }, [handlePaste]);
 
+    // Before/After 슬라이더
+    const updateSlider = useCallback((clientX: number) => {
+        if (!compareRef.current) return;
+        const rect = compareRef.current.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        setSliderPos(percent);
+    }, []);
+
+    const handlePointerDown = useCallback((e: React.PointerEvent) => {
+        isDraggingRef.current = true;
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+        updateSlider(e.clientX);
+    }, [updateSlider]);
+
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDraggingRef.current) return;
+        updateSlider(e.clientX);
+    }, [updateSlider]);
+
+    const handlePointerUp = useCallback(() => {
+        isDraggingRef.current = false;
+    }, []);
+
+    // 이미지 저장
+    const handleSave = useCallback(async () => {
+        if (!resultImage) return;
+        try {
+            const response = await fetch(resultImage);
+            const blob = await response.blob();
+
+            if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+                try {
+                    const handle = await (window as unknown as { showSaveFilePicker: (opts: Record<string, unknown>) => Promise<FileSystemFileHandle> }).showSaveFilePicker({
+                        suggestedName: `hair-studio-${Date.now()}.png`,
+                        types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    setIsSaved(true);
+                    showToastMsg("이미지가 저장되었습니다");
+                    return;
+                } catch {
+                    // 사용자 취소 → fallback
+                }
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hair-studio-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            setIsSaved(true);
+            showToastMsg("이미지가 저장되었습니다");
+        } catch (err) {
+            console.error('Save failed:', err);
+        }
+    }, [resultImage]);
+
+    // 공유
+    const handleShare = useCallback(async () => {
+        if (!resultImage || !navigator.share) return;
+        try {
+            const response = await fetch(resultImage);
+            const blob = await response.blob();
+            const file = new File([blob], 'hair-studio-result.png', { type: 'image/png' });
+            await navigator.share({ title: 'AI Hair Studio 결과', files: [file] });
+        } catch {
+            // 공유 취소
+        }
+    }, [resultImage]);
+
+    // 토스트
+    const showToastMsg = (msg: string) => {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+    };
+
+    // 다시 시도
+    const handleRetry = useCallback(() => {
+        onClearResult();
+    }, [onClearResult]);
+
+    // 새 사진으로
+    const handleNewPhoto = useCallback(() => {
+        onClearResult();
+        onPhotoChange();
+    }, [onClearResult, onPhotoChange]);
+
+    // 컬러 버튼 클릭: 세그멘테이션 실행
+    const handleOpenColorAdjust = useCallback(async () => {
+        if (showColorAdjust) {
+            setShowColorAdjust(false);
+            setColorPreviewUrl(null);
+            setPostColorHex(null);
+            return;
+        }
+        setShowColorAdjust(true);
+
+        // 이미 마스크 있으면 재사용
+        if (hairMask && originalImageData) return;
+
+        if (!resultImage) return;
+        setIsMaskLoading(true);
+        try {
+            // 1) 헤어 마스크 추출
+            const mask = await extractHairMask(resultImage, setMaskLoadMsg);
+            setHairMask(mask);
+
+            // 2) 원본 이미지 데이터 추출 (마스크 크기에 맞춤)
+            const imgData = await imageUrlToImageData(resultImage, mask.width, mask.height);
+            setOriginalImageData(imgData);
+        } catch (err) {
+            console.error("Hair mask extraction failed:", err);
+            setMaskLoadMsg("머리카락 감지 실패. 다시 시도해주세요.");
+        } finally {
+            setIsMaskLoading(false);
+        }
+    }, [showColorAdjust, hairMask, originalImageData, resultImage]);
+
+    // 색상 선택 시 실시간 프리뷰
+    const handlePostColorSelect = useCallback((hex: string | null) => {
+        setPostColorHex(hex);
+        if (!hex || !hairMask || !originalImageData) {
+            setColorPreviewUrl(null);
+            return;
+        }
+        // Canvas에서 머리만 색 변경
+        const modified = applyHairColor(originalImageData, hairMask, hex, 80);
+        const dataUrl = imageDataToDataUrl(modified);
+        setColorPreviewUrl(dataUrl);
+    }, [hairMask, originalImageData]);
+
+    // 후처리 색상 재합성
+    const handleResynthesize = useCallback(() => {
+        if (!postColorHex) return;
+        onResynthesize(postColorHex);
+        setShowColorAdjust(false);
+        setColorPreviewUrl(null);
+    }, [postColorHex, onResynthesize]);
+
     // 필터링
     const genderFiltered = hairstyles.filter((h) => h.gender === activeGender);
     const filteredStyles =
@@ -93,6 +338,11 @@ export default function MainView({
     const selectedStyle = hairstyles.find((h) => h.id === selectedStyleId);
     const previewImage = userPhoto;
     const canSynthesize = userPhoto && selectedStyleId;
+
+
+
+    // 현재 합성 단계 정보
+    const currentStage = SYNTHESIS_STAGES[synthStage] || SYNTHESIS_STAGES[0];
 
     return (
         <div className={styles.main}>
@@ -146,14 +396,117 @@ export default function MainView({
                 </nav>
             </div>
 
-            {/* ── 섹션 2: 사진 업로드 (전체 너비) ── */}
+            {/* ── 섹션 2: 사진 / 합성 결과 영역 ── */}
             <div className={styles.sectionCard}>
                 <div className={styles.sectionHeader}>
-                    <span className={styles.sectionIcon}>📷</span>
-                    <span className={styles.sectionTitle}>사진 업로드</span>
+                    <span className={styles.sectionIcon}>{resultImage ? "✨" : "📷"}</span>
+                    <span className={styles.sectionTitle}>
+                        {resultImage ? "합성 결과" : "사진 업로드"}
+                    </span>
+                    {resultImage && (
+                        <div className={styles.resultBadge}>AI Generated</div>
+                    )}
                 </div>
                 <div className={styles.previewCard}>
-                    {previewImage ? (
+                    {/* === 합성 결과 표시 === */}
+                    {resultImage && !isLoading && (
+                        <>
+                            {showCompare ? (
+                                /* Before/After 비교 모드 */
+                                <div
+                                    className={styles.compareContainer}
+                                    ref={compareRef}
+                                    onPointerDown={handlePointerDown}
+                                    onPointerMove={handlePointerMove}
+                                    onPointerUp={handlePointerUp}
+                                    onPointerCancel={handlePointerUp}
+                                >
+                                    <img
+                                        src={resultImage}
+                                        alt="합성 결과"
+                                        className={styles.compareImg}
+                                        draggable={false}
+                                    />
+                                    <div
+                                        className={styles.beforeOverlay}
+                                        style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+                                    >
+                                        <img
+                                            src={userPhoto || ""}
+                                            alt="원본"
+                                            className={styles.compareImg}
+                                            draggable={false}
+                                        />
+                                    </div>
+                                    <div className={styles.sliderLine} style={{ left: `${sliderPos}%` }}>
+                                        <div className={styles.sliderHandle}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                                <polyline points="9 18 15 12 9 6" />
+                                                <polyline points="15 18 9 12 15 6" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span className={`${styles.compareLabel} ${styles.labelBefore}`}>Before</span>
+                                    <span className={`${styles.compareLabel} ${styles.labelAfter}`}>After</span>
+                                </div>
+                            ) : (
+                                /* 결과 이미지 표시 */
+                                <div className={styles.previewInner}>
+                                    <img
+                                        src={colorPreviewUrl || resultImage}
+                                        alt="합성 결과"
+                                        className={`${styles.previewImg} ${showReveal ? styles.resultReveal : ""}`}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* === 로딩 중 (합성 단계 표시) === */}
+                    {isLoading && previewImage && (
+                        <div className={styles.previewInner}>
+                            <img
+                                src={previewImage}
+                                alt="Processing"
+                                className={`${styles.previewImg} ${styles.synthProcessing}`}
+                            />
+                            <div className={styles.synthOverlay}>
+                                <div className={styles.synthIcon}>{currentStage.icon}</div>
+                                <span className={styles.synthMessage}>{currentStage.message}</span>
+                                <div className={styles.synthSteps}>
+                                    {SYNTHESIS_STAGES.map((s, idx) => (
+                                        <div
+                                            key={s.id}
+                                            className={`${styles.synthStep} ${idx === synthStage ? styles.synthStepActive
+                                                : idx < synthStage ? styles.synthStepDone : ""
+                                                }`}
+                                        >
+                                            <div className={styles.synthStepDot}>
+                                                {idx < synthStage ? (
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="20 6 9 17 4 12" />
+                                                    </svg>
+                                                ) : (
+                                                    s.id
+                                                )}
+                                            </div>
+                                            <span className={styles.synthStepLabel}>{s.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className={styles.synthProgressBar}>
+                                    <div
+                                        className={styles.synthProgressFill}
+                                        style={{ width: `${synthProgress}%` }}
+                                    />
+                                </div>
+                                <span className={styles.synthPercent}>{Math.round(synthProgress)}%</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === 사진 미리보기 (합성 전) === */}
+                    {previewImage && !resultImage && !isLoading && (
                         <div className={styles.previewInner}>
                             <img
                                 src={previewImage}
@@ -175,7 +528,10 @@ export default function MainView({
                                 </div>
                             )}
                         </div>
-                    ) : (
+                    )}
+
+                    {/* === 사진 없음 (업로드 영역) === */}
+                    {!previewImage && !isLoading && (
                         <div
                             className={styles.uploadArea}
                             onClick={() => fileInputRef.current?.click()}
@@ -191,12 +547,107 @@ export default function MainView({
                         </div>
                     )}
                 </div>
-                <p className={styles.privacyNote}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
-                        <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
-                    </svg>
-                    사진은 저장되지 않으며 일회성으로 사용됩니다
-                </p>
+
+                {/* 결과 인라인 액션 버튼들 */}
+                {resultImage && !isLoading && (
+                    <div className={styles.resultActions}>
+                        <button
+                            className={`${styles.resultActionBtn} ${showCompare ? styles.resultActionActive : ""}`}
+                            onClick={() => setShowCompare(!showCompare)}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="2" x2="12" y2="22" />
+                                <polyline points="8 6 4 12 8 18" />
+                                <polyline points="16 6 20 12 16 18" />
+                            </svg>
+                            <span>{showCompare ? "결과만" : "비교"}</span>
+                        </button>
+                        <button className={styles.resultActionBtn} onClick={handleSave}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>{isSaved ? "저장됨 ✓" : "저장"}</span>
+                        </button>
+                        {canShare && (
+                            <button className={styles.resultActionBtn} onClick={handleShare}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="18" cy="5" r="3" />
+                                    <circle cx="6" cy="12" r="3" />
+                                    <circle cx="18" cy="19" r="3" />
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                </svg>
+                                <span>공유</span>
+                            </button>
+                        )}
+                        <button
+                            className={`${styles.resultActionBtn} ${showColorAdjust ? styles.resultActionActive : ""}`}
+                            onClick={handleOpenColorAdjust}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13" />
+                            </svg>
+                            <span>컬러</span>
+                        </button>
+                        <button className={`${styles.resultActionBtn} ${styles.retryActionBtn}`} onClick={handleRetry}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                <polyline points="21 3 21 9 15 9" />
+                            </svg>
+                            <span>다시</span>
+                        </button>
+                    </div>
+                )}
+
+                {/* 실시간 머리색 변경 패널 */}
+                {showColorAdjust && resultImage && !isLoading && (
+                    <div className={styles.colorAdjustPanel}>
+                        {isMaskLoading ? (
+                            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                                <div className={styles.spinner} style={{ margin: '0 auto 8px' }} />
+                                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{maskLoadMsg}</span>
+                            </div>
+                        ) : (
+                            <>
+                                <ColorPalette
+                                    selectedColor={postColorHex}
+                                    onColorSelect={handlePostColorSelect}
+                                />
+                                {postColorHex && (
+                                    <div className={styles.colorAdjustActions}>
+                                        <button
+                                            className={styles.colorResetBtn}
+                                            onClick={() => {
+                                                setPostColorHex(null);
+                                                setColorPreviewUrl(null);
+                                            }}
+                                        >
+                                            초기화
+                                        </button>
+                                        <button
+                                            className={styles.colorApplyBtn}
+                                            onClick={handleResynthesize}
+                                        >
+                                            ✨ 이 색상으로 재합성
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {!resultImage && (
+                    <p className={styles.privacyNote}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: 'middle' }}>
+                            <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z" />
+                        </svg>
+                        사진은 저장되지 않으며 일회성으로 사용됩니다
+                    </p>
+                )}
             </div>
 
             {/* 파일 선택용 */}
@@ -208,17 +659,19 @@ export default function MainView({
                 onChange={handleFileChange}
             />
 
-            {/* ── 섹션 2.5: 헤어 컬러 (별도 줄) ── */}
-            <div className={styles.sectionCard}>
-                <div className={styles.sectionHeader}>
-                    <span className={styles.sectionIcon}>🎨</span>
-                    <span className={styles.sectionTitle}>헤어 컬러</span>
+            {/* ── 섹션 2.5: 헤어 컬러 (합성 전 선택) ── */}
+            {!resultImage && (
+                <div className={styles.sectionCard}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🎨</span>
+                        <span className={styles.sectionTitle}>헤어 컬러</span>
+                    </div>
+                    <ColorPalette
+                        selectedColor={selectedColor}
+                        onColorSelect={onColorSelect}
+                    />
                 </div>
-                <ColorPalette
-                    selectedColor={selectedColor}
-                    onColorSelect={onColorSelect}
-                />
-            </div>
+            )}
 
             {/* ── 섹션 3: 헤어 스타일 ── */}
             <div className={styles.sectionCard}>
@@ -243,7 +696,17 @@ export default function MainView({
                 {/* 스타일 갤러리 */}
                 <section className={styles.styleGallery}>
                     {filteredStyles.length > 0 ? (
-                        <div className={styles.styleGrid}>
+                        <div
+                            className={styles.styleGrid}
+                            ref={styleGridRef}
+                            onWheel={(e) => {
+                                if (!styleGridRef.current) return;
+                                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                    e.preventDefault();
+                                    styleGridRef.current.scrollLeft += e.deltaY;
+                                }
+                            }}
+                        >
                             {filteredStyles.map((style) => (
                                 <button
                                     key={style.id}
@@ -305,6 +768,14 @@ export default function MainView({
                             <>
                                 <span className={styles.spinner} /> 합성 중...
                             </>
+                        ) : resultImage ? (
+                            <>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                    <polyline points="21 3 21 9 15 9" />
+                                </svg>
+                                다른 스타일로 합성
+                            </>
                         ) : (
                             <>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
@@ -315,6 +786,11 @@ export default function MainView({
                         )}
                     </button>
                 </div>
+            )}
+
+            {/* 토스트 */}
+            {showToast && (
+                <div className={styles.toast}>이미지가 저장되었습니다</div>
             )}
         </div>
     );

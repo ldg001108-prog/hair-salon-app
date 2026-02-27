@@ -1,43 +1,60 @@
 /**
  * 실시간 머리색 변경 서비스
- * - @huggingface/transformers의 Xenova/face-parsing 모델로 헤어 영역 세그멘테이션
- * - Canvas에서 마스크된 영역만 HSL Hue 변경
+ * - Google MediaPipe @mediapipe/tasks-vision ImageSegmenter (hair_segmenter 모델)
+ * - Canvas에서 소프트 마스크 기반 HSL 색상 변경
  */
 
 // === 타입 정의 ===
 export interface HairMaskResult {
-    mask: Uint8Array; // 1 = hair, 0 = not hair
+    mask: Uint8Array; // 0~255 소프트 마스크
     width: number;
     height: number;
 }
 
-// 모델 캐시
-let segmentationPipeline: unknown = null;
+// MediaPipe 모델 캐시
+let imageSegmenter: unknown = null;
 let isModelLoading = false;
 
+// MediaPipe 모델 CDN URL
+const HAIR_MODEL_URL =
+    "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite";
+const WASM_CDN =
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm";
+
 /**
- * 세그멘테이션 모델 로드 (최초 1회)
+ * MediaPipe ImageSegmenter 모델 로드 (최초 1회)
  */
 async function loadModel() {
-    if (segmentationPipeline) return segmentationPipeline;
+    if (imageSegmenter) return imageSegmenter;
     if (isModelLoading) {
-        // 로딩 중이면 대기
         while (isModelLoading) {
             await new Promise((r) => setTimeout(r, 200));
         }
-        return segmentationPipeline;
+        return imageSegmenter;
     }
 
     isModelLoading = true;
     try {
-        // dynamic import로 클라이언트에서만 로드
-        const { pipeline } = await import("@huggingface/transformers");
-        segmentationPipeline = await pipeline(
-            "image-segmentation",
-            "Xenova/face-parsing",
-            { device: "wasm" }
+        const { ImageSegmenter, FilesetResolver } = await import(
+            "@mediapipe/tasks-vision"
         );
-        return segmentationPipeline;
+
+        const vision = await FilesetResolver.forVisionTasks(WASM_CDN);
+
+        imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
+            baseOptions: {
+                modelAssetPath: HAIR_MODEL_URL,
+                delegate: "GPU", // WebGL GPU 가속
+            },
+            outputConfidenceMasks: true,
+            outputCategoryMask: false,
+            runningMode: "IMAGE",
+        });
+
+        return imageSegmenter;
+    } catch (err) {
+        console.error("[MediaPipe] 모델 로드 실패:", err);
+        throw err;
     } finally {
         isModelLoading = false;
     }
@@ -45,70 +62,86 @@ async function loadModel() {
 
 /**
  * 모델 사전 로딩 (백그라운드에서 미리 다운로드)
- * 합성 결과가 나올 때 호출하면, 컬러 버튼 클릭 시 즉시 사용 가능
  */
 export function preloadModel() {
-    if (segmentationPipeline || isModelLoading) return;
+    if (imageSegmenter || isModelLoading) return;
     loadModel().catch(() => {
-        // 사전 로딩 실패해도 무시 (나중에 다시 시도됨)
+        // 사전 로딩 실패해도 무시
     });
 }
 
 /**
- * 이미지에서 머리카락 영역 마스크 추출
+ * 이미지에서 머리카락 영역 마스크 추출 (MediaPipe 기반)
  */
 export async function extractHairMask(
     imageDataUrl: string,
     onProgress?: (msg: string) => void
 ): Promise<HairMaskResult> {
-    onProgress?.("AI 모델 다운로드 중... (최초 1회만)");
-    const segmenter = (await loadModel()) as (
-        img: string
-    ) => Promise<Array<{ label: string; mask: { data: Float32Array; width: number; height: number } }>>;
+    onProgress?.("AI 모델 로딩 중...");
+    const segmenter = await loadModel();
 
     onProgress?.("머리카락 영역 분석 중...");
-    const results = await segmenter(imageDataUrl);
 
-    // "hair" 라벨 찾기
-    const hairResult = results.find(
-        (r) => r.label.toLowerCase() === "hair"
-    );
+    // dataURL → HTMLImageElement
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = imageDataUrl;
+    });
 
-    if (!hairResult || !hairResult.mask) {
-        throw new Error("머리카락 영역을 감지하지 못했습니다.");
-    }
+    // Canvas에 그려서 세그멘테이션 실행
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context 생성 실패");
+    ctx.drawImage(img, 0, 0);
 
-    const { data, width, height } = hairResult.mask;
+    // MediaPipe 세그멘테이션 실행
+    const segmenterTyped = segmenter as {
+        segment: (
+            image: HTMLCanvasElement,
+            callback: (result: {
+                confidenceMasks?: Array<{ getAsFloat32Array: () => Float32Array; width: number; height: number }>;
+            }) => void
+        ) => void;
+    };
 
-    // Float32 mask → Uint8 binary mask (0.3 이상이면 hair — 끝부분까지 포함)
-    const binaryMask = new Uint8Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-        binaryMask[i] = data[i] > 0.3 ? 1 : 0;
-    }
-
-    // 마스크 팽창 (dilate) — 경계 머리카락이 빠지지 않도록 2px 확장
-    const dilated = new Uint8Array(binaryMask);
-    for (let pass = 0; pass < 2; pass++) {
-        const src = pass === 0 ? binaryMask : new Uint8Array(dilated);
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < width - 1; x++) {
-                const idx = y * width + x;
-                if (src[idx] === 1) continue;
-                // 상하좌우 중 하나라도 hair면 확장
-                if (
-                    src[idx - 1] === 1 ||
-                    src[idx + 1] === 1 ||
-                    src[idx - width] === 1 ||
-                    src[idx + width] === 1
-                ) {
-                    dilated[idx] = 1;
+    const result = await new Promise<HairMaskResult>((resolve, reject) => {
+        try {
+            segmenterTyped.segment(canvas, (segResult) => {
+                const masks = segResult.confidenceMasks;
+                if (!masks || masks.length === 0) {
+                    reject(new Error("머리카락 영역을 감지하지 못했습니다."));
+                    return;
                 }
-            }
+
+                // hair_segmenter 모델: masks[0]=배경, masks[1]=머리카락
+                // 마스크가 1개만 있으면 그걸 사용, 2개 이상이면 마지막(=hair)
+                const hairMask = masks.length >= 2 ? masks[1] : masks[masks.length - 1];
+                const floatData = hairMask.getAsFloat32Array();
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Float32(0~1) → Uint8(0~255) 소프트 마스크
+                const softMask = new Uint8Array(floatData.length);
+                for (let i = 0; i < floatData.length; i++) {
+                    softMask[i] = Math.round(
+                        Math.min(1, Math.max(0, floatData[i])) * 255
+                    );
+                }
+
+                resolve({ mask: softMask, width, height });
+            });
+        } catch (err) {
+            reject(err);
         }
-    }
+    });
 
     onProgress?.("완료!");
-    return { mask: dilated, width, height };
+    return result;
 }
 
 // === RGB ↔ HSL 변환 유틸리티 ===
@@ -181,7 +214,8 @@ function hexToHsl(hex: string): [number, number, number] {
 
 /**
  * 머리카락 영역만 색상 변경 (Canvas 기반, 실시간)
- * Hue를 목표 색상으로 직접 교체하고, 원본의 Lightness를 유지하여 질감 보존
+ * - 소프트 마스크(0~255)를 사용하여 경계를 자연스럽게 블렌딩
+ * - 항상 원본 이미지 데이터를 기준으로 적용
  */
 export function applyHairColor(
     originalImageData: ImageData,
@@ -189,7 +223,7 @@ export function applyHairColor(
     targetColorHex: string,
     intensity: number = 85
 ): ImageData {
-    const [targetH, targetS] = hexToHsl(targetColorHex);
+    const [targetH, targetS, targetL] = hexToHsl(targetColorHex);
     const { mask, width, height } = hairMask;
     const result = new ImageData(
         new Uint8ClampedArray(originalImageData.data),
@@ -200,27 +234,32 @@ export function applyHairColor(
     const blend = intensity / 100;
 
     for (let i = 0; i < mask.length; i++) {
-        if (mask[i] === 0) continue; // 머리카락 아님
+        if (mask[i] === 0) continue;
+
+        const maskAlpha = mask[i] / 255; // 0~1 소프트 마스크
+        const effectiveBlend = blend * maskAlpha;
 
         const idx = i * 4;
         const r = pixels[idx];
         const g = pixels[idx + 1];
         const b = pixels[idx + 2];
 
-        // RGB → HSL
         const [, origS, origL] = rgbToHsl(r, g, b);
 
-        // Hue: 목표 색상으로 직접 교체 (블렌딩 X, 정확한 색 적용)
+        // Hue: 목표 색상으로 직접 교체
         const newH = targetH;
         // Saturation: 목표 채도와 원본 채도를 블렌딩
-        const newS = Math.min(100, targetS * blend + origS * (1 - blend));
-        // Lightness: 원본 유지 (질감, 그림자, 하이라이트 보존)
-        const newL = origL;
+        const newS = Math.min(100, targetS * effectiveBlend + origS * (1 - effectiveBlend));
+        // Lightness: 목표 밝기 방향으로 약간 당기되, 원본 질감 유지
+        const lightBias = 0.15;
+        const newL = origL * (1 - lightBias * effectiveBlend) + targetL * (lightBias * effectiveBlend);
 
         const [newR, newG, newB] = hslToRgb(newH, newS, newL);
-        pixels[idx] = newR;
-        pixels[idx + 1] = newG;
-        pixels[idx + 2] = newB;
+
+        // 소프트 마스크 알파 블렌딩
+        pixels[idx] = Math.round(newR * effectiveBlend + r * (1 - effectiveBlend));
+        pixels[idx + 1] = Math.round(newG * effectiveBlend + g * (1 - effectiveBlend));
+        pixels[idx + 2] = Math.round(newB * effectiveBlend + b * (1 - effectiveBlend));
     }
 
     return result;

@@ -81,6 +81,8 @@ export default function MainView({
     const [colorPreviewUrl, setColorPreviewUrl] = useState<string | null>(null);
     const [isMaskLoading, setIsMaskLoading] = useState(false);
     const [maskLoadMsg, setMaskLoadMsg] = useState("");
+    // 재합성(색상 변경) 시 마스크/원본 보존용 플래그
+    const isResynthRef = useRef(false);
 
     // 저장/공유 상태
     const [isSaved, setIsSaved] = useState(false);
@@ -199,8 +201,12 @@ export default function MainView({
             setShowColorAdjust(false);
             setPostColorHex(null);
             setColorPreviewUrl(null);
-            setHairMask(null);
-            setOriginalImageData(null);
+            // 재합성(색상 변경)이면 기존 마스크/원본 유지 → 엉뚱한 색 방지
+            if (!isResynthRef.current) {
+                setHairMask(null);
+                setOriginalImageData(null);
+            }
+            isResynthRef.current = false;
             const timer = setTimeout(() => setShowReveal(false), 1500);
             return () => clearTimeout(timer);
         }
@@ -381,9 +387,10 @@ export default function MainView({
         setColorPreviewUrl(dataUrl);
     }, [hairMask, originalImageData]);
 
-    // 후처리 색상 재합성
+    // 후처리 색상 재합성 — 마스크 보존 플래그 설정
     const handleResynthesize = useCallback(() => {
         if (!postColorHex) return;
+        isResynthRef.current = true; // 재합성이므로 마스크 보존
         onResynthesize(postColorHex);
         setShowColorAdjust(false);
         setColorPreviewUrl(null);

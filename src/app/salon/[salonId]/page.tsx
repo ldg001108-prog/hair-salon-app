@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { DEMO_SALON, DEMO_HAIRSTYLES } from "@/data/demo";
+import { preloadModel } from "@/services/hairColorService";
 import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
 
@@ -22,6 +23,8 @@ export default function SalonPage() {
         isLoading,
         setIsLoading,
         addHistory,
+        incrementApiCall,
+        addErrorLog,
     } = useAppStore();
 
     // 토스트 에러 메시지
@@ -145,23 +148,27 @@ export default function SalonPage() {
 
             if (data.success && data.resultImage) {
                 setResultImage(data.resultImage);
-                // 히스토리에 저장
+                incrementApiCall(true);
+                preloadModel(); // 백그라운드에서 머리색 AI 모델 사전 로딩
                 addHistory({
                     resultImage: data.resultImage,
                     styleName: style.name,
                     colorHex: colorHex || null,
                 });
-                // step은 "main"에 유지 — 인라인 결과 표시
             } else {
+                incrementApiCall(false);
+                addErrorLog(data.error || "합성 실패", "handleSynthesize");
                 setToastMessage(data.error || "합성에 실패했습니다. 다시 시도해주세요.");
             }
         } catch (error) {
             console.error("[Synthesize] Error:", error);
+            incrementApiCall(false);
+            addErrorLog(String(error), "handleSynthesize/network");
             setToastMessage("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
         } finally {
             setIsLoading(false);
         }
-    }, [setIsLoading, setResultImage, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory]);
+    }, [setIsLoading, setResultImage, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory, incrementApiCall, addErrorLog]);
 
     // 재합성 (후처리 컬러 변경)
     const handleResynthesize = useCallback(async (newColorHex: string) => {
@@ -207,21 +214,26 @@ export default function SalonPage() {
 
             if (data.success && data.resultImage) {
                 setResultImage(data.resultImage);
+                incrementApiCall(true);
                 addHistory({
                     resultImage: data.resultImage,
                     styleName: style.name,
                     colorHex: newColorHex,
                 });
             } else {
+                incrementApiCall(false);
+                addErrorLog(data.error || "재합성 실패", "handleResynthesize");
                 setToastMessage(data.error || "재합성에 실패했습니다.");
             }
         } catch (error) {
             console.error("[Resynthesize] Error:", error);
+            incrementApiCall(false);
+            addErrorLog(String(error), "handleResynthesize/network");
             setToastMessage("네트워크 오류가 발생했습니다.");
         } finally {
             setIsLoading(false);
         }
-    }, [userPhoto, selectedStyleId, hairstyles, setSelectedColor, setIsLoading, setResultImage, addHistory]);
+    }, [userPhoto, selectedStyleId, hairstyles, setSelectedColor, setIsLoading, setResultImage, addHistory, incrementApiCall, addErrorLog]);
 
     // 결과 초기화 (다시 시도)
     const handleClearResult = useCallback(() => {

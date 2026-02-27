@@ -44,6 +44,17 @@ async function loadModel() {
 }
 
 /**
+ * 모델 사전 로딩 (백그라운드에서 미리 다운로드)
+ * 합성 결과가 나올 때 호출하면, 컬러 버튼 클릭 시 즉시 사용 가능
+ */
+export function preloadModel() {
+    if (segmentationPipeline || isModelLoading) return;
+    loadModel().catch(() => {
+        // 사전 로딩 실패해도 무시 (나중에 다시 시도됨)
+    });
+}
+
+/**
  * 이미지에서 머리카락 영역 마스크 추출
  */
 export async function extractHairMask(
@@ -69,14 +80,35 @@ export async function extractHairMask(
 
     const { data, width, height } = hairResult.mask;
 
-    // Float32 mask → Uint8 binary mask (0.5 이상이면 hair)
+    // Float32 mask → Uint8 binary mask (0.3 이상이면 hair — 끝부분까지 포함)
     const binaryMask = new Uint8Array(data.length);
     for (let i = 0; i < data.length; i++) {
-        binaryMask[i] = data[i] > 0.5 ? 1 : 0;
+        binaryMask[i] = data[i] > 0.3 ? 1 : 0;
+    }
+
+    // 마스크 팽창 (dilate) — 경계 머리카락이 빠지지 않도록 2px 확장
+    const dilated = new Uint8Array(binaryMask);
+    for (let pass = 0; pass < 2; pass++) {
+        const src = pass === 0 ? binaryMask : new Uint8Array(dilated);
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const idx = y * width + x;
+                if (src[idx] === 1) continue;
+                // 상하좌우 중 하나라도 hair면 확장
+                if (
+                    src[idx - 1] === 1 ||
+                    src[idx + 1] === 1 ||
+                    src[idx - width] === 1 ||
+                    src[idx + width] === 1
+                ) {
+                    dilated[idx] = 1;
+                }
+            }
+        }
     }
 
     onProgress?.("완료!");
-    return { mask: binaryMask, width, height };
+    return { mask: dilated, width, height };
 }
 
 // === RGB ↔ HSL 변환 유틸리티 ===

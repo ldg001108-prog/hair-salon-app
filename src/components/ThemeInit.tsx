@@ -1,5 +1,5 @@
 // 테마 초기화 스크립트 — FOUC (Flash of Unstyled Content) 방지
-// localStorage에서 테마를 읽어 data-theme 속성을 즉시 설정
+// localStorage에서 Zustand persist 스토어의 테마를 읽어 data-theme 속성을 즉시 설정
 
 export function ThemeInitScript() {
     const script = `
@@ -7,8 +7,8 @@ export function ThemeInitScript() {
         try {
             var stored = localStorage.getItem('hair-studio-storage');
             if (stored) {
-                var parsed = JSON.parse(JSON.parse(stored).state || '{}');
-                var theme = parsed.theme || 'light';
+                var data = JSON.parse(stored);
+                var theme = (data.state && data.state.theme) || 'light';
                 document.documentElement.setAttribute('data-theme', theme);
             } else {
                 document.documentElement.setAttribute('data-theme', 'light');

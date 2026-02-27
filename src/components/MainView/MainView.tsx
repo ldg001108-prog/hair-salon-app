@@ -5,6 +5,7 @@ import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS } from "@/data/demo";
 import ColorPalette from "@/components/ColorPalette/ColorPalette";
+import AdminPanel from "@/components/AdminPanel/AdminPanel";
 import { useAppStore } from "@/store/useAppStore";
 import {
     extractHairMask,
@@ -89,6 +90,44 @@ export default function MainView({
     const theme = useAppStore((s) => s.theme);
     const toggleTheme = useAppStore((s) => s.toggleTheme);
 
+    // 관리자 모드 (로고 5탭)
+    const [showAdmin, setShowAdmin] = useState(false);
+    const logoTapRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({
+        count: 0,
+        timer: null,
+    });
+
+    const handleLogoTap = useCallback(() => {
+        const tap = logoTapRef.current;
+        tap.count++;
+        if (tap.timer) clearTimeout(tap.timer);
+        if (tap.count >= 5) {
+            tap.count = 0;
+            const pw = prompt("관리자 비밀번호를 입력하세요:");
+            if (pw !== null && pw !== "") {
+                // 서버 API로 비밀번호 검증
+                fetch("/api/admin", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: pw }),
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (data.success) {
+                            setShowAdmin(true);
+                        } else {
+                            alert(data.error || "비밀번호가 틀렸습니다.");
+                        }
+                    })
+                    .catch(() => {
+                        alert("서버 연결에 실패했습니다.");
+                    });
+            }
+        } else {
+            tap.timer = setTimeout(() => { tap.count = 0; }, 3000);
+        }
+    }, []);
+
     // 테마 초기화
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
@@ -128,6 +167,28 @@ export default function MainView({
             stageTimers.forEach(clearTimeout);
         };
     }, [isLoading]);
+
+    // 합성 결과 나오면 → 백그라운드에서 마스크 사전 추출
+    useEffect(() => {
+        if (!resultImage || hairMask) return;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const mask = await extractHairMask(resultImage);
+                if (cancelled) return;
+                setHairMask(mask);
+
+                const imgData = await imageUrlToImageData(resultImage, mask.width, mask.height);
+                if (cancelled) return;
+                setOriginalImageData(imgData);
+            } catch {
+                // 사전 추출 실패해도 무시 (컬러 클릭 시 다시 시도됨)
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [resultImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 결과 이미지 등장 시 블러 reveal 트리거
     useEffect(() => {
@@ -348,7 +409,7 @@ export default function MainView({
         <div className={styles.main}>
             {/* ── 헤더 ── */}
             <header className={styles.header}>
-                <h1 className={styles.logo}>AI Hair Studio</h1>
+                <h1 className={styles.logo} onClick={handleLogoTap} style={{ cursor: 'default', userSelect: 'none' }}>AI Hair Studio</h1>
                 <button
                     className={styles.themeToggle}
                     onClick={toggleTheme}
@@ -792,6 +853,9 @@ export default function MainView({
             {showToast && (
                 <div className={styles.toast}>이미지가 저장되었습니다</div>
             )}
+
+            {/* 관리자 패널 */}
+            {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
         </div>
     );
 }

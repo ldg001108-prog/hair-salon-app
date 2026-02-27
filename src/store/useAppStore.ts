@@ -12,6 +12,23 @@ export interface HistoryItem {
     timestamp: number;
 }
 
+// API 통계
+export interface ApiStats {
+    totalCalls: number;
+    successCount: number;
+    failCount: number;
+    todayCalls: number;
+    todayDate: string; // YYYY-MM-DD
+}
+
+// 에러 로그
+export interface ErrorLog {
+    id: string;
+    message: string;
+    timestamp: number;
+    context?: string;
+}
+
 interface AppState {
     // 현재 단계
     step: "splash" | "main" | "result";
@@ -50,6 +67,16 @@ interface AppState {
     history: HistoryItem[];
     addHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
     clearHistory: () => void;
+
+    // API 통계
+    apiStats: ApiStats;
+    incrementApiCall: (success: boolean) => void;
+    resetApiStats: () => void;
+
+    // 에러 로그
+    errorLogs: ErrorLog[];
+    addErrorLog: (message: string, context?: string) => void;
+    clearErrorLogs: () => void;
 
     // 리셋
     reset: () => void;
@@ -106,6 +133,55 @@ export const useAppStore = create<AppState>()(
                 })),
             clearHistory: () => set({ history: [] }),
 
+            // API 통계
+            apiStats: {
+                totalCalls: 0,
+                successCount: 0,
+                failCount: 0,
+                todayCalls: 0,
+                todayDate: new Date().toISOString().slice(0, 10),
+            },
+            incrementApiCall: (success) =>
+                set((state) => {
+                    const today = new Date().toISOString().slice(0, 10);
+                    const isNewDay = state.apiStats.todayDate !== today;
+                    return {
+                        apiStats: {
+                            totalCalls: state.apiStats.totalCalls + 1,
+                            successCount: state.apiStats.successCount + (success ? 1 : 0),
+                            failCount: state.apiStats.failCount + (success ? 0 : 1),
+                            todayCalls: isNewDay ? 1 : state.apiStats.todayCalls + 1,
+                            todayDate: today,
+                        },
+                    };
+                }),
+            resetApiStats: () =>
+                set({
+                    apiStats: {
+                        totalCalls: 0,
+                        successCount: 0,
+                        failCount: 0,
+                        todayCalls: 0,
+                        todayDate: new Date().toISOString().slice(0, 10),
+                    },
+                }),
+
+            // 에러 로그
+            errorLogs: [],
+            addErrorLog: (message, context) =>
+                set((state) => ({
+                    errorLogs: [
+                        {
+                            id: `e-${Date.now()}`,
+                            message,
+                            timestamp: Date.now(),
+                            context,
+                        },
+                        ...state.errorLogs,
+                    ].slice(0, 20),
+                })),
+            clearErrorLogs: () => set({ errorLogs: [] }),
+
             reset: () =>
                 set({
                     step: "main",
@@ -115,13 +191,15 @@ export const useAppStore = create<AppState>()(
                     colorIntensity: 70,
                     resultImage: null,
                     isLoading: false,
-                    // history는 보존 (여러 스타일 비교 가능)
                 }),
         }),
         {
             name: "hair-studio-storage",
-            // 테마만 persist (사진/스타일은 세션 한정)
-            partialize: (state) => ({ theme: state.theme }),
+            partialize: (state) => ({
+                theme: state.theme,
+                apiStats: state.apiStats,
+                errorLogs: state.errorLogs,
+            }),
         }
     )
 );

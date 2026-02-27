@@ -2,14 +2,42 @@
  * POST /api/transform
  * 사용자 사진의 헤어스타일을 AI로 변환하는 API Route
  * - API Key는 서버 사이드에서만 사용 (클라이언트 노출 방지)
+ * - IP 기반 Rate Limiting 적용
+ * - Supabase 합성 로그 저장
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { transformHair, HairTransformRequest } from "@/services/geminiHair";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { logSynthesis } from "@/lib/getSalonData";
 
 // POST 요청 핸들러
 export async function POST(request: NextRequest) {
     try {
+        // 클라이언트 IP 추출
+        const ip =
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            request.headers.get("x-real-ip") ||
+            "unknown";
+
+        // Rate Limit 체크 (프로덕션에서만 적용, 개발 환경은 무제한)
+        const isDev = process.env.NODE_ENV === "development";
+        const rateResult = isDev ? { allowed: true, remaining: 999, resetAt: 0, retryAfterSec: 0 } : checkRateLimit(ip);
+        if (!rateResult.allowed) {
+            const msg =
+                rateResult.limitType === "daily"
+                    ? `일일 사용 횟수를 초과했습니다. 내일 다시 이용해주세요.`
+                    : `잠시 후 다시 시도해주세요. (${rateResult.retryAfterSec}초 후 가능)`;
+
+            return NextResponse.json(
+                { success: false, error: msg, retryAfterSec: rateResult.retryAfterSec },
+                {
+                    status: 429,
+                    headers: { "Retry-After": String(rateResult.retryAfterSec) },
+                }
+            );
+        }
+
         // API Key 확인
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
@@ -34,6 +62,7 @@ export async function POST(request: NextRequest) {
             colorSaturation,
             colorLightness,
             category,
+            salonId,
         } = body;
 
         // 필수 파라미터 검증
@@ -65,16 +94,31 @@ export async function POST(request: NextRequest) {
         };
 
         console.log(
-            `[Transform API] 요청: 스타일="${styleName}", 색상="${colorName || "Original"}", hex=${colorHex || "none"}, 강도=${colorIntensity ?? 85}%`
+            `[Transform API] 요청: 스타일="${styleName}", 색상="${colorName || "Original"}", hex=${colorHex || "none"}, 강도=${colorIntensity ?? 85}%, IP=${ip}`
         );
 
+        const startTime = Date.now();
         const result = await transformHair(apiKey, transformRequest);
+        const durationMs = Date.now() - startTime;
+
+        // Supabase에 합성 로그 저장 (비동기, 실패해도 무시)
+        logSynthesis({
+            salonId: salonId || "demo",
+            styleName,
+            colorHex: colorHex || undefined,
+            success: result.success,
+            errorMessage: result.success ? undefined : result.error,
+            durationMs,
+            clientIp: ip,
+            userAgent: request.headers.get("user-agent") || undefined,
+        });
 
         if (result.success) {
-            console.log("[Transform API] ✅ 합성 성공");
+            console.log(`[Transform API] ✅ 합성 성공 (${durationMs}ms)`);
             return NextResponse.json({
                 success: true,
                 resultImage: result.resultImage,
+                remaining: rateResult.remaining,
             });
         } else {
             console.log(`[Transform API] ❌ 합성 실패: ${result.error}`);

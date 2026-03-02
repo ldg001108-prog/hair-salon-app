@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.gitignore
+.vercel
+*.md
+.env*
+!.env.example
+Gemini_Generated_Image_*

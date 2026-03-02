@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
-import { DEMO_SALON, DEMO_HAIRSTYLES } from "@/data/demo";
+import { DEMO_SALON, DEMO_HAIRSTYLES, type Salon, type Hairstyle } from "@/data/demo";
 import { preloadModel } from "@/services/hairColorService";
 import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
 
 export default function SalonPage() {
+    const params = useParams();
+    const salonId = (params?.salonId as string) || "demo";
+
     // Zustand 스토어
     const {
         step,
@@ -27,6 +31,46 @@ export default function SalonPage() {
         addErrorLog,
     } = useAppStore();
 
+    // 살롱 데이터 (동적 로드)
+    const [salon, setSalon] = useState<Salon>(DEMO_SALON);
+    const [hairstyles, setHairstyles] = useState<Hairstyle[]>(DEMO_HAIRSTYLES);
+    const [dataLoaded, setDataLoaded] = useState(false);
+
+    // 살롱 데이터 로드
+    useEffect(() => {
+        async function loadSalonData() {
+            try {
+                // API에서 살롱 정보 + 스타일 로드
+                const [salonRes, stylesRes] = await Promise.all([
+                    fetch(`/api/salon/${salonId}`).then(r => r.json()).catch(() => null),
+                    fetch(`/api/admin/styles?salonId=${salonId}`).then(r => r.json()).catch(() => null),
+                ]);
+
+                // 살롱 정보가 있으면 적용
+                if (salonRes?.success && salonRes.salon) {
+                    setSalon(salonRes.salon);
+                    // 동적 테마 컬러 CSS 변수 설정
+                    const tc = salonRes.salon.themeColor || "#2563EB";
+                    document.documentElement.style.setProperty("--salon-theme", tc);
+                    document.documentElement.style.setProperty("--salon-theme-light", tc + "22");
+                    document.documentElement.style.setProperty("--salon-theme-hover", tc + "dd");
+                }
+
+                // 스타일 데이터가 있으면 적용
+                if (stylesRes?.success && stylesRes.hairstyles?.length > 0) {
+                    setHairstyles(stylesRes.hairstyles);
+                }
+            } catch {
+                // 로드 실패 시 데모 데이터 유지
+                console.log("[SalonPage] 데모 데이터 사용");
+            } finally {
+                setDataLoaded(true);
+            }
+        }
+
+        loadSalonData();
+    }, [salonId]);
+
     // 토스트 에러 메시지
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -36,10 +80,6 @@ export default function SalonPage() {
         const timer = setTimeout(() => setToastMessage(null), 4000);
         return () => clearTimeout(timer);
     }, [toastMessage]);
-
-    // 데모 데이터
-    const salon = DEMO_SALON;
-    const hairstyles = DEMO_HAIRSTYLES;
 
     // 스플래시 완료 → 메인
     const handleSplashComplete = useCallback(() => {
@@ -81,7 +121,6 @@ export default function SalonPage() {
         async (dataUrl: string) => {
             const resized = await resizeImage(dataUrl);
             setUserPhoto(resized);
-            // 새 사진 업로드 시 이전 결과 초기화
             setResultImage(null);
         },
         [setUserPhoto, setResultImage, resizeImage]
@@ -136,6 +175,7 @@ export default function SalonPage() {
                     styleName: style.name,
                     styleDescription: style.story,
                     category: style.category,
+                    salonId,
                     colorName: colorHex ? `Custom (${colorHex})` : undefined,
                     colorHex: colorHex,
                     colorIntensity: 85,
@@ -149,7 +189,7 @@ export default function SalonPage() {
             if (data.success && data.resultImage) {
                 setResultImage(data.resultImage);
                 incrementApiCall(true);
-                preloadModel(); // 백그라운드에서 머리색 AI 모델 사전 로딩
+                preloadModel();
                 addHistory({
                     resultImage: data.resultImage,
                     styleName: style.name,
@@ -168,7 +208,7 @@ export default function SalonPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [setIsLoading, setResultImage, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory, incrementApiCall, addErrorLog]);
+    }, [setIsLoading, setResultImage, userPhoto, selectedStyleId, selectedColor, hairstyles, addHistory, incrementApiCall, addErrorLog, salonId]);
 
     // 재합성 (후처리 컬러 변경)
     const handleResynthesize = useCallback(async (newColorHex: string) => {
@@ -202,6 +242,7 @@ export default function SalonPage() {
                     styleName: style.name,
                     styleDescription: style.story,
                     category: style.category,
+                    salonId,
                     colorName: `Custom (${newColorHex})`,
                     colorHex: newColorHex,
                     colorIntensity: 85,
@@ -233,7 +274,7 @@ export default function SalonPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [userPhoto, selectedStyleId, hairstyles, setSelectedColor, setIsLoading, setResultImage, addHistory, incrementApiCall, addErrorLog]);
+    }, [userPhoto, selectedStyleId, hairstyles, setSelectedColor, setIsLoading, setResultImage, addHistory, incrementApiCall, addErrorLog, salonId]);
 
     // 결과 초기화 (다시 시도)
     const handleClearResult = useCallback(() => {
@@ -255,6 +296,7 @@ export default function SalonPage() {
             {/* 메인 (합성 결과도 여기서 인라인 표시) */}
             {step === "main" && (
                 <MainView
+                    salonId={salonId}
                     salonName={salon.name}
                     hairstyles={hairstyles}
                     userPhoto={userPhoto}

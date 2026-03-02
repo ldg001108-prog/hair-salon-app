@@ -8,8 +8,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { transformHair, HairTransformRequest } from "@/services/geminiHair";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkSalonRateLimit } from "@/lib/rateLimit";
 import { logSynthesis } from "@/lib/getSalonData";
+import { uploadSynthesisImage } from "@/lib/storageUpload";
 
 // POST 요청 핸들러
 export async function POST(request: NextRequest) {
@@ -20,13 +21,19 @@ export async function POST(request: NextRequest) {
             request.headers.get("x-real-ip") ||
             "unknown";
 
-        // Rate Limit 체크 (프로덕션에서만 적용, 개발 환경은 무제한)
+        // 요청 바디 먼저 읽기 (salonId 추출)
+        const body = await request.json();
+        const salonId = body.salonId || "demo";
+
+        // Rate Limit 체크 (살롱별 한도 적용, 개발환경은 무제한)
         const isDev = process.env.NODE_ENV === "development";
-        const rateResult = isDev ? { allowed: true, remaining: 999, resetAt: 0, retryAfterSec: 0 } : checkRateLimit(ip);
+        const rateResult = isDev
+            ? { allowed: true, remaining: 999, resetAt: 0, retryAfterSec: 0 }
+            : await checkSalonRateLimit(ip, salonId);
         if (!rateResult.allowed) {
             const msg =
                 rateResult.limitType === "daily"
-                    ? `일일 사용 횟수를 초과했습니다. 내일 다시 이용해주세요.`
+                    ? `일일 사용 횟수를 초과했습니다 (${rateResult.dailyUsed}/${rateResult.dailyLimit}회). 내일 다시 이용해주세요.`
                     : `잠시 후 다시 시도해주세요. (${rateResult.retryAfterSec}초 후 가능)`;
 
             return NextResponse.json(
@@ -50,8 +57,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 요청 바디 파싱
-        const body = await request.json();
+        // 요청 바디에서 파라미터 추출 (body는 이미 위에서 파싱됨)
         const {
             photo,
             styleName,
@@ -62,7 +68,6 @@ export async function POST(request: NextRequest) {
             colorSaturation,
             colorLightness,
             category,
-            salonId,
         } = body;
 
         // 필수 파라미터 검증
@@ -115,9 +120,21 @@ export async function POST(request: NextRequest) {
 
         if (result.success) {
             console.log(`[Transform API] ✅ 합성 성공 (${durationMs}ms)`);
+
+            // Supabase Storage에 결과 이미지 저장 (비동기, 실패해도 응답 차단 안 함)
+            let savedImageUrl: string | undefined;
+            if (result.resultImage) {
+                const uploaded = await uploadSynthesisImage(result.resultImage, salonId);
+                if (uploaded) {
+                    savedImageUrl = uploaded.url;
+                    console.log(`[Transform API] 📦 이미지 저장: ${uploaded.path}`);
+                }
+            }
+
             return NextResponse.json({
                 success: true,
                 resultImage: result.resultImage,
+                savedImageUrl,
                 remaining: rateResult.remaining,
             });
         } else {

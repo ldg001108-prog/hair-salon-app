@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import styles from "./MainView.module.css";
 import type { Hairstyle } from "@/data/demo";
 import { CATEGORIES, GENDERS } from "@/data/demo";
 import ColorPalette from "@/components/ColorPalette/ColorPalette";
 import AdminPanel from "@/components/AdminPanel/AdminPanel";
+import ReservationModal from "@/components/ReservationModal/ReservationModal";
 import { useAppStore } from "@/store/useAppStore";
 import {
     extractHairMask,
@@ -24,6 +26,7 @@ const SYNTHESIS_STAGES = [
 ];
 
 interface MainViewProps {
+    salonId: string;
     salonName: string;
     hairstyles: Hairstyle[];
     userPhoto: string | null;
@@ -41,6 +44,8 @@ interface MainViewProps {
 }
 
 export default function MainView({
+    salonId,
+    salonName,
     hairstyles,
     userPhoto,
     selectedStyleId,
@@ -88,6 +93,9 @@ export default function MainView({
     const [isSaved, setIsSaved] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [canShare, setCanShare] = useState(false);
+
+    // 예약 모달 상태
+    const [showReservation, setShowReservation] = useState(false);
 
     const theme = useAppStore((s) => s.theme);
     const toggleTheme = useAppStore((s) => s.toggleTheme);
@@ -416,7 +424,7 @@ export default function MainView({
         <div className={styles.main}>
             {/* ── 헤더 ── */}
             <header className={styles.header}>
-                <h1 className={styles.logo} onClick={handleLogoTap} style={{ cursor: 'default', userSelect: 'none' }}>AI Hair Studio</h1>
+                <h1 className={styles.logo} onClick={handleLogoTap} style={{ cursor: 'default', userSelect: 'none' }}>{salonName || "AI Hair Studio"}</h1>
                 <button
                     className={styles.themeToggle}
                     onClick={toggleTheme}
@@ -660,6 +668,18 @@ export default function MainView({
                             </svg>
                             <span>컬러</span>
                         </button>
+                        <button
+                            className={`${styles.resultActionBtn} ${styles.reserveActionBtn}`}
+                            onClick={() => setShowReservation(true)}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            <span>예약</span>
+                        </button>
                         <button className={`${styles.resultActionBtn} ${styles.retryActionBtn}`} onClick={handleRetry}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 12a9 9 0 11-6.219-8.56" />
@@ -783,11 +803,15 @@ export default function MainView({
                                 >
                                     <div className={styles.styleImgWrap}>
                                         {style.imageUrl ? (
-                                            <img
+                                            <Image
                                                 src={style.imageUrl}
                                                 alt={style.name}
+                                                fill
+                                                sizes="(max-width: 768px) 30vw, 160px"
                                                 className={styles.styleImg}
+                                                style={{ objectFit: "cover" }}
                                                 loading="lazy"
+                                                quality={90}
                                             />
                                         ) : (
                                             <div className={styles.stylePlaceholder}>
@@ -863,6 +887,17 @@ export default function MainView({
 
             {/* 관리자 패널 */}
             {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+
+            {/* 예약 모달 */}
+            {showReservation && (
+                <ReservationModal
+                    salonId={salonId}
+                    styleName={selectedStyle?.name}
+                    colorHex={selectedColor}
+                    resultImageUrl={resultImage}
+                    onClose={() => setShowReservation(false)}
+                />
+            )}
         </div>
     );
 }

@@ -1,0 +1,239 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal {
+    background: var(--bg-primary, #fff);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 0;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary, #1a1a2e);
+    margin: 0;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--text-secondary, #666);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.closeBtn:hover {
+    background: var(--bg-secondary, #f0f0f0);
+}
+
+/* 폼 */
+.form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.stylePreview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg-secondary, #f5f5f7);
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.styleLabel {
+    font-size: 12px;
+    color: var(--text-secondary, #888);
+    font-weight: 500;
+}
+
+.styleName {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a2e);
+}
+
+.colorPreview {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-secondary, #888);
+}
+
+.colorDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a2e);
+}
+
+.input {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border-color, #e0e0e0);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--bg-primary, #fff);
+    color: var(--text-primary, #1a1a2e);
+    transition: border-color 0.2s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.input:focus {
+    border-color: var(--salon-theme, #2563EB);
+}
+
+.textarea {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border-color, #e0e0e0);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--bg-primary, #fff);
+    color: var(--text-primary, #1a1a2e);
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+.textarea:focus {
+    border-color: var(--salon-theme, #2563EB);
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+}
+
+.error {
+    font-size: 13px;
+    color: #e53e3e;
+    margin: 0;
+    padding: 8px 12px;
+    background: #fff5f5;
+    border-radius: 8px;
+}
+
+.submitBtn {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--salon-theme, #2563EB);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+}
+.submitBtn:hover:not(:disabled) {
+    background: var(--salon-theme-hover, #1d4ed8);
+    transform: translateY(-1px);
+}
+.submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 성공 화면 */
+.successContent {
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.successIcon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.successMsg {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary, #1a1a2e);
+    margin: 0 0 6px;
+}
+
+.successSub {
+    font-size: 14px;
+    color: var(--text-secondary, #888);
+    margin: 0 0 20px;
+}
+
+.reservationInfo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 14px;
+    background: var(--bg-secondary, #f5f5f7);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text-primary, #1a1a2e);
+    margin-bottom: 20px;
+}
+
+.doneBtn {
+    padding: 12px 40px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--salon-theme, #2563EB);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.doneBtn:hover {
+    background: var(--salon-theme-hover, #1d4ed8);
+}

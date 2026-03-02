@@ -7,8 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const WEAK_PASSWORDS = ["1234", "0000", "password", "admin", "test"];
-const isProduction = process.env.NODE_ENV === "production";
+// 비밀번호는 환경변수(ADMIN_PASSWORD)에서 관리
 
 export async function POST(request: NextRequest) {
     try {
@@ -32,14 +31,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 프로덕션에서 약한 비밀번호 차단
-        if (isProduction && WEAK_PASSWORDS.includes(adminPassword)) {
-            console.error("[Admin] 🚨 프로덕션에서 약한 비밀번호 사용이 감지되었습니다! ADMIN_PASSWORD를 변경하세요.");
-            return NextResponse.json(
-                { success: false, error: "보안을 위해 관리자 비밀번호를 변경해주세요." },
-                { status: 403 }
-            );
-        }
 
         if (password === adminPassword) {
             return NextResponse.json({ success: true });

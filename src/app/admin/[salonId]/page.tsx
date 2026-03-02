@@ -8,6 +8,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useAppStore, type HistoryItem } from "@/store/useAppStore";
 
@@ -60,9 +61,9 @@ export default function AdminDashboard({
     params: Promise<{ salonId: string }>;
 }) {
     const { salonId } = use(params);
+    const router = useRouter();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [password, setPassword] = useState("");
-    const [authError, setAuthError] = useState("");
+    const [authChecking, setAuthChecking] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [qrUrl, setQrUrl] = useState("");
 
@@ -92,13 +93,36 @@ export default function AdminDashboard({
     const clearErrorLogs = useAppStore((s) => s.clearErrorLogs);
     const clearHistory = useAppStore((s) => s.clearHistory);
 
-    // 세션 인증 체크
+    // 세션 인증 체크 (sessionStorage 또는 Supabase Auth)
     useEffect(() => {
-        const auth = sessionStorage.getItem(`admin-auth-${salonId}`);
-        if (auth === "true") {
-            setIsAuthenticated(true);
-        }
-    }, [salonId]);
+        const checkAuth = async () => {
+            // 1. sessionStorage 체크 (기존 호환)
+            const auth = sessionStorage.getItem(`admin-auth-${salonId}`);
+            if (auth === "true") {
+                setIsAuthenticated(true);
+                setAuthChecking(false);
+                return;
+            }
+            // 2. Supabase Auth 세션 체크
+            try {
+                const res = await fetch("/api/auth/session");
+                const data = await res.json();
+                if (data.authenticated && data.salons?.some((s: { id: string }) => s.id === salonId)) {
+                    sessionStorage.setItem(`admin-auth-${salonId}`, "true");
+                    setIsAuthenticated(true);
+                } else {
+                    // 미인증 → 로그인 페이지
+                    router.push("/admin/login");
+                    return;
+                }
+            } catch {
+                router.push("/admin/login");
+                return;
+            }
+            setAuthChecking(false);
+        };
+        checkAuth();
+    }, [salonId, router]);
 
     // QR 코드 URL 설정
     useEffect(() => {
@@ -155,30 +179,10 @@ export default function AdminDashboard({
         }
     }, [isAuthenticated, activeTab, loadReservations]);
 
-    const handleLogin = useCallback(async () => {
-        setIsLoading(true);
-        setAuthError("");
-
-        try {
-            const res = await fetch("/api/admin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password }),
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                sessionStorage.setItem(`admin-auth-${salonId}`, "true");
-                setIsAuthenticated(true);
-            } else {
-                setAuthError(data.error || "인증에 실패했습니다.");
-            }
-        } catch {
-            setAuthError("서버 연결에 실패했습니다.");
-        } finally {
-            setIsLoading(false);
-        }
-    }, [password, salonId]);
+    const handleLogout = useCallback(() => {
+        sessionStorage.removeItem(`admin-auth-${salonId}`);
+        router.push("/admin/login");
+    }, [salonId, router]);
 
     // 예약 상태 변경
     const handleReservationStatus = useCallback(async (reservationId: string, status: string) => {
@@ -213,32 +217,13 @@ export default function AdminDashboard({
         }
     }, []);
 
-    // 미인증 → 로그인 화면
-    if (!isAuthenticated) {
+    // 인증 체크 중 로딩
+    if (authChecking || !isAuthenticated) {
         return (
             <div className={styles.loginPage}>
                 <div className={styles.loginCard}>
-                    <h1 className={styles.loginTitle}>🔐 관리자 로그인</h1>
-                    <p className={styles.loginSubtitle}>AI Hair Studio — {salonId}</p>
-                    <div className={styles.loginForm}>
-                        <input
-                            type="password"
-                            placeholder="관리자 비밀번호"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                            className={styles.loginInput}
-                            autoFocus
-                        />
-                        <button
-                            onClick={handleLogin}
-                            disabled={isLoading || !password}
-                            className={styles.loginBtn}
-                        >
-                            {isLoading ? "확인 중..." : "로그인"}
-                        </button>
-                    </div>
-                    {authError && <p className={styles.loginError}>{authError}</p>}
+                    <h1 className={styles.loginTitle}>🔐 인증 확인 중...</h1>
+                    <p className={styles.loginSubtitle}>AI Hair Studio</p>
                 </div>
             </div>
         );
@@ -275,7 +260,7 @@ export default function AdminDashboard({
                     <a href={`/salon/${salonId}`} target="_blank" rel="noopener noreferrer" className={styles.headerLink}>
                         🔗 고객 페이지 열기
                     </a>
-                    <button className={styles.logoutBtn} onClick={() => { sessionStorage.removeItem(`admin-auth-${salonId}`); setIsAuthenticated(false); }}>
+                    <button className={styles.logoutBtn} onClick={handleLogout}>
                         로그아웃
                     </button>
                 </div>

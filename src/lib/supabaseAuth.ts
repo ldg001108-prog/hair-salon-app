@@ -1,16 +1,31 @@
 /**
  * Supabase Auth 헬퍼
  * - 사장님 회원가입/로그인/세션 관리
- * - 서버사이드 + 클라이언트사이드 모두 지원
+ * - 서버사이드: SERVICE_ROLE_KEY 사용 (RLS 우회)
+ * - 클라이언트사이드: ANON_KEY 사용
  */
 
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "./supabase";
+
+// 서버사이드 전용 (RLS 우회)
+function getServiceSupabase(): SupabaseClient | null {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+        // service key가 없으면 일반 클라이언트 사용 (폴백)
+        return getSupabase();
+    }
+
+    return createClient(url, serviceKey);
+}
 
 // ========================
 // 회원가입
 // ========================
 export async function signUpOwner(email: string, password: string, salonName: string) {
-    const supabase = getSupabase();
+    const supabase = getServiceSupabase();
     if (!supabase) {
         return { success: false, error: "Supabase가 설정되지 않았습니다." };
     }
@@ -59,7 +74,7 @@ export async function signUpOwner(email: string, password: string, salonName: st
 // 로그인
 // ========================
 export async function signInOwner(email: string, password: string) {
-    const supabase = getSupabase();
+    const supabase = getServiceSupabase();
     if (!supabase) {
         return { success: false, error: "Supabase가 설정되지 않았습니다." };
     }

@@ -214,8 +214,9 @@ function hexToHsl(hex: string): [number, number, number] {
 
 /**
  * 머리카락 영역만 색상 변경 (Canvas 기반, 실시간)
- * - 소프트 마스크(0~255)를 사용하여 경계를 자연스럽게 블렌딩
- * - 항상 원본 이미지 데이터를 기준으로 적용
+ * - 기존 머리 색상을 완전히 무시하고, 명도(질감/명암)만 유지
+ * - 목표 색상의 Hue + Saturation을 직접 적용 (색상 교체 방식)
+ * - 이전 합성 색과 섞이지 않아 깨끗한 색상 프리뷰 가능
  */
 export function applyHairColor(
     originalImageData: ImageData,
@@ -244,19 +245,20 @@ export function applyHairColor(
         const g = pixels[idx + 1];
         const b = pixels[idx + 2];
 
-        const [, origS, origL] = rgbToHsl(r, g, b);
+        // 원본 픽셀에서 명도(Lightness)만 추출 — Hue/Saturation은 버림
+        const [, , origL] = rgbToHsl(r, g, b);
 
-        // Hue: 목표 색상으로 직접 교체
+        // 목표 색의 Hue/Saturation을 그대로 사용
         const newH = targetH;
-        // Saturation: 목표 채도와 원본 채도를 블렌딩
-        const newS = Math.min(100, targetS * effectiveBlend + origS * (1 - effectiveBlend));
-        // Lightness: 목표 밝기 방향으로 약간 당기되, 원본 질감 유지
-        const lightBias = 0.15;
-        const newL = origL * (1 - lightBias * effectiveBlend) + targetL * (lightBias * effectiveBlend);
+        const newS = targetS;
+        // Lightness: 목표 밝기 방향으로 강하게 당기되, 원본 질감(명암 차이)은 유지
+        // lightBias가 높을수록 목표 밝기에 가까워짐 (0.7 = 70% 목표 + 30% 원본)
+        const lightBias = 0.7;
+        const newL = origL * (1 - lightBias) + targetL * lightBias;
 
         const [newR, newG, newB] = hslToRgb(newH, newS, newL);
 
-        // 소프트 마스크 알파 블렌딩
+        // 소프트 마스크 알파 블렌딩 (머리카락 경계만 부드럽게)
         pixels[idx] = Math.round(newR * effectiveBlend + r * (1 - effectiveBlend));
         pixels[idx + 1] = Math.round(newG * effectiveBlend + g * (1 - effectiveBlend));
         pixels[idx + 2] = Math.round(newB * effectiveBlend + b * (1 - effectiveBlend));

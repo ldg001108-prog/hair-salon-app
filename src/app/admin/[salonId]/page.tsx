@@ -93,7 +93,7 @@ export default function AdminDashboard({
     const clearErrorLogs = useAppStore((s) => s.clearErrorLogs);
     const clearHistory = useAppStore((s) => s.clearHistory);
 
-    // 세션 인증 체크 (sessionStorage 또는 Supabase Auth)
+    // 세션 인증 체크 (localStorage 우선)
     useEffect(() => {
         const checkAuth = async () => {
             // 1. sessionStorage 체크 (기존 호환)
@@ -103,23 +103,20 @@ export default function AdminDashboard({
                 setAuthChecking(false);
                 return;
             }
-            // 2. Supabase Auth 세션 체크
-            try {
-                const res = await fetch("/api/auth/session");
-                const data = await res.json();
-                if (data.authenticated && data.salons?.some((s: { id: string }) => s.id === salonId)) {
-                    sessionStorage.setItem(`admin-auth-${salonId}`, "true");
-                    setIsAuthenticated(true);
-                } else {
-                    // 미인증 → 로그인 페이지
-                    router.push("/admin/login");
-                    return;
-                }
-            } catch {
-                router.push("/admin/login");
+
+            // 2. localStorage 인증 플래그 체크 (로그인 페이지에서 설정)
+            const isAuth = localStorage.getItem("oc-authenticated");
+            const accessToken = localStorage.getItem("oc-access-token");
+            if (isAuth === "true" && accessToken) {
+                // 로그인 된 상태 → 바로 인증 통과
+                sessionStorage.setItem(`admin-auth-${salonId}`, "true");
+                setIsAuthenticated(true);
+                setAuthChecking(false);
                 return;
             }
-            setAuthChecking(false);
+
+            // 3. 인증 정보 없음 → 로그인 페이지
+            router.push("/admin/login");
         };
         checkAuth();
     }, [salonId, router]);

@@ -1,7 +1,7 @@
 /**
  * GET /api/qrcode?salonId=xxx
  * 미용실 전용 QR코드 생성 API
- * - QR 이미지(PNG) 반환
+ * - SVG → PNG 변환 없이 SVG 그대로 반환 (Vercel serverless 호환)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
         const baseUrl =
             process.env.NEXT_PUBLIC_BASE_URL ||
             request.nextUrl.origin;
-        const salonUrl = `${baseUrl}/salon/${salonId}`;
+        const salonUrl = `${baseUrl}/salon/${encodeURIComponent(salonId)}`;
 
-        // QR 코드 PNG 생성 (DataURL → 바이너리)
-        const qrDataUrl = await QRCode.toDataURL(salonUrl, {
-            type: "image/png",
+        // QR 코드를 SVG 문자열로 생성 (canvas 불필요)
+        const svgString = await QRCode.toString(salonUrl, {
+            type: "svg",
             width: 512,
             margin: 2,
             color: {
@@ -36,21 +36,16 @@ export async function GET(request: NextRequest) {
             errorCorrectionLevel: "H",
         });
 
-        // DataURL → Buffer
-        const base64Data = qrDataUrl.split(",")[1];
-        const binaryData = Buffer.from(base64Data, "base64");
-
-        return new NextResponse(binaryData, {
+        return new NextResponse(svgString, {
             headers: {
-                "Content-Type": "image/png",
-                "Content-Disposition": `inline; filename="qr-${salonId}.png"`,
+                "Content-Type": "image/svg+xml",
                 "Cache-Control": "public, max-age=86400",
             },
         });
     } catch (err) {
         console.error("[QR] Generation failed:", err);
         return NextResponse.json(
-            { error: "QR코드 생성에 실패했습니다." },
+            { error: "QR코드 생성에 실패했습니다.", detail: String(err) },
             { status: 500 }
         );
     }

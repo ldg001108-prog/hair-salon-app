@@ -33,6 +33,7 @@ export default function AdminLoginPage() {
                 body: JSON.stringify({ email, password }),
             });
             const data = await res.json();
+            console.log("[Login] API response:", JSON.stringify(data));
 
             if (!data.success) {
                 setError(data.error || "로그인 실패");
@@ -47,13 +48,19 @@ export default function AdminLoginPage() {
             // 살롱 목록에서 첫 번째 살롱으로 이동
             if (data.salons && data.salons.length > 0) {
                 const firstSalon = data.salons[0];
+                console.log("[Login] Navigating to salon:", firstSalon.id);
                 // 세션 인증 표시 (기존 호환용)
                 sessionStorage.setItem(`admin-auth-${firstSalon.id}`, "true");
-                router.push(`/admin/${firstSalon.id}`);
+                // localStorage에도 인증 정보 저장 (확실한 인증 전달)
+                localStorage.setItem("oc-salon-id", firstSalon.id);
+                localStorage.setItem("oc-authenticated", "true");
+                // window.location으로 확실한 페이지 이동
+                window.location.href = `/admin/${encodeURIComponent(firstSalon.id)}`;
             } else {
                 setError("등록된 미용실이 없습니다. 회원가입을 먼저 해주세요.");
             }
-        } catch {
+        } catch (err) {
+            console.error("[Login] Error:", err);
             setError("서버 연결 실패. 잠시 후 다시 시도해주세요.");
         } finally {
             setIsLoading(false);

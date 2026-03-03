@@ -107,6 +107,10 @@ CREATE POLICY "Public read salons" ON salons
 CREATE POLICY "Owner manage salons" ON salons
     FOR ALL USING (auth.uid() = owner_id);
 
+-- 서버사이드 계정 생성용 (service_role INSERT 허용)
+CREATE POLICY "Service role insert salons" ON salons
+    FOR INSERT WITH CHECK (true);
+
 -- 헤어스타일: 공개 읽기
 CREATE POLICY "Public read hairstyles" ON hairstyles
     FOR SELECT USING (is_active = true);

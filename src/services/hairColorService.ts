@@ -214,16 +214,18 @@ function hexToHsl(hex: string): [number, number, number] {
 
 /**
  * 머리카락 영역만 색상 변경 (Canvas 기반, 실시간)
- * - 기존 머리 색상을 완전히 무시하고, 명도(질감/명암)만 유지
- * - 목표 색상의 Hue + Saturation을 직접 적용 (색상 교체 방식)
- * - 이전 합성 색과 섞이지 않아 깨끗한 색상 프리뷰 가능
- * - 파라미터 최적화: 56개 색상 조합 테스트 기반 (평균 색차 10.5)
+ * 
+ * 핵심 원리 — "질감 보존 색상 교체"
+ * 1. Hue/Saturation: 목표 색으로 100% 교체 (기존 색 완전 무시)
+ * 2. Lightness: 목표 밝기를 기준으로, 원본의 밝기 편차(질감)를 보존
+ *    → 하이라이트/그림자/머리결이 자연스럽게 살아남
+ * 3. 경계 블렌딩: 소프트 마스크(0~255)로 머리카락 경계만 부드럽게 처리
  */
 export function applyHairColor(
     originalImageData: ImageData,
     hairMask: HairMaskResult,
     targetColorHex: string,
-    intensity: number = 95
+    _intensity: number = 95
 ): ImageData {
     const [targetH, targetS, targetL] = hexToHsl(targetColorHex);
     const { mask, width, height } = hairMask;
@@ -233,35 +235,50 @@ export function applyHairColor(
         height
     );
     const pixels = result.data;
-    const blend = intensity / 100;
+
+    // 1단계: 머리카락 영역의 평균 밝기 계산 (질감 편차의 기준점)
+    let totalL = 0;
+    let hairPixelCount = 0;
+    for (let i = 0; i < mask.length; i++) {
+        if (mask[i] < 128) continue; // 확실한 머리카락 픽셀만
+        const idx = i * 4;
+        const [, , l] = rgbToHsl(pixels[idx], pixels[idx + 1], pixels[idx + 2]);
+        totalL += l;
+        hairPixelCount++;
+    }
+    const avgOrigL = hairPixelCount > 0 ? totalL / hairPixelCount : 50;
+
+    // 2단계: 각 픽셀에 색상 적용
+    // texturePreserve: 원본 질감(밝기 변화)을 얼마나 유지할지 (0=평면, 0.35=자연스러운 질감)
+    const texturePreserve = 0.35;
 
     for (let i = 0; i < mask.length; i++) {
         if (mask[i] === 0) continue;
 
-        const maskAlpha = mask[i] / 255; // 0~1 소프트 마스크
-        const effectiveBlend = blend * maskAlpha;
+        const maskAlpha = mask[i] / 255; // 0~1 소프트 마스크 (경계 블렌딩용)
 
         const idx = i * 4;
         const r = pixels[idx];
         const g = pixels[idx + 1];
         const b = pixels[idx + 2];
 
-        // 원본 픽셀에서 명도(Lightness)만 추출 — Hue/Saturation은 버림
+        // 원본 픽셀의 밝기에서 평균 대비 편차 추출 (질감 정보)
         const [, , origL] = rgbToHsl(r, g, b);
+        const deviation = origL - avgOrigL; // 하이라이트(+) / 그림자(-)
 
-        // 목표 색의 Hue/Saturation을 그대로 사용
-        const newH = targetH;
-        const newS = targetS;
-        // Lightness: 95% 목표 밝기 + 5% 원본 질감 유지
-        const lightBias = 0.95;
-        const newL = origL * (1 - lightBias) + targetL * lightBias;
+        // 목표 밝기 + 원본 질감 편차 보존
+        // clamp 0~100으로 범위 제한
+        const newL = Math.max(0, Math.min(100,
+            targetL + deviation * texturePreserve
+        ));
 
-        const [newR, newG, newB] = hslToRgb(newH, newS, newL);
+        // 목표 Hue/Saturation + 질감 보존 Lightness로 새 색상 생성
+        const [newR, newG, newB] = hslToRgb(targetH, targetS, newL);
 
-        // 소프트 마스크 알파 블렌딩 (머리카락 경계만 부드럽게)
-        pixels[idx] = Math.round(newR * effectiveBlend + r * (1 - effectiveBlend));
-        pixels[idx + 1] = Math.round(newG * effectiveBlend + g * (1 - effectiveBlend));
-        pixels[idx + 2] = Math.round(newB * effectiveBlend + b * (1 - effectiveBlend));
+        // 소프트 마스크로 경계 블렌딩 (머리카락 내부=100%, 경계=부드럽게)
+        pixels[idx] = Math.round(newR * maskAlpha + r * (1 - maskAlpha));
+        pixels[idx + 1] = Math.round(newG * maskAlpha + g * (1 - maskAlpha));
+        pixels[idx + 2] = Math.round(newB * maskAlpha + b * (1 - maskAlpha));
     }
 
     return result;

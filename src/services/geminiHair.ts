@@ -296,11 +296,11 @@ export async function transformHair(
             // Gemini API 호출 — 이미지 편집
             // AbortController로 타임아웃 관리
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90초 타임아웃
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 120초 타임아웃 (Pro 모델은 처리 시간이 김)
 
             try {
                 const response = await ai.models.generateContent({
-                    model: "gemini-3.1-flash-image-preview",
+                    model: "gemini-3-pro-image-preview",
                     contents: [
                         {
                             text: prompt,

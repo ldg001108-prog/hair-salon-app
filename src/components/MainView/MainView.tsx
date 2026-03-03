@@ -898,6 +898,19 @@ export default function MainView({
                     onClose={() => setShowReservation(false)}
                 />
             )}
+            {/* 개인정보처리방침 / 이용약관 */}
+            <div style={{
+                textAlign: 'center',
+                padding: '16px 0 24px',
+                fontSize: 12,
+                color: 'var(--text-tertiary, #999)',
+                borderTop: '1px solid var(--border-color, #eee)',
+                marginTop: 24,
+            }}>
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', marginRight: 16 }}>개인정보처리방침</a>
+                <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>이용약관</a>
+                <p style={{ marginTop: 8, opacity: 0.7 }}>© 2026 O2LAB · AI Hair Studio</p>
+            </div>
         </div>
     );
 }

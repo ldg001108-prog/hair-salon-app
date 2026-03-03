@@ -26,6 +26,7 @@ export default function ReservationModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
+    const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
     // 오늘 날짜 (최소 날짜)
     const today = new Date().toISOString().slice(0, 10);
@@ -198,10 +199,30 @@ export default function ReservationModal({
 
                         {error && <p className={styles.error}>{error}</p>}
 
+                        <label style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 8,
+                            fontSize: 13,
+                            color: 'var(--text-secondary, #666)',
+                            cursor: 'pointer',
+                            marginBottom: 12,
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={privacyAgreed}
+                                onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                                style={{ marginTop: 2, accentColor: 'var(--salon-theme, #2563EB)' }}
+                            />
+                            <span>
+                                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--salon-theme, #2563EB)', textDecoration: 'underline' }}>개인정보 수집·이용</a>에 동의합니다. (필수)
+                            </span>
+                        </label>
+
                         <button
                             className={styles.submitBtn}
                             onClick={handleSubmit}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !privacyAgreed}
                         >
                             {isSubmitting ? "예약 중..." : "📅 예약하기"}
                         </button>

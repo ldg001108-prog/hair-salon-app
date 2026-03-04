@@ -1,17 +1,24 @@
 /**
  * POST /api/admin/create-salon
  * 슈퍼어드민 전용 — 미용실 계정 생성
- * 슈퍼어드민 전용 — 미용실 계정 생성
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { signUpOwner } from "@/lib/supabaseAuth";
 
-// 슈퍼어드민 비밀번호 (환경변수)
-const SUPER_ADMIN_KEY = process.env.SUPER_ADMIN_KEY || process.env.ADMIN_PASSWORD;
+// 슈퍼어드민 키 (SUPER_ADMIN_KEY 필수, ADMIN_PASSWORD fallback 제거)
+const SUPER_ADMIN_KEY = process.env.SUPER_ADMIN_KEY;
 
 export async function POST(request: NextRequest) {
     try {
+        // 슈퍼어드민 키가 설정되지 않은 경우 API 비활성화
+        if (!SUPER_ADMIN_KEY) {
+            return NextResponse.json(
+                { success: false, error: "서버에 SUPER_ADMIN_KEY가 설정되지 않았습니다." },
+                { status: 500 }
+            );
+        }
+
         const { adminKey, email, password, salonName, themeColor, logoUrl } = await request.json();
 
         // 슈퍼어드민 인증
@@ -47,13 +54,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 살롱 커스텀 설정 (테마컬러, 로고 등)
+        // 살롱 커스텀 설정 (service_role 키로 RLS 우회)
         if (result.salonId && (themeColor || logoUrl)) {
             try {
                 const { createClient } = await import("@supabase/supabase-js");
                 const supabase = createClient(
                     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                    process.env.SUPABASE_SERVICE_ROLE_KEY!
                 );
 
                 const updateData: Record<string, string> = {};
@@ -66,7 +73,6 @@ export async function POST(request: NextRequest) {
                     .eq("id", result.salonId);
             } catch (e) {
                 console.error("[CreateSalon] 살롱 설정 업데이트 실패:", e);
-                // 계정은 이미 생성됐으므로 에러 무시
             }
         }
 
@@ -78,8 +84,6 @@ export async function POST(request: NextRequest) {
                 loginUrl: `/admin/login`,
                 customerUrl: `/salon/${result.salonId}`,
                 email,
-                // 비밀번호는 응답에 포함 (최초 전달용, 로그에 남지 않도록 주의)
-                initialPassword: password,
             },
         });
     } catch (error) {

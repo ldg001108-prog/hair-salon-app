@@ -123,39 +123,3 @@ export async function checkSalonRateLimit(ip: string, salonId?: string): Promise
     };
 }
 
-/**
- * 레거시 호환: IP 기반 Rate Limit (기존 함수 유지)
- */
-export function checkRateLimit(ip: string): RateLimitResult {
-    cleanup();
-    const now = Date.now();
-
-    const minuteKey = `min:${ip}`;
-    const minuteEntry = minuteMap.get(minuteKey);
-
-    if (minuteEntry) {
-        if (now > minuteEntry.resetAt) {
-            minuteMap.set(minuteKey, { count: 1, resetAt: now + 60_000 });
-        } else if (minuteEntry.count >= MINUTE_LIMIT) {
-            return {
-                allowed: false,
-                remaining: 0,
-                resetAt: minuteEntry.resetAt,
-                retryAfterSec: Math.ceil((minuteEntry.resetAt - now) / 1000),
-                limitType: "minute",
-            };
-        } else {
-            minuteEntry.count++;
-        }
-    } else {
-        minuteMap.set(minuteKey, { count: 1, resetAt: now + 60_000 });
-    }
-
-    const currentMinute = minuteMap.get(minuteKey);
-    return {
-        allowed: true,
-        remaining: MINUTE_LIMIT - (currentMinute?.count || 0),
-        resetAt: currentMinute?.resetAt || now + 60_000,
-        retryAfterSec: 0,
-    };
-}

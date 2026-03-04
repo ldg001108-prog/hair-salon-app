@@ -365,15 +365,9 @@ export async function transformHair(
 
                 clearTimeout(timeoutId);
 
-                // 디버깅: 응답 구조 확인
-                console.log("[GeminiHair] 응답 parts:",
-                    response.candidates?.[0]?.content?.parts?.map(p => ({
-                        hasInlineData: !!p.inlineData,
-                        hasText: !!p.text,
-                        mimeType: p.inlineData?.mimeType,
-                        dataLength: p.inlineData?.data?.length,
-                    }))
-                );
+                // 응답 구조 로깅
+                const partCount = response.candidates?.[0]?.content?.parts?.length || 0;
+                console.log(`[GeminiHair] 응답: ${partCount} parts`);
 
                 // 응답에서 이미지 추출
                 const candidates = response.candidates;

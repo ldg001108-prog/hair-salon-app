@@ -9,13 +9,7 @@ import ColorPalette from "@/components/ColorPalette/ColorPalette";
 import AdminPanel from "@/components/AdminPanel/AdminPanel";
 import ReservationModal from "@/components/ReservationModal/ReservationModal";
 import { useAppStore } from "@/store/useAppStore";
-import {
-    extractHairMask,
-    applyHairColor,
-    imageUrlToImageData,
-    imageDataToDataUrl,
-    type HairMaskResult,
-} from "@/services/hairColorService";
+
 
 // 합성 진행 단계
 const SYNTHESIS_STAGES = [
@@ -78,16 +72,9 @@ export default function MainView({
     const compareRef = useRef<HTMLDivElement>(null);
     const isDraggingRef = useRef(false);
 
-    // 실시간 머리색 변경
+    // 머리색 변경 (AI 재합성 방식)
     const [postColorHex, setPostColorHex] = useState<string | null>(null);
     const [showColorAdjust, setShowColorAdjust] = useState(false);
-    const [hairMask, setHairMask] = useState<HairMaskResult | null>(null);
-    const [originalImageData, setOriginalImageData] = useState<ImageData | null>(null);
-    const [colorPreviewUrl, setColorPreviewUrl] = useState<string | null>(null);
-    const [isMaskLoading, setIsMaskLoading] = useState(false);
-    const [maskLoadMsg, setMaskLoadMsg] = useState("");
-    // 재합성(색상 변경) 시 마스크/원본 보존용 플래그
-    const isResynthRef = useRef(false);
 
     // 저장/공유 상태
     const [isSaved, setIsSaved] = useState(false);
@@ -178,27 +165,7 @@ export default function MainView({
         };
     }, [isLoading]);
 
-    // 합성 결과 나오면 → 백그라운드에서 마스크 사전 추출
-    useEffect(() => {
-        if (!resultImage || hairMask) return;
-        let cancelled = false;
 
-        (async () => {
-            try {
-                const mask = await extractHairMask(resultImage);
-                if (cancelled) return;
-                setHairMask(mask);
-
-                const imgData = await imageUrlToImageData(resultImage, mask.width, mask.height);
-                if (cancelled) return;
-                setOriginalImageData(imgData);
-            } catch {
-                // 사전 추출 실패해도 무시 (컬러 클릭 시 다시 시도됨)
-            }
-        })();
-
-        return () => { cancelled = true; };
-    }, [resultImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 결과 이미지 등장 시 블러 reveal 트리거
     useEffect(() => {
@@ -208,13 +175,6 @@ export default function MainView({
             setShowCompare(false);
             setShowColorAdjust(false);
             setPostColorHex(null);
-            setColorPreviewUrl(null);
-            // 재합성(색상 변경)이면 기존 마스크/원본 유지 → 엉뚱한 색 방지
-            if (!isResynthRef.current) {
-                setHairMask(null);
-                setOriginalImageData(null);
-            }
-            isResynthRef.current = false;
             const timer = setTimeout(() => setShowReveal(false), 1500);
             return () => clearTimeout(timer);
         }
@@ -351,58 +311,24 @@ export default function MainView({
         onPhotoChange();
     }, [onClearResult, onPhotoChange]);
 
-    // 컬러 버튼 클릭: 세그멘테이션 실행
-    const handleOpenColorAdjust = useCallback(async () => {
+    // 컬러 버튼 클릭: 패널 토글
+    const handleOpenColorAdjust = useCallback(() => {
         if (showColorAdjust) {
             setShowColorAdjust(false);
-            setColorPreviewUrl(null);
             setPostColorHex(null);
             return;
         }
         setShowColorAdjust(true);
+    }, [showColorAdjust]);
 
-        // 이미 마스크 있으면 재사용
-        if (hairMask && originalImageData) return;
-
-        if (!resultImage) return;
-        setIsMaskLoading(true);
-        try {
-            // 1) 헤어 마스크 추출
-            const mask = await extractHairMask(resultImage, setMaskLoadMsg);
-            setHairMask(mask);
-
-            // 2) 원본 이미지 데이터 추출 (마스크 크기에 맞춤)
-            const imgData = await imageUrlToImageData(resultImage, mask.width, mask.height);
-            setOriginalImageData(imgData);
-        } catch (err) {
-            console.error("Hair mask extraction failed:", err);
-            setMaskLoadMsg("머리카락 감지 실패. 다시 시도해주세요.");
-        } finally {
-            setIsMaskLoading(false);
-        }
-    }, [showColorAdjust, hairMask, originalImageData, resultImage]);
-
-    // 색상 선택 시 실시간 프리뷰
+    // 색상 선택 시 즉시 AI 재합성 (Gemini 인페인팅)
     const handlePostColorSelect = useCallback((hex: string | null) => {
+        if (!hex) return;
         setPostColorHex(hex);
-        if (!hex || !hairMask || !originalImageData) {
-            setColorPreviewUrl(null);
-            return;
-        }
-        // Canvas에서 머리만 색 변경
-        const modified = applyHairColor(originalImageData, hairMask, hex, 80);
-        const dataUrl = imageDataToDataUrl(modified);
-        setColorPreviewUrl(dataUrl);
-    }, [hairMask, originalImageData]);
-
-    // 후처리 색상 재합성 — 마스크 보존 플래그 설정
-    const handleResynthesize = useCallback(() => {
-        if (!postColorHex) return;
-        isResynthRef.current = true; // 재합성이므로 마스크 보존
-        onResynthesize(postColorHex);
+        // 즉시 AI 재합성 시작
+        onResynthesize(hex);
         setShowColorAdjust(false);
-        setColorPreviewUrl(null);
-    }, [postColorHex, onResynthesize]);
+    }, [onResynthesize]);
 
     // 필터링
     const genderFiltered = hairstyles.filter((h) => h.gender === activeGender);
@@ -529,7 +455,7 @@ export default function MainView({
                                 /* 결과 이미지 표시 */
                                 <div className={styles.previewInner}>
                                     <img
-                                        src={colorPreviewUrl || resultImage}
+                                        src={resultImage}
                                         alt="합성 결과"
                                         className={`${styles.previewImg} ${showReveal ? styles.resultReveal : ""}`}
                                     />
@@ -690,41 +616,16 @@ export default function MainView({
                     </div>
                 )}
 
-                {/* 실시간 머리색 변경 패널 */}
+                {/* AI 머리색 변경 패널 */}
                 {showColorAdjust && resultImage && !isLoading && (
                     <div className={styles.colorAdjustPanel}>
-                        {isMaskLoading ? (
-                            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                                <div className={styles.spinner} style={{ margin: '0 auto 8px' }} />
-                                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{maskLoadMsg}</span>
-                            </div>
-                        ) : (
-                            <>
-                                <ColorPalette
-                                    selectedColor={postColorHex}
-                                    onColorSelect={handlePostColorSelect}
-                                />
-                                {postColorHex && (
-                                    <div className={styles.colorAdjustActions}>
-                                        <button
-                                            className={styles.colorResetBtn}
-                                            onClick={() => {
-                                                setPostColorHex(null);
-                                                setColorPreviewUrl(null);
-                                            }}
-                                        >
-                                            초기화
-                                        </button>
-                                        <button
-                                            className={styles.colorApplyBtn}
-                                            onClick={handleResynthesize}
-                                        >
-                                            ✨ 이 색상으로 재합성
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: '0 0 8px' }}>
+                            색상을 선택하면 AI가 자연스럽게 재합성합니다
+                        </p>
+                        <ColorPalette
+                            selectedColor={postColorHex}
+                            onColorSelect={handlePostColorSelect}
+                        />
                     </div>
                 )}
 

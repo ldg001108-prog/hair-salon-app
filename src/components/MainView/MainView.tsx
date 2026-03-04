@@ -909,7 +909,7 @@ export default function MainView({
             }}>
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', marginRight: 16 }}>개인정보처리방침</a>
                 <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>이용약관</a>
-                <p style={{ marginTop: 8, opacity: 0.7 }}>© 2026 O2LAB · AI Hair Studio</p>
+                <p style={{ marginTop: 8, opacity: 0.7 }}>© 2026 AI Hair Studio</p>
             </div>
         </div>
     );

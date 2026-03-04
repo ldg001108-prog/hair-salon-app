@@ -11,7 +11,7 @@ export default function TermsPage() {
 
                 <section>
                     <h2>제1조 (목적)</h2>
-                    <p>본 약관은 (주)오투랩(이하 &quot;회사&quot;)이 제공하는 AI Hair Studio 서비스(이하 &quot;서비스&quot;)의 이용 조건 및 절차, 회사와 이용자 간의 권리·의무를 규정함을 목적으로 합니다.</p>
+                    <p>본 약관은 AI Hair Studio 서비스(이하 &quot;서비스&quot;)의 이용 조건 및 절차, 운영자와 이용자 간의 권리·의무를 규정함을 목적으로 합니다.</p>
                 </section>
 
                 <section>
@@ -84,10 +84,8 @@ export default function TermsPage() {
                 <section>
                     <h2>제10조 (연락처)</h2>
                     <ul>
-                        <li><strong>회사명</strong>: (주)오투랩</li>
-                        <li><strong>주소</strong>: 부산광역시 부산진구 엄광로176(동의대학교) 산학협력관 301호</li>
-                        <li><strong>이메일</strong>: o2lab@naver.com</li>
-                        <li><strong>전화</strong>: 051-710-4221</li>
+                        <li><strong>서비스명</strong>: AI Hair Studio</li>
+                        <li><strong>이메일</strong>: support@aihairstudio.com</li>
                     </ul>
                 </section>
 

@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/create-salon
  * 슈퍼어드민 전용 — 미용실 계정 생성
- * 오투랩이 미용실에 아이디/비밀번호를 만들어서 제공하는 방식
+ * 슈퍼어드민 전용 — 미용실 계정 생성
  */
 
 import { NextRequest, NextResponse } from "next/server";

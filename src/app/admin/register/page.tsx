@@ -239,7 +239,7 @@ export default function AdminRegisterPage() {
                 </form>
 
                 <div className={styles.footer}>
-                    © 2026 O2LAB · AI Hair Studio
+                    © 2026 AI Hair Studio
                 </div>
             </div>
         </div>

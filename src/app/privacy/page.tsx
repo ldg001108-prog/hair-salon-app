@@ -113,9 +113,8 @@ export default function PrivacyPage() {
                 <section>
                     <h2>7. 개인정보 보호책임자</h2>
                     <ul>
-                        <li><strong>담당자</strong>: (주)오투랩</li>
-                        <li><strong>이메일</strong>: o2lab@naver.com</li>
-                        <li><strong>전화</strong>: 051-710-4221</li>
+                        <li><strong>담당자</strong>: AI Hair Studio 운영팀</li>
+                        <li><strong>이메일</strong>: support@aihairstudio.com</li>
                     </ul>
                 </section>
 

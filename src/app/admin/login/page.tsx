@@ -113,11 +113,11 @@ export default function AdminLoginPage() {
                     color: 'var(--text-tertiary, #999)',
                     marginTop: 16,
                 }}>
-                    계정이 없으신가요? 오투랩에 문의해주세요.
+                    계정이 없으신가요? 관리자에게 문의해주세요.
                 </p>
 
                 <div className={styles.footer}>
-                    © 2026 O2LAB · AI Hair Studio
+                    © 2026 AI Hair Studio
                 </div>
             </div>
         </div>

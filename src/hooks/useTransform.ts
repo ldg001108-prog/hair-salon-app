@@ -29,23 +29,22 @@ function hexToSL(hex: string): { saturation: number; lightness: number } {
 }
 
 /**
- * 이미지 URL을 base64 data URL로 변환 (클라이언트 브라우저에서 실행)
+ * 이미지 URL을 base64 data URL로 변환 (fetch + FileReader — CORS tainted canvas 회피)
  */
-function imageUrlToBase64(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) { reject(new Error('Canvas context failed')); return; }
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg', 0.9));
+async function imageUrlToBase64(url: string): Promise<string> {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                reject(new Error('FileReader result is not string'));
+            }
         };
-        img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-        img.src = url;
+        reader.onerror = () => reject(new Error('FileReader failed'));
+        reader.readAsDataURL(blob);
     });
 }
 
@@ -133,13 +132,14 @@ export function useTransform({ salonId, hairstyles, onError }: UseTransformOptio
             const color = colorHex || selectedColor || undefined;
             const colorData = color ? hexToSL(color) : {};
 
-            // 스타일 참조 이미지를 base64로 변환 (클라이언트에서 직접 변환 — 실패 불가)
+            // 스타일 참조 이미지를 base64로 변환 (클라이언트에서 직접 변환)
             let styleImageBase64 = '';
             if (style.imageUrl) {
                 try {
                     styleImageBase64 = await imageUrlToBase64(style.imageUrl);
+                    console.log(`[Transform] ✅ 스타일 이미지 base64 변환 성공 (${Math.round(styleImageBase64.length / 1024)}KB)`);
                 } catch (err) {
-                    console.warn('[Transform] 스타일 이미지 변환 실패:', err);
+                    console.warn('[Transform] ⚠️ 스타일 이미지 변환 실패, 서버 fallback 사용:', err);
                 }
             }
 
@@ -148,6 +148,7 @@ export function useTransform({ salonId, hairstyles, onError }: UseTransformOptio
                 styleName: style.name,
                 styleDescription: style.story,
                 styleImageBase64,
+                styleImageUrl: style.imageUrl || undefined,
                 category: style.category,
                 salonId,
                 colorName: color ? `Custom (${color})` : undefined,

@@ -17,6 +17,8 @@ export interface HairTransformRequest {
     styleDescription?: string;
     /** 스타일 참조 이미지 (base64 data URL) — 클라이언트에서 변환하여 전달 */
     styleImageBase64?: string;
+    /** 스타일 참조 이미지 URL — 서버 fallback용 */
+    styleImageUrl?: string;
     /** 헤어 색상 이름 (예: "Dark Brown") - 없으면 원래 색상 유지 */
     colorName?: string;
     /** 헤어 색상 hex 코드 (예: "#3d2314") */
@@ -315,13 +317,36 @@ export async function transformHair(
                     { inlineData: { mimeType: mimeType, data: base64Data } },
                 ];
 
-                // 클라이언트에서 받은 스타일 참조 이미지 추가 (base64 직접 사용 — 실패 불가)
+                // ★ 스타일 참조 이미지 추가 (base64 우선, URL fallback)
+                let refBase64 = '';
+                let refMimeType = 'image/jpeg';
+
                 if (request.styleImageBase64) {
-                    const refBase64 = request.styleImageBase64.replace(/^data:image\/\w+;base64,/, '');
+                    // 1순위: 클라이언트에서 변환한 base64 직접 사용
+                    refBase64 = request.styleImageBase64.replace(/^data:image\/\w+;base64,/, '');
                     const refMimeMatch = request.styleImageBase64.match(/^data:(image\/\w+);base64,/);
-                    const refMimeType = refMimeMatch ? refMimeMatch[1] : 'image/jpeg';
+                    refMimeType = refMimeMatch ? refMimeMatch[1] : 'image/jpeg';
+                    console.log(`[GeminiHair] ✅ 참조 이미지 (base64) 포함 (${Math.round(refBase64.length * 3 / 4 / 1024)}KB)`);
+                } else if (request.styleImageUrl) {
+                    // 2순위: 서버에서 직접 URL fetch
+                    console.log(`[GeminiHair] 참조 이미지 서버 fetch: ${request.styleImageUrl.substring(0, 80)}...`);
+                    try {
+                        const imgRes = await fetch(request.styleImageUrl, { signal: AbortSignal.timeout(10000) });
+                        if (imgRes.ok) {
+                            const buffer = await imgRes.arrayBuffer();
+                            refBase64 = Buffer.from(buffer).toString('base64');
+                            refMimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+                            console.log(`[GeminiHair] ✅ 참조 이미지 (서버 fetch) 포함 (${Math.round(refBase64.length * 3 / 4 / 1024)}KB)`);
+                        }
+                    } catch (fetchErr) {
+                        console.warn('[GeminiHair] ⚠️ 참조 이미지 서버 fetch 실패:', fetchErr);
+                    }
+                }
+
+                if (refBase64) {
                     contents.push({ inlineData: { mimeType: refMimeType, data: refBase64 } });
-                    console.log(`[GeminiHair] ✅ 참조 이미지 포함 (${Math.round(refBase64.length * 3 / 4 / 1024)}KB)`);
+                } else {
+                    console.warn('[GeminiHair] ⚠️ 참조 이미지 없음, 텍스트만으로 진행');
                 }
 
                 const response = await ai.models.generateContent({

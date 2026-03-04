@@ -54,7 +54,8 @@ export interface TransformRequest {
     photo: string;
     styleName: string;
     styleDescription: string;
-    styleImageUrl?: string;
+    /** 스타일 참조 이미지 (base64 data URL) — 필수 */
+    styleImageBase64: string;
     category: string;
     salonId: string;
     colorName?: string;

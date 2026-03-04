@@ -15,8 +15,8 @@ export interface HairTransformRequest {
     styleName: string;
     /** 헤어스타일 설명 (선택) */
     styleDescription?: string;
-    /** 스타일 참조 이미지 URL (선택) — AI가 시각적으로 참조 */
-    styleImageUrl?: string;
+    /** 스타일 참조 이미지 (base64 data URL) — 클라이언트에서 변환하여 전달 */
+    styleImageBase64?: string;
     /** 헤어 색상 이름 (예: "Dark Brown") - 없으면 원래 색상 유지 */
     colorName?: string;
     /** 헤어 색상 hex 코드 (예: "#3d2314") */
@@ -194,7 +194,7 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
     }
 
     // 참조 이미지 유무에 따른 프롬프트 분기
-    const hasReferenceImage = !!request.styleImageUrl;
+    const hasReferenceImage = !!request.styleImageBase64;
     const refImageInstruction = hasReferenceImage
         ? `\n\nIMPORTANT — REFERENCE IMAGE PROVIDED:\nThe SECOND image is a REFERENCE photo showing the exact target hairstyle "${styleName}".\nYou MUST replicate this hairstyle AS CLOSELY AS POSSIBLE onto the person in the FIRST image.\nMatch the hair length, texture, volume, layering, bang style, parting, and overall silhouette from the reference image.\nThe reference image is your PRIMARY guide — the text description below is supplementary.\n`
         : "";
@@ -263,20 +263,7 @@ QUALITY AND REALISM:
 Generate the edited photo now. Output at the MAXIMUM possible resolution.`;
 }
 
-// === 참조 이미지 fetch 유틸 ===
-async function fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
-    try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!response.ok) return null;
-        const buffer = await response.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString('base64');
-        const contentType = response.headers.get('content-type') || 'image/jpeg';
-        return { data: base64, mimeType: contentType };
-    } catch (err) {
-        console.warn('[GeminiHair] 참조 이미지 fetch 실패:', err);
-        return null;
-    }
-}
+
 
 // === 재시도 유틸 ===
 async function sleep(ms: number): Promise<void> {
@@ -322,26 +309,19 @@ export async function transformHair(
             const timeoutId = setTimeout(() => controller.abort(), 90000); // 90초 타임아웃
 
             try {
-                // 참조 이미지 fetch (있으면)
-                let refImageData: { data: string; mimeType: string } | null = null;
-                if (request.styleImageUrl) {
-                    console.log(`[GeminiHair] 참조 이미지 fetch: ${request.styleImageUrl.substring(0, 80)}...`);
-                    refImageData = await fetchImageAsBase64(request.styleImageUrl);
-                    if (refImageData) {
-                        console.log(`[GeminiHair] ✅ 참조 이미지 로드 성공 (${Math.round(refImageData.data.length * 3 / 4 / 1024)}KB)`);
-                    } else {
-                        console.warn('[GeminiHair] ⚠️ 참조 이미지 로드 실패, 텍스트만으로 진행');
-                    }
-                }
-
                 // 멀티 이미지 콘텐츠 구성: [프롬프트, 사용자 사진, (참조 이미지)]
                 const contents: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
                     { text: prompt },
                     { inlineData: { mimeType: mimeType, data: base64Data } },
                 ];
-                // 참조 이미지가 있으면 추가
-                if (refImageData) {
-                    contents.push({ inlineData: { mimeType: refImageData.mimeType, data: refImageData.data } });
+
+                // 클라이언트에서 받은 스타일 참조 이미지 추가 (base64 직접 사용 — 실패 불가)
+                if (request.styleImageBase64) {
+                    const refBase64 = request.styleImageBase64.replace(/^data:image\/\w+;base64,/, '');
+                    const refMimeMatch = request.styleImageBase64.match(/^data:(image\/\w+);base64,/);
+                    const refMimeType = refMimeMatch ? refMimeMatch[1] : 'image/jpeg';
+                    contents.push({ inlineData: { mimeType: refMimeType, data: refBase64 } });
+                    console.log(`[GeminiHair] ✅ 참조 이미지 포함 (${Math.round(refBase64.length * 3 / 4 / 1024)}KB)`);
                 }
 
                 const response = await ai.models.generateContent({

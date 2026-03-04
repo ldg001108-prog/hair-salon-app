@@ -29,6 +29,27 @@ function hexToSL(hex: string): { saturation: number; lightness: number } {
 }
 
 /**
+ * 이미지 URL을 base64 data URL로 변환 (클라이언트 브라우저에서 실행)
+ */
+function imageUrlToBase64(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { reject(new Error('Canvas context failed')); return; }
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+        img.src = url;
+    });
+}
+
+/**
  * 이미지를 최대 크기로 리사이즈
  */
 export function resizeImage(dataUrl: string, maxSize: number = 2048): Promise<string> {
@@ -112,11 +133,21 @@ export function useTransform({ salonId, hairstyles, onError }: UseTransformOptio
             const color = colorHex || selectedColor || undefined;
             const colorData = color ? hexToSL(color) : {};
 
+            // 스타일 참조 이미지를 base64로 변환 (클라이언트에서 직접 변환 — 실패 불가)
+            let styleImageBase64 = '';
+            if (style.imageUrl) {
+                try {
+                    styleImageBase64 = await imageUrlToBase64(style.imageUrl);
+                } catch (err) {
+                    console.warn('[Transform] 스타일 이미지 변환 실패:', err);
+                }
+            }
+
             const data = await requestTransform({
                 photo: userPhoto,
                 styleName: style.name,
                 styleDescription: style.story,
-                styleImageUrl: style.imageUrl || undefined,
+                styleImageBase64,
                 category: style.category,
                 salonId,
                 colorName: color ? `Custom (${color})` : undefined,

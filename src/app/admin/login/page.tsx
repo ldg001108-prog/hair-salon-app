@@ -60,6 +60,10 @@ export default function AdminLoginPage() {
     return (
         <div className={styles.container}>
             <div className={styles.card}>
+                {/* 데코 서클 */}
+                <div className={styles.decoCircle1} />
+                <div className={styles.decoCircle2} />
+
                 {/* 로고 */}
                 <div className={styles.logo}>✂️</div>
                 <h1 className={styles.title}>AI Hair Studio</h1>
@@ -107,12 +111,7 @@ export default function AdminLoginPage() {
                     </button>
                 </form>
 
-                <p style={{
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: 'var(--text-tertiary, #999)',
-                    marginTop: 16,
-                }}>
+                <p className={styles.helpText}>
                     계정이 없으신가요? 관리자에게 문의해주세요.
                 </p>
 

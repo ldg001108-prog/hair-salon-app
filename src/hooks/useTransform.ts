@@ -116,6 +116,7 @@ export function useTransform({ salonId, hairstyles, onError }: UseTransformOptio
                 photo: userPhoto,
                 styleName: style.name,
                 styleDescription: style.story,
+                styleImageUrl: style.imageUrl || undefined,
                 category: style.category,
                 salonId,
                 colorName: color ? `Custom (${color})` : undefined,

@@ -54,6 +54,7 @@ export interface TransformRequest {
     photo: string;
     styleName: string;
     styleDescription: string;
+    styleImageUrl?: string;
     category: string;
     salonId: string;
     colorName?: string;

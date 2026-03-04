@@ -203,15 +203,33 @@ export default function AdminDashboard({
         setBrandSaving(true);
         setBrandSaved(false);
         try {
-            // TODO: Supabase 연결 시 살롱 테이블 업데이트 API 호출
-            await new Promise((r) => setTimeout(r, 500));
-            setBrandSaved(true);
-            setTimeout(() => setBrandSaved(false), 3000);
+            const res = await fetch("/api/admin", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    salonId,
+                    name: brandName,
+                    themeColor: brandThemeColor,
+                    logoUrl: brandLogoUrl,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setBrandSaved(true);
+                setTimeout(() => setBrandSaved(false), 3000);
+            }
         } catch {
             // 에러 처리
         } finally {
             setBrandSaving(false);
         }
+    }, [salonId, brandName, brandThemeColor, brandLogoUrl]);
+
+    // URL 복사
+    const handleCopyUrl = useCallback((url: string) => {
+        navigator.clipboard.writeText(url).then(() => {
+            alert("URL이 클립보드에 복사되었습니다!");
+        }).catch(() => { });
     }, []);
 
     // 인증 체크 중 로딩
@@ -254,6 +272,9 @@ export default function AdminDashboard({
                     <span className={styles.headerSalonId}>Salon: {salonId}</span>
                 </div>
                 <div className={styles.headerRight}>
+                    <button className={styles.headerLink} onClick={() => handleCopyUrl(`${typeof window !== "undefined" ? window.location.origin : ""}/salon/${salonId}`)}>
+                        📋 고객 URL 복사
+                    </button>
                     <a href={`/salon/${salonId}`} target="_blank" rel="noopener noreferrer" className={styles.headerLink}>
                         🔗 고객 페이지 열기
                     </a>

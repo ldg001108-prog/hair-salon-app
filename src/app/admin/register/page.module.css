@@ -1,0 +1,286 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0a0a14 0%, #1a1030 50%, #0d0d20 100%);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 100, 240, 0.08) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+}
+
+.card {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(20, 18, 35, 0.9);
+    border: 1px solid rgba(120, 100, 180, 0.15);
+    border-radius: 20px;
+    padding: 36px 32px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 36px;
+}
+
+.successIcon {
+    text-align: center;
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #e8e0f8;
+    margin: 0 0 4px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(180, 170, 200, 0.7);
+    margin: 0 0 24px;
+}
+
+/* 폼 필드 */
+.fieldGroup {
+    margin-bottom: 16px;
+}
+
+.label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(180, 170, 200, 0.7);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(25, 20, 45, 0.8);
+    border: 1px solid rgba(120, 100, 180, 0.15);
+    border-radius: 10px;
+    color: #e0d8f0;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input:focus {
+    border-color: rgba(140, 100, 220, 0.5);
+    box-shadow: 0 0 0 3px rgba(140, 100, 220, 0.1);
+}
+
+.input::placeholder {
+    color: rgba(140, 130, 160, 0.4);
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid rgba(120, 100, 180, 0.1);
+    margin: 20px 0;
+}
+
+/* 테마 컬러 선택 */
+.themeRow {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.themeSwatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.themeSwatch:hover {
+    transform: scale(1.15);
+}
+
+.themeSwatchActive {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.themeCustom {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px dashed rgba(180, 170, 200, 0.3);
+    cursor: pointer;
+    background: transparent;
+    padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.themeCustom::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+.themeCustom::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+/* 제출 버튼 */
+.submitBtn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #7c50d0, #6040b0);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.3s;
+}
+
+.submitBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8c60e0, #7050c0);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(120, 80, 200, 0.3);
+}
+
+.submitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 에러 */
+.error {
+    background: rgba(220, 60, 60, 0.1);
+    border: 1px solid rgba(220, 60, 60, 0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    color: #e88;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* 결과 섹션 */
+.resultSection {
+    background: rgba(25, 20, 45, 0.6);
+    border: 1px solid rgba(120, 100, 180, 0.12);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.resultLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #c8b8f0;
+    margin: 0 0 10px;
+}
+
+.resultRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(120, 100, 180, 0.08);
+}
+
+.resultRow:last-child {
+    border-bottom: none;
+}
+
+.resultKey {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(180, 170, 200, 0.6);
+    min-width: 50px;
+    flex-shrink: 0;
+}
+
+.resultValue {
+    flex: 1;
+    font-size: 13px;
+    color: #e0d8f0;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.copyBtn {
+    padding: 4px 10px;
+    background: rgba(120, 80, 200, 0.2);
+    border: 1px solid rgba(120, 80, 200, 0.3);
+    border-radius: 6px;
+    color: #c8b8f0;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.copyBtn:hover {
+    background: rgba(120, 80, 200, 0.35);
+}
+
+.resultWarning {
+    background: rgba(200, 160, 60, 0.08);
+    border: 1px solid rgba(200, 160, 60, 0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    color: #e8c060;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* 스피너 */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: rgba(140, 130, 160, 0.4);
+}

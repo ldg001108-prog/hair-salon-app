@@ -113,11 +113,11 @@ export default function MainView({
             tap.count = 0;
             const pw = prompt("관리자 비밀번호를 입력하세요:");
             if (pw !== null && pw !== "") {
-                // 서버 API로 비밀번호 검증
+                // 서버 API로 비밀번호 검증 (살롱별 비밀번호 + 슈퍼관리자 비밀번호 둘 다 지원)
                 fetch("/api/admin", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: pw }),
+                    body: JSON.stringify({ password: pw, salonId }),
                 })
                     .then((res) => res.json())
                     .then((data) => {

@@ -198,23 +198,43 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
     // 참조 이미지 유무에 따른 프롬프트 분기
     const hasReferenceImage = !!request.styleImageBase64;
     const refImageInstruction = hasReferenceImage
-        ? `\n\nIMPORTANT — REFERENCE IMAGE PROVIDED:
-The SECOND image is ONLY a HAIRSTYLE REFERENCE — use it ONLY to understand the target hair shape, length, texture, volume, layering, bang style, parting, and silhouette.
-CRITICAL WARNINGS about the reference image:
-- Do NOT use the face, skin, or body from the SECOND image. The person in the SECOND image is a COMPLETELY DIFFERENT person.
-- Do NOT copy the face, facial features, skin tone, or any non-hair elements from the reference image.
-- The OUTPUT must show the FIRST image's person (their exact face, skin, body) with ONLY the hairstyle from the SECOND image applied.
-- If the SECOND image has freckles, moles, or skin features, do NOT transfer them to the result. Only the HAIR matters from the reference.
-- Think of it as: "Copy the HAIR from image 2, paste it onto the PERSON from image 1."
+        ? `
+
+★★★ CRITICAL — REFERENCE IMAGE RULES (READ THIS FIRST) ★★★
+The SECOND image is a HAIRSTYLE REFERENCE ONLY. Follow these rules with ZERO EXCEPTIONS:
+
+WHAT TO COPY FROM THE REFERENCE (SECOND IMAGE):
+✅ Hair shape, silhouette, and overall style
+✅ Hair length and volume
+✅ Hair texture (straight, wavy, curly)
+✅ Hair layering, bangs style, parting
+✅ Hair styling direction and flow
+
+WHAT TO ABSOLUTELY NEVER COPY FROM THE REFERENCE:
+❌ NEVER copy the reference model's FACE — not even partially
+❌ NEVER copy the reference model's facial structure, jawline, or bone structure
+❌ NEVER copy any moles, freckles, spots, beauty marks, or skin blemishes from the reference
+❌ NEVER copy the reference model's skin tone or complexion
+❌ NEVER copy the reference model's eye shape, nose, lips, or eyebrows
+❌ NEVER copy tattoos, piercings, or body modifications from the reference
+❌ NEVER let the reference model's facial features "leak" or "blend" into the result
+
+THE GOLDEN RULE: If you showed the result to the person in the FIRST photo, they should say "That's ME with new hair!" — NOT "Who is this other person?"
+If the result looks even 1% like the reference model's face, YOU HAVE FAILED.
+The person in the SECOND image is a STRANGER. Their face is IRRELEVANT. Only their HAIR matters.
 `
         : "";
 
     return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
 
+★★★ ABSOLUTE PRIORITY #1 — FACE IDENTITY ★★★
+The person in the FIRST photo is the CLIENT. The output MUST show THIS EXACT PERSON — same face, same identity, same skin.
+NEVER, under ANY circumstance, output a face that looks like anyone other than the person in the FIRST photo.
+This is NON-NEGOTIABLE and overrides ALL other instructions.
+
 TASK: Transform ONLY the hairstyle (and optionally the hair color) of the person in the FIRST photo.
-The FIRST photo contains the TARGET PERSON whose face must appear in the final result — this is NON-NEGOTIABLE.
 The output image MUST be a photo of the FIRST image's person with a new hairstyle applied.
-NEVER output the reference model's face. NEVER replace the person. The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
+The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${lengthInstruction}
@@ -246,18 +266,22 @@ CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 5. Do NOT randomly change the hair parting direction or add asymmetric elements unless the style specifically requires it.
 6. The result should look the same regardless of how many times this exact style is applied to this exact photo.
 
-FACE PRESERVATION RULES (MOST CRITICAL — do NOT violate):
-1. The person's FACE must remain EXACTLY IDENTICAL to the original photo — this is the #1 priority.
+★★★ FACE PRESERVATION RULES (MOST CRITICAL — ZERO TOLERANCE FOR VIOLATIONS) ★★★
+1. The person's FACE must remain PIXEL-PERFECT IDENTICAL to the FIRST photo — this is the ABSOLUTE #1 priority.
 2. Do NOT alter, beautify, smooth, reshape, or enhance ANY facial features whatsoever.
-3. ONLY keep facial marks (moles, freckles, blemishes, spots) that ALREADY EXIST in the original photo. Do NOT invent, add, or generate ANY new spots, freckles, moles, marks, or blemishes that are not clearly visible in the original. This is CRITICAL — adding non-existent skin features is a SEVERE ERROR.
+3. SKIN MARKS POLICY — ZERO TOLERANCE:
+   - ONLY keep facial marks (moles, freckles, blemishes) that ALREADY EXIST in the FIRST (original) photo.
+   - Do NOT invent, add, generate, or transfer ANY new spots, freckles, moles, marks, dots, or blemishes.
+   - If the reference image (second image) has moles/spots on the model's face, DO NOT transfer them. They belong to a DIFFERENT person.
+   - If there is ANY doubt whether a mark exists in the original, DO NOT add it. Err on the side of CLEAN SKIN.
+   - Adding non-existent skin features is a CRITICAL FAILURE that makes the result unusable.
 4. SKIN TONE and COMPLEXION must be pixel-level identical to the original. If the original skin is clean and clear, the result MUST also be clean and clear.
 5. Do NOT change the face shape, jawline, chin, cheekbones, or any bone structure.
 6. Do NOT enlarge or reshape eyes, nose, lips, or ears in any way.
 7. Do NOT apply any skin smoothing, whitening, or beauty filter effects.
-8. Do NOT add any skin texture, pores, freckles, age spots, or skin imperfections that are NOT in the original photo. The skin must look EXACTLY like the original — nothing added, nothing removed.
-9. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
-10. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair — the skin looks identical."
-11. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
+8. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
+9. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair — the face and skin look IDENTICAL."
+10. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
 
 OTHER PRESERVATION RULES:
 1. BACKGROUND must remain exactly the same

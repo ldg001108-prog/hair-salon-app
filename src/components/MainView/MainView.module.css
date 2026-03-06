@@ -9,9 +9,10 @@
     background: transparent;
     display: flex;
     flex-direction: column;
-    gap: var(--sp-3);
+    gap: var(--tmpl-spacing-section, var(--sp-3));
     padding-bottom: calc(env(safe-area-inset-bottom) + 90px);
     transition: background-color var(--dur-slow) var(--ease-out);
+    font-family: var(--tmpl-font-body, var(--font-primary));
 }
 
 /* ── 헤더 ── */
@@ -23,18 +24,18 @@
     padding-top: calc(env(safe-area-inset-top) + var(--sp-4));
     position: relative;
     top: auto;
-    background: transparent;
+    background: var(--tmpl-header-bg, transparent);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    border-bottom: none;
+    border-bottom: var(--tmpl-header-border, none);
 }
 
 .logo {
-    font-family: var(--font-display);
+    font-family: var(--tmpl-font-display, var(--font-display));
     font-size: var(--fs-lg);
-    font-weight: 700;
+    font-weight: var(--tmpl-header-weight, 700);
     color: var(--text-primary);
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tmpl-title-tracking, -0.02em);
 }
 
 .themeToggle {
@@ -60,9 +61,12 @@
 .sectionCard {
     margin: 0 var(--sp-4);
     padding: var(--sp-4);
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 16px;
+    background: var(--tmpl-card-bg, var(--bg-card));
+    border: var(--tmpl-card-border, 2px solid var(--border));
+    border-radius: var(--tmpl-radius-card, 16px);
+    box-shadow: var(--tmpl-shadow-card, none);
+    backdrop-filter: var(--tmpl-card-backdrop, none);
+    -webkit-backdrop-filter: var(--tmpl-card-backdrop, none);
     transition: border-color var(--dur-base) var(--ease-out);
 }
 
@@ -79,10 +83,12 @@
 }
 
 .sectionTitle {
-    font-size: var(--fs-base);
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
+    font-family: var(--tmpl-font-display, var(--font-display));
+    font-size: var(--tmpl-title-size, var(--fs-base));
+    font-weight: var(--tmpl-header-weight, 700);
+    color: var(--tmpl-section-title-color, var(--text-primary));
+    letter-spacing: var(--tmpl-title-tracking, -0.01em);
+    text-transform: var(--tmpl-title-transform, none);
 }
 
 .resultBadge {
@@ -152,7 +158,7 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: 12px;
+    border-radius: var(--tmpl-radius-image, 12px);
     overflow: hidden;
     border: 1.5px solid var(--border);
     background: var(--bg-tertiary);
@@ -216,9 +222,9 @@
     justify-content: center;
     gap: var(--sp-1);
     cursor: pointer;
-    border: 2px dashed var(--upload-border);
-    border-radius: 12px;
-    background: var(--upload-bg);
+    border: var(--tmpl-upload-border, 2px dashed var(--upload-border));
+    border-radius: var(--tmpl-upload-radius, 12px);
+    background: var(--tmpl-upload-bg, var(--upload-bg));
     transition: all var(--dur-base) var(--ease-out);
 }
 
@@ -240,8 +246,8 @@
 
 .uploadText {
     font-size: var(--fs-base);
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: var(--tmpl-btn-font-weight, 600);
+    color: var(--tmpl-upload-text-color, var(--text-primary));
 }
 
 /* 촬영 / 갤러리 2버튼 */
@@ -552,10 +558,10 @@
     align-items: center;
     gap: 4px;
     padding: 7px 12px;
-    border-radius: var(--r-full);
+    border-radius: var(--tmpl-btn-radius, var(--r-full));
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-weight: var(--tmpl-btn-font-weight, 600);
+    color: var(--tmpl-text-secondary, var(--text-secondary));
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     transition: all var(--dur-base) var(--ease-out);
@@ -843,15 +849,16 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: 12px;
+    border-radius: var(--tmpl-style-card-radius, 12px);
     overflow: hidden;
-    border: 2px solid transparent;
+    border: var(--tmpl-style-card-border, 2px solid transparent);
+    box-shadow: var(--tmpl-style-card-shadow, none);
     background: var(--bg-tertiary);
     transition: all var(--dur-base) var(--ease-out);
 }
 
 .styleCardSelected .styleImgWrap {
-    border-color: var(--accent);
+    border: var(--tmpl-style-card-selected-border, 2px solid var(--accent));
     box-shadow: 0 0 0 3px var(--accent-dim);
 }
 

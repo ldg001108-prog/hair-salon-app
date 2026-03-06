@@ -403,7 +403,9 @@
     border-radius: 20px;
     padding: 32px;
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 20px 60px rgba(120, 50, 80, 0.15);
     backdrop-filter: blur(20px);
 }
@@ -465,6 +467,90 @@
     gap: 10px;
     justify-content: flex-end;
     margin-top: 20px;
+}
+
+/* ===== 템플릿 선택 그리드 ===== */
+.templateGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.templateOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.templateOption:hover {
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(192, 108, 142, 0.2);
+}
+
+.templateSelected {
+    border-color: #c06c8e;
+    background: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 2px 8px rgba(192, 108, 142, 0.2);
+}
+
+.templateIcon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.templatePreviewCard {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(192, 108, 142, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    transition: all 0.2s;
+}
+
+.templatePreviewTitle {
+    font-size: 16px;
+    color: #3d1f35;
+    line-height: 1;
+}
+
+.templatePreviewLine {
+    width: 80%;
+    height: 4px;
+    background: rgba(192, 108, 142, 0.25);
+}
+
+.templatePreviewLine2 {
+    width: 55%;
+    height: 4px;
+    background: rgba(192, 108, 142, 0.15);
+}
+
+.templateName {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b3a5c;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.templateDesc {
+    font-size: 8px;
+    color: #b999ab;
+    text-align: center;
+    line-height: 1.2;
 }
 
 /* ===== 테마 선택 그리드 ===== */
@@ -842,4 +928,22 @@
         margin: 12px;
         padding: 20px 16px;
     }
+}
+
+/* 삭제 버튼 (소형) */
+.dangerBtnSm {
+    background: transparent;
+    border: 1px solid #e8a0a0;
+    color: #c0392b;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.dangerBtnSm:hover {
+    background: #c0392b;
+    color: white;
+    border-color: #c0392b;
 }

@@ -98,14 +98,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 테마 설정
-        if (result.salonId && themeColor) {
+        // 테마 및 템플릿 설정
+        if (result.salonId) {
             const supabase = getServiceClient();
             if (supabase) {
-                await supabase
-                    .from("salons")
-                    .update({ theme_color: themeColor })
-                    .eq("id", result.salonId);
+                // theme_color 저장
+                if (themeColor) {
+                    await supabase
+                        .from("salons")
+                        .update({ theme_color: themeColor })
+                        .eq("id", result.salonId);
+                }
+
             }
         }
 
@@ -117,6 +121,69 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         console.error("[Dev/Salons] POST Error:", error);
+        return NextResponse.json(
+            { success: false, error: "서버 오류" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { salonId } = await request.json();
+        if (!salonId) {
+            return NextResponse.json(
+                { success: false, error: "살롱 ID가 필요합니다." },
+                { status: 400 }
+            );
+        }
+
+        const supabase = getServiceClient();
+        if (!supabase) {
+            return NextResponse.json(
+                { success: false, error: "Supabase 미설정" },
+                { status: 500 }
+            );
+        }
+
+        // 살롱의 owner_id 조회
+        const { data: salon } = await supabase
+            .from("salons")
+            .select("owner_id")
+            .eq("id", salonId)
+            .single();
+
+        // 구독 삭제
+        await supabase.from("subscriptions").delete().eq("salon_id", salonId);
+
+        // 살롱 삭제
+        const { error: delError } = await supabase
+            .from("salons")
+            .delete()
+            .eq("id", salonId);
+
+        if (delError) {
+            return NextResponse.json(
+                { success: false, error: delError.message },
+                { status: 500 }
+            );
+        }
+
+        // 해당 사장님의 다른 살롱이 없으면 Auth 유저도 삭제
+        if (salon?.owner_id) {
+            const { data: otherSalons } = await supabase
+                .from("salons")
+                .select("id")
+                .eq("owner_id", salon.owner_id);
+
+            if (!otherSalons || otherSalons.length === 0) {
+                await supabase.auth.admin.deleteUser(salon.owner_id);
+            }
+        }
+
+        return NextResponse.json({ success: true, message: "살롱이 삭제되었습니다." });
+    } catch (error) {
+        console.error("[Dev/Salons] DELETE Error:", error);
         return NextResponse.json(
             { success: false, error: "서버 오류" },
             { status: 500 }

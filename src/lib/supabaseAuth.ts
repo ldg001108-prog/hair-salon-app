@@ -22,6 +22,13 @@ function getServiceSupabase(): SupabaseClient | null {
 }
 
 // ========================
+// 아이디 → 이메일 형식 변환 (Supabase Auth는 이메일 필수)
+// ========================
+function toAuthEmail(id: string): string {
+    return id.includes("@") ? id : `${id}@salon.local`;
+}
+
+// ========================
 // 회원가입
 // ========================
 export async function signUpOwner(email: string, password: string, salonName: string) {
@@ -30,9 +37,10 @@ export async function signUpOwner(email: string, password: string, salonName: st
         return { success: false, error: "Supabase가 설정되지 않았습니다." };
     }
 
-    // 1. Supabase Auth 회원가입
+    // 1. Supabase Auth 회원가입 (아이디 → 이메일 변환)
+    const authEmail = toAuthEmail(email);
     const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: authEmail,
         password,
     });
 
@@ -79,8 +87,9 @@ export async function signInOwner(email: string, password: string) {
         return { success: false, error: "Supabase가 설정되지 않았습니다." };
     }
 
+    const authEmail = toAuthEmail(email);
     const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: authEmail,
         password,
     });
 

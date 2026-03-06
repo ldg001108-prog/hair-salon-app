@@ -20,6 +20,7 @@ interface Salon {
     is_active: boolean;
     created_at: string;
     theme_color?: string;
+
 }
 
 interface StatsData {
@@ -184,6 +185,27 @@ export default function DevDashboard() {
         }
     };
 
+    // 살롱 삭제
+    const handleDeleteSalon = async (salonId: string, salonName: string) => {
+        if (!confirm(`"${salonName}" 미용실을 삭제하시겠습니까?\n\n⚠️ 관련 데이터가 모두 삭제됩니다.`)) return;
+        try {
+            const res = await fetch("/api/dev/salons", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ salonId }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("✅ 삭제되었습니다.");
+                loadSalons();
+            } else {
+                alert(`❌ 삭제 실패: ${data.error}`);
+            }
+        } catch {
+            alert("❌ 서버 연결 실패");
+        }
+    };
+
     // 로그아웃
     const handleLogout = () => {
         localStorage.removeItem("dev-admin-token");
@@ -314,12 +336,13 @@ export default function DevDashboard() {
                                 <thead>
                                     <tr>
                                         <th>미용실 이름</th>
-                                        <th>이메일 (사장님 계정)</th>
+                                        <th>아이디 (사장님 계정)</th>
                                         <th>플랜</th>
                                         <th>일일 한도</th>
                                         <th>상태</th>
                                         <th>서비스 URL</th>
                                         <th>가입일</th>
+                                        <th>관리</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -339,10 +362,11 @@ export default function DevDashboard() {
                                                 </a>
                                             </td>
                                             <td>{new Date(s.created_at).toLocaleDateString("ko-KR")}</td>
+                                            <td><button className={styles.dangerBtnSm} onClick={() => handleDeleteSalon(s.id, s.name || s.id)}>🗑️</button></td>
                                         </tr>
                                     ))}
                                     {salons.length === 0 && (
-                                        <tr><td colSpan={7} className={styles.empty}>등록된 살롱이 없습니다. &quot;새 미용실 등록&quot; 버튼을 눌러주세요.</td></tr>
+                                        <tr><td colSpan={8} className={styles.empty}>등록된 살롱이 없습니다. &quot;새 미용실 등록&quot; 버튼을 눌러주세요.</td></tr>
                                     )}
                                 </tbody>
                             </table>
@@ -356,8 +380,8 @@ export default function DevDashboard() {
                                 <h3 className={styles.modalTitle}>🏪 새 미용실 등록</h3>
                                 <form onSubmit={handleCreateSalon}>
                                     <div className={styles.formGroup}>
-                                        <label>사장님 이메일</label>
-                                        <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="salon@example.com" required />
+                                        <label>사장님 아이디</label>
+                                        <input type="text" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="로그인에 사용할 아이디" required />
                                     </div>
                                     <div className={styles.formGroup}>
                                         <label>비밀번호 (6자 이상)</label>
@@ -367,6 +391,7 @@ export default function DevDashboard() {
                                         <label>미용실 이름</label>
                                         <input type="text" value={newSalonName} onChange={(e) => setNewSalonName(e.target.value)} placeholder="예: 뷰티스타 미용실" required />
                                     </div>
+
                                     <div className={styles.formGroup}>
                                         <label>테마 색상 선택</label>
                                         <div className={styles.themeGrid}>

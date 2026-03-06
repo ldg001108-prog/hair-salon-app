@@ -238,7 +238,7 @@ export default function SalonPage() {
             {/* 남은 시간 표시 (10분 이하일 때) */}
             {remainingMin !== null && remainingMin <= 10 && (
                 <div style={{
-                    position: "fixed", top: 12, right: 12, zIndex: 9999,
+                    position: "fixed", top: 52, right: 12, zIndex: 9999,
                     background: remainingMin <= 3 ? "#ff4444" : "#ff8800",
                     color: "white", padding: "6px 14px", borderRadius: 20,
                     fontSize: 12, fontWeight: 600,

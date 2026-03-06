@@ -19,12 +19,20 @@
     width: 100%;
 }
 
-/* 팔레트 그리드 (8개 가로 한 줄) */
+/* 팔레트 그리드 (8개 가로 한 줄, 모바일 대응) */
 .paletteGrid {
     display: flex;
     justify-content: center;
     gap: 6px;
     width: 100%;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding: 4px 2px;
+}
+
+.paletteGrid::-webkit-scrollbar {
+    display: none;
 }
 
 /* 개별 스와치 */

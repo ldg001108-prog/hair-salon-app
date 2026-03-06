@@ -4,9 +4,16 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabase";
 
-// 비밀번호는 환경변수(ADMIN_PASSWORD)에서 관리
+// Service Role 클라이언트 (auth.admin API용)
+function getServiceClient() {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) return null;
+    return createClient(url, serviceKey);
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -27,31 +34,39 @@ export async function POST(request: NextRequest) {
 
         // 2) 살롱 오너 비밀번호 체크 (salonId가 있을 때)
         if (salonId) {
-            const supabase = getSupabase();
-            if (supabase) {
+            const serviceClient = getServiceClient();
+            if (serviceClient) {
                 // salon의 owner_id 조회
-                const { data: salon } = await supabase
+                const { data: salon, error: salonError } = await serviceClient
                     .from("salons")
                     .select("owner_id")
                     .eq("id", salonId)
                     .single();
 
+                console.log(`[Admin] 살롱 조회: salonId=${salonId}, owner_id=${salon?.owner_id}, error=${salonError?.message || "none"}`);
+
                 if (salon?.owner_id) {
-                    // owner의 email 조회 (auth.users 테이블)
-                    const { data: userData } = await supabase.auth.admin.getUserById(salon.owner_id);
+                    // owner의 email 조회 (auth.admin API — service_role 필수)
+                    const { data: userData, error: userError } = await serviceClient.auth.admin.getUserById(salon.owner_id);
+
+                    console.log(`[Admin] 유저 조회: email=${userData?.user?.email || "not found"}, error=${userError?.message || "none"}`);
 
                     if (userData?.user?.email) {
                         // 해당 이메일+입력 비밀번호로 로그인 시도
-                        const { error: signInError } = await supabase.auth.signInWithPassword({
+                        const { error: signInError } = await serviceClient.auth.signInWithPassword({
                             email: userData.user.email,
                             password,
                         });
+
+                        console.log(`[Admin] 로그인 시도: email=${userData.user.email}, result=${signInError ? "FAIL: " + signInError.message : "SUCCESS"}`);
 
                         if (!signInError) {
                             return NextResponse.json({ success: true });
                         }
                     }
                 }
+            } else {
+                console.warn("[Admin] Service Role Key가 설정되지 않았습니다.");
             }
         }
 
@@ -62,7 +77,8 @@ export async function POST(request: NextRequest) {
             { success: false, error: "비밀번호가 틀렸습니다." },
             { status: 401 }
         );
-    } catch {
+    } catch (err) {
+        console.error("[Admin] POST Error:", err);
         return NextResponse.json(
             { success: false, error: "서버 오류가 발생했습니다." },
             { status: 500 }
@@ -132,4 +148,3 @@ export async function PATCH(request: NextRequest) {
         );
     }
 }
-

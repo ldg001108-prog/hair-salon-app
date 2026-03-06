@@ -134,7 +134,7 @@ export default function MainView({
         } else {
             tap.timer = setTimeout(() => { tap.count = 0; }, 3000);
         }
-    }, []);
+    }, [salonId]);
 
     // 테마 초기화
     useEffect(() => {

@@ -192,25 +192,28 @@ html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
-    /* 전체 화면 그라데이션: 아래 핑크 → 중간 밝은 핑크 → 위 파스텔 라벤더 */
+    /* 전체 화면 그라데이션 */
     background: var(--bg-gradient, var(--bg-primary));
     background-attachment: fixed;
     min-height: 100vh;
     min-height: 100dvh;
+    scroll-behavior: smooth;
+    /* 안드로이드 오버스크롤 효과 */
+    overscroll-behavior-y: contain;
 }
 
 body {
     font-family: var(--font-primary);
     color: var(--text-primary);
     background: transparent;
-    line-height: 1.5;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
-    /* 중앙 정렬 — 데스크탑에서도 모바일 레이아웃 유지 */
+    /* 고객 페이지 — 모바일 우선 중앙 정렬 */
     max-width: 480px;
     margin: 0 auto;
     padding-top: env(safe-area-inset-top);
@@ -218,6 +221,9 @@ body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     transition: color var(--dur-slow) var(--ease-out);
+    /* 안드로이드 텍스트 선택 색상 */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 input,
@@ -281,4 +287,84 @@ a {
     backdrop-filter: blur(30px) saturate(1.4);
     -webkit-backdrop-filter: blur(30px) saturate(1.4);
     border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ── 인풋/텍스트 선택 허용 ── */
+input,
+textarea,
+select,
+[contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* ── 안드로이드 터치 최적화 ── */
+button,
+a,
+[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 모바일 인풋 줌 방지 (안드로이드 Chrome) ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+textarea,
+select {
+    font-size: 16px !important;
+    /* 안드로이드에서 16px 미만이면 자동 줌 */
+}
+
+/* ── 모바일 스크롤바 숨기기 ── */
+::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+
+/* ── 모바일에서 포커스 시 자연스러운 스크롤 ── */
+@supports (scroll-padding-top: 1px) {
+    html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+}
+
+/* ========================================
+   관리자 페이지 — 전폭 레이아웃 허용
+   body의 max-width: 480px 제한을 해제
+   ======================================== */
+body:has(.adminLayout) {
+    max-width: 100%;
+    padding: 0;
+}
+
+/* ========================================
+   반응형 유틸리티 — 모바일 퍼스트
+   ======================================== */
+
+/* 모바일 (~ 480px): 기본 스타일 */
+
+/* 큰 모바일 / 소형 태블릿 (481px ~ 768px) */
+@media (min-width: 481px) {
+    body:not(:has(.adminLayout)) {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* 태블릿 (769px ~ 1024px) */
+@media (min-width: 769px) {
+    body:not(:has(.adminLayout)) {
+        max-width: 520px;
+    }
+}
+
+/* 데스크톱 (1025px ~) */
+@media (min-width: 1025px) {
+    body:not(:has(.adminLayout)) {
+        max-width: 560px;
+    }
 }

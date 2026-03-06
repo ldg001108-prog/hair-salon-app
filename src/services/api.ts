@@ -7,10 +7,16 @@ import type { TransformRequest, TransformResponse, ReservationFormData } from "@
 
 // === AI 합성 ===
 export async function requestTransform(data: TransformRequest): Promise<TransformResponse> {
+    // 세션 토큰 첨부 (QR 접근제어용)
+    const salonId = data.salonId || "demo";
+    const sessionToken = typeof window !== "undefined"
+        ? sessionStorage.getItem(`salon-token-${salonId}`) || ""
+        : "";
+
     const response = await fetch("/api/transform", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, sessionToken }),
     });
     return response.json();
 }

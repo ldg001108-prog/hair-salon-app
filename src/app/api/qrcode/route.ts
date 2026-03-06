@@ -2,10 +2,12 @@
  * GET /api/qrcode?salonId=xxx
  * 미용실 전용 QR코드 생성 API
  * - SVG → PNG 변환 없이 SVG 그대로 반환 (Vercel serverless 호환)
+ * - 세션 토큰 포함 (미용실 밖에서 접근 차단용)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import QRCode from "qrcode";
+import { generateSessionToken } from "@/lib/sessionToken";
 
 export async function GET(request: NextRequest) {
     const salonId = request.nextUrl.searchParams.get("salonId");
@@ -18,11 +20,16 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // QR 토큰 유효기간: 5분 (스캔 가능 시간)
+        // 세션 유효기간(10분)은 verify-token API에서 별도 부여
+        const QR_TOKEN_VALIDITY_MIN = 5;
+        const token = generateSessionToken(salonId, QR_TOKEN_VALIDITY_MIN);
+
         // Production URL or localhost
         const baseUrl =
             process.env.NEXT_PUBLIC_BASE_URL ||
             request.nextUrl.origin;
-        const salonUrl = `${baseUrl}/salon/${encodeURIComponent(salonId)}`;
+        const salonUrl = `${baseUrl}/salon/${encodeURIComponent(salonId)}?token=${encodeURIComponent(token)}`;
 
         // QR 코드를 SVG 문자열로 생성 (canvas 불필요)
         const svgString = await QRCode.toString(salonUrl, {
@@ -39,7 +46,8 @@ export async function GET(request: NextRequest) {
         return new NextResponse(svgString, {
             headers: {
                 "Content-Type": "image/svg+xml",
-                "Cache-Control": "public, max-age=86400",
+                // QR 토큰은 매번 새로 생성해야 하므로 캐시하지 않음
+                "Cache-Control": "no-store, no-cache, must-revalidate",
             },
         });
     } catch (err) {

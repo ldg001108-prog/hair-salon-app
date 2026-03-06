@@ -3,6 +3,7 @@
  * 사용자 사진의 헤어스타일을 AI로 변환하는 API Route
  * - API Key는 서버 사이드에서만 사용 (클라이언트 노출 방지)
  * - IP 기반 Rate Limiting 적용
+ * - 세션 토큰 검증 (QR 접근제어)
  * - Supabase 합성 로그 저장
  */
 
@@ -11,6 +12,8 @@ import { transformHair, HairTransformRequest } from "@/services/geminiHair";
 import { checkSalonRateLimit } from "@/lib/rateLimit";
 import { logSynthesis } from "@/lib/getSalonData";
 import { uploadSynthesisImage } from "@/lib/storageUpload";
+import { getSupabase } from "@/lib/supabase";
+import { verifySessionToken } from "@/lib/sessionToken";
 
 // POST 요청 핸들러
 export async function POST(request: NextRequest) {
@@ -25,8 +28,26 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const salonId = body.salonId || "demo";
 
-        // Rate Limit 체크 (살롱별 한도 적용, 개발환경은 무제한)
+        // 세션 토큰 검증 (프로덕션에서만)
         const isDev = process.env.NODE_ENV === "development";
+        if (!isDev) {
+            const sessionToken = body.sessionToken;
+            if (!sessionToken) {
+                return NextResponse.json(
+                    { success: false, error: "세션이 유효하지 않습니다. QR코드를 다시 스캔해주세요." },
+                    { status: 403 }
+                );
+            }
+            const tokenResult = verifySessionToken(sessionToken);
+            if (!tokenResult.valid) {
+                return NextResponse.json(
+                    { success: false, error: tokenResult.error || "세션이 만료되었습니다." },
+                    { status: 403 }
+                );
+            }
+        }
+
+        // Rate Limit 체크 (살롱별 한도 적용, 개발환경은 무제한)
         const rateResult = isDev
             ? { allowed: true, remaining: 999, resetAt: 0, retryAfterSec: 0 }
             : await checkSalonRateLimit(ip, salonId);
@@ -121,6 +142,21 @@ export async function POST(request: NextRequest) {
             clientIp: ip,
             userAgent: request.headers.get("user-agent") || undefined,
         });
+
+        // 개발자 대시보드 통계용 api_logs 기록
+        try {
+            const supabase = getSupabase();
+            if (supabase) {
+                supabase.from("api_logs").insert({
+                    salon_id: salonId || "demo",
+                    endpoint: "transform",
+                    success: result.success,
+                    error_message: result.success ? null : (result.error || null),
+                });
+            }
+        } catch {
+            // 로깅 실패는 무시
+        }
 
         if (result.success) {
             console.log(`[Transform API] ✅ 합성 성공 (${durationMs}ms)`);

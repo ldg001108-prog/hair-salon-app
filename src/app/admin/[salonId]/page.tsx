@@ -121,12 +121,32 @@ export default function AdminDashboard({
         checkAuth();
     }, [salonId, router]);
 
-    // QR 코드 URL 설정
+    // QR 코드 URL 설정 + 5분마다 자동 갱신
+    const [qrRefreshKey, setQrRefreshKey] = useState(0);
+    const [qrCountdown, setQrCountdown] = useState(300); // 5분 = 300초
+
     useEffect(() => {
-        if (isAuthenticated) {
-            setQrUrl(`/api/qrcode?salonId=${salonId}`);
-        }
-    }, [isAuthenticated, salonId]);
+        if (!isAuthenticated) return;
+        setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
+        setQrCountdown(300);
+
+        // 5분마다 QR 갱신
+        const refreshInterval = setInterval(() => {
+            setQrRefreshKey((k) => k + 1);
+            setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
+            setQrCountdown(300);
+        }, 5 * 60 * 1000);
+
+        // 1초마다 카운트다운
+        const countdownInterval = setInterval(() => {
+            setQrCountdown((c) => (c > 0 ? c - 1 : 0));
+        }, 1000);
+
+        return () => {
+            clearInterval(refreshInterval);
+            clearInterval(countdownInterval);
+        };
+    }, [isAuthenticated, salonId, qrRefreshKey]);
 
     // 인증 후 브랜딩 정보 로드
     useEffect(() => {
@@ -316,8 +336,26 @@ export default function AdminDashboard({
                         <h2 className={styles.cardTitle}>📱 QR 코드</h2>
                         <div className={styles.qrSection}>
                             {qrUrl && <img src={qrUrl} alt={`QR Code for ${salonId}`} className={styles.qrImage} />}
+                            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '8px 0 4px' }}>
+                                ⏱ 다음 갱신까지: <strong style={{ color: qrCountdown <= 60 ? '#e74c3c' : 'inherit' }}>
+                                    {Math.floor(qrCountdown / 60)}:{String(qrCountdown % 60).padStart(2, '0')}
+                                </strong>
+                            </p>
+                            <button
+                                className={styles.downloadBtn}
+                                onClick={() => {
+                                    setQrRefreshKey((k) => k + 1);
+                                    setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
+                                    setQrCountdown(300);
+                                }}
+                                style={{ marginBottom: '8px' }}
+                            >
+                                🔄 QR 즉시 갱신
+                            </button>
+                            <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 12px' }}>
+                                QR 코드는 5분마다 자동 갱신됩니다. 스캔 후 10분간 사용 가능합니다.
+                            </p>
                             <p className={styles.qrUrl}>{typeof window !== "undefined" ? `${window.location.origin}/salon/${salonId}` : `/salon/${salonId}`}</p>
-                            <a href={qrUrl} download={`qr-${salonId}.png`} className={styles.downloadBtn}>⬇️ QR 다운로드</a>
                         </div>
                     </section>
 

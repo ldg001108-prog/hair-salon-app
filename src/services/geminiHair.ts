@@ -198,12 +198,23 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
     // 참조 이미지 유무에 따른 프롬프트 분기
     const hasReferenceImage = !!request.styleImageBase64;
     const refImageInstruction = hasReferenceImage
-        ? `\n\nIMPORTANT — REFERENCE IMAGE PROVIDED:\nThe SECOND image is a REFERENCE photo showing the exact target hairstyle "${styleName}".\nYou MUST replicate this hairstyle AS CLOSELY AS POSSIBLE onto the person in the FIRST image.\nMatch the hair length, texture, volume, layering, bang style, parting, and overall silhouette from the reference image.\nThe reference image is your PRIMARY guide — the text description below is supplementary.\n`
+        ? `\n\nIMPORTANT — REFERENCE IMAGE PROVIDED:
+The SECOND image is ONLY a HAIRSTYLE REFERENCE — use it ONLY to understand the target hair shape, length, texture, volume, layering, bang style, parting, and silhouette.
+CRITICAL WARNINGS about the reference image:
+- Do NOT use the face, skin, or body from the SECOND image. The person in the SECOND image is a COMPLETELY DIFFERENT person.
+- Do NOT copy the face, facial features, skin tone, or any non-hair elements from the reference image.
+- The OUTPUT must show the FIRST image's person (their exact face, skin, body) with ONLY the hairstyle from the SECOND image applied.
+- If the SECOND image has freckles, moles, or skin features, do NOT transfer them to the result. Only the HAIR matters from the reference.
+- Think of it as: "Copy the HAIR from image 2, paste it onto the PERSON from image 1."
+`
         : "";
 
     return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
 
-TASK: Transform ONLY the hairstyle (and optionally the hair color) in the FIRST photo. The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
+TASK: Transform ONLY the hairstyle (and optionally the hair color) of the person in the FIRST photo.
+The FIRST photo contains the TARGET PERSON whose face must appear in the final result — this is NON-NEGOTIABLE.
+The output image MUST be a photo of the FIRST image's person with a new hairstyle applied.
+NEVER output the reference model's face. NEVER replace the person. The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${lengthInstruction}
@@ -238,14 +249,15 @@ CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 FACE PRESERVATION RULES (MOST CRITICAL — do NOT violate):
 1. The person's FACE must remain EXACTLY IDENTICAL to the original photo — this is the #1 priority.
 2. Do NOT alter, beautify, smooth, reshape, or enhance ANY facial features whatsoever.
-3. Keep ALL original facial characteristics: skin texture, pores, blemishes, moles, freckles, wrinkles, laugh lines, under-eye circles, facial hair — everything.
-4. SKIN TONE and COMPLEXION must be pixel-level identical to the original.
+3. ONLY keep facial marks (moles, freckles, blemishes, spots) that ALREADY EXIST in the original photo. Do NOT invent, add, or generate ANY new spots, freckles, moles, marks, or blemishes that are not clearly visible in the original. This is CRITICAL — adding non-existent skin features is a SEVERE ERROR.
+4. SKIN TONE and COMPLEXION must be pixel-level identical to the original. If the original skin is clean and clear, the result MUST also be clean and clear.
 5. Do NOT change the face shape, jawline, chin, cheekbones, or any bone structure.
 6. Do NOT enlarge or reshape eyes, nose, lips, or ears in any way.
 7. Do NOT apply any skin smoothing, whitening, or beauty filter effects.
-8. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
-9. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair."
-10. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
+8. Do NOT add any skin texture, pores, freckles, age spots, or skin imperfections that are NOT in the original photo. The skin must look EXACTLY like the original — nothing added, nothing removed.
+9. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
+10. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair — the skin looks identical."
+11. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
 
 OTHER PRESERVATION RULES:
 1. BACKGROUND must remain exactly the same
@@ -259,10 +271,10 @@ QUALITY AND REALISM:
 5. Maintain realistic lighting, shadows that match the original photo
 6. Hair texture, individual strands should be photorealistic
 7. The result should look like a PROFESSIONAL SALON PHOTOGRAPH
-8. OUTPUT RESOLUTION MUST BE AT LEAST 2K (2048px on the longer side) — generate the HIGHEST RESOLUTION image possible
-9. Every hair strand should be individually distinguishable — no blurriness or softness
+8. OUTPUT IMAGE MUST be in PORTRAIT orientation with EXACTLY a 3:4 aspect ratio (width:height = 3:4). Generate at the HIGHEST RESOLUTION possible while maintaining the 3:4 ratio. Frame the image so the subject's head and shoulders fill the frame naturally, similar to a professional ID photo or salon headshot.
+9. Generate a CRISP, SHARP image — every hair strand should be individually distinguishable, no blurriness or softness.
 
-Generate the edited photo now. Output at the MAXIMUM possible resolution.`;
+Generate the edited photo now. Output at MAXIMUM resolution in 3:4 portrait aspect ratio.`;
 }
 
 

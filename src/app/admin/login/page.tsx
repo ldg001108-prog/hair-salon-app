@@ -1,8 +1,7 @@
 /**
- * 관리자 로그인 페이지
+ * 개발자 대시보드 로그인 페이지
  * /admin/login 경로
- * Supabase Auth 기반 인증
- * 회원가입은 슈퍼어드민 API(/api/admin/create-salon)로만 가능
+ * ID / PW 방식 (환경변수 비교)
  */
 
 "use client";
@@ -10,22 +9,21 @@
 import { useState } from "react";
 import styles from "./page.module.css";
 
-export default function AdminLoginPage() {
-    const [email, setEmail] = useState("");
+export default function DevLoginPage() {
+    const [id, setId] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // 로그인 처리
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
         try {
-            const res = await fetch("/api/auth/login", {
+            const res = await fetch("/api/dev/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ id, password }),
             });
             const data = await res.json();
 
@@ -34,23 +32,11 @@ export default function AdminLoginPage() {
                 return;
             }
 
-            // accessToken 저장
-            if (data.accessToken) {
-                localStorage.setItem("oc-access-token", data.accessToken);
-            }
-
-            // 살롱 목록에서 첫 번째 살롱으로 이동
-            if (data.salons && data.salons.length > 0) {
-                const firstSalon = data.salons[0];
-                sessionStorage.setItem(`admin-auth-${firstSalon.id}`, "true");
-                localStorage.setItem("oc-salon-id", firstSalon.id);
-                localStorage.setItem("oc-authenticated", "true");
-                window.location.href = `/admin/${encodeURIComponent(firstSalon.id)}`;
-            } else {
-                setError("등록된 미용실이 없습니다. 관리자에게 문의해주세요.");
-            }
+            // 토큰 저장
+            localStorage.setItem("dev-admin-token", data.token);
+            window.location.href = "/admin/dashboard";
         } catch (err) {
-            console.error("[Login] Error:", err);
+            console.error("[DevLogin] Error:", err);
             setError("서버 연결 실패. 잠시 후 다시 시도해주세요.");
         } finally {
             setIsLoading(false);
@@ -58,32 +44,28 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className={styles.container}>
+        <div className={`${styles.container} adminLayout`}>
             <div className={styles.card}>
-                {/* 데코 서클 */}
                 <div className={styles.decoCircle1} />
                 <div className={styles.decoCircle2} />
 
-                {/* 로고 */}
-                <div className={styles.logo}>✂️</div>
-                <h1 className={styles.title}>AI Hair Studio</h1>
-                <p className={styles.subtitle}>미용실 관리자 포털</p>
+                <div className={styles.logo}>⚙️</div>
+                <h1 className={styles.title}>Developer Console</h1>
+                <p className={styles.subtitle}>AI Hair Studio 관리자</p>
 
-                {/* 에러 메시지 */}
                 {error && <div className={styles.error}>{error}</div>}
 
-                {/* 로그인 폼 */}
                 <form onSubmit={handleLogin}>
                     <div className={styles.fieldGroup}>
-                        <label className={styles.label}>이메일</label>
+                        <label className={styles.label}>관리자 ID</label>
                         <input
-                            type="email"
+                            type="text"
                             className={styles.input}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="salon@example.com"
+                            value={id}
+                            onChange={(e) => setId(e.target.value)}
+                            placeholder="관리자 ID 입력"
                             required
-                            autoComplete="email"
+                            autoComplete="username"
                         />
                     </div>
 
@@ -94,7 +76,7 @@ export default function AdminLoginPage() {
                             className={styles.input}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="6자 이상"
+                            placeholder="비밀번호 입력"
                             required
                             minLength={6}
                             autoComplete="current-password"
@@ -111,12 +93,8 @@ export default function AdminLoginPage() {
                     </button>
                 </form>
 
-                <p className={styles.helpText}>
-                    계정이 없으신가요? 관리자에게 문의해주세요.
-                </p>
-
                 <div className={styles.footer}>
-                    © 2026 AI Hair Studio
+                    © 2026 AI Hair Studio — Developer Console
                 </div>
             </div>
         </div>

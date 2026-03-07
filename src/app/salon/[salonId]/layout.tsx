@@ -1,10 +1,8 @@
 /**
- * 살롱 레이아웃 — 테마 CSS 변수를 인라인 스타일로 즉시 주입 (FOUC 완전 방지)
+ * 살롱 레이아웃 — :root CSS 변수를 <style> 태그로 즉시 덮어씀 (FOUC 완전 방지)
  * 
- * 핵심 원리: SSR HTML에 CSS 변수가 이미 포함되어 있으므로,
- * 브라우저가 첫 페인트할 때부터 올바른 색상이 적용됨.
- * CSS 변수는 자식 요소로 상속되므로, 래핑 div의 스타일이
- * globals.css의 :root 기본값보다 우선함.
+ * 핵심: <style> 태그를 head에 삽입하여 globals.css의 :root 기본값을
+ * 살롱 테마 값으로 완전히 덮어씀. SSR HTML에 포함되므로 첫 페인트부터 적용.
  */
 
 import { getSalon } from "@/lib/getSalonData";
@@ -24,22 +22,29 @@ export default async function SalonLayout({
     const themeId = salon?.themeColor || DEFAULT_THEME_ID;
     const theme = getThemeById(themeId);
 
-    // 인라인 스타일용 CSS 변수 수집
-    const inlineStyle: Record<string, string> = {};
+    // CSS 변수를 :root 스타일로 생성
+    let cssVarsString = "";
 
     if (theme) {
-        // 프리셋 CSS 변수를 모두 인라인 스타일에 포함
-        for (const [key, value] of Object.entries(theme.cssVars)) {
-            inlineStyle[key] = value;
-        }
-        inlineStyle["--salon-theme"] = theme.accent;
-        inlineStyle["--salon-theme-light"] = theme.accent + "22";
-        inlineStyle["--salon-theme-hover"] = theme.accent + "dd";
+        const allVars: Record<string, string> = {
+            ...theme.cssVars,
+            "--salon-theme": theme.accent,
+            "--salon-theme-light": theme.accent + "22",
+            "--salon-theme-hover": theme.accent + "dd",
+        };
+
+        const declarations = Object.entries(allVars)
+            .map(([key, value]) => `${key}: ${value} !important`)
+            .join(";\n    ");
+
+        cssVarsString = `:root {\n    ${declarations};\n}`;
     }
 
     return (
-        <div style={inlineStyle as React.CSSProperties}>
+        <>
+            {/* SSR HTML에 포함되어 첫 페인트부터 올바른 테마 적용 */}
+            <style dangerouslySetInnerHTML={{ __html: cssVarsString }} />
             {children}
-        </div>
+        </>
     );
 }

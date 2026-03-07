@@ -476,9 +476,22 @@ export default function DevDashboard() {
                                         <div className={styles.qrActions}>
                                             <button
                                                 className={styles.copyBtn}
-                                                onClick={() => {
-                                                    const url = `${window.location.origin}/salon/${s.id}`;
-                                                    navigator.clipboard.writeText(url).then(() => alert("URL 복사됨!"));
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(s.id)}`);
+                                                        const data = await res.json();
+                                                        if (data.url) {
+                                                            await navigator.clipboard.writeText(data.url);
+                                                            alert("토큰 포함 URL 복사됨! (60분 유효)");
+                                                        } else {
+                                                            const url = `${window.location.origin}/salon/${s.id}`;
+                                                            await navigator.clipboard.writeText(url);
+                                                            alert("URL 복사됨 (토큰 없음)");
+                                                        }
+                                                    } catch {
+                                                        const url = `${window.location.origin}/salon/${s.id}`;
+                                                        navigator.clipboard.writeText(url).then(() => alert("URL 복사됨"));
+                                                    }
                                                 }}
                                             >📋 URL 복사</button>
                                         </div>

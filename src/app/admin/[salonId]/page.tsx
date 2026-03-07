@@ -245,12 +245,26 @@ export default function AdminDashboard({
         }
     }, [salonId, brandName, brandThemeColor, brandLogoUrl]);
 
-    // URL 복사
-    const handleCopyUrl = useCallback((url: string) => {
-        navigator.clipboard.writeText(url).then(() => {
-            alert("URL이 클립보드에 복사되었습니다!");
-        }).catch(() => { });
-    }, []);
+    // URL 복사 (토큰 포함)
+    const handleCopyUrl = useCallback(async () => {
+        try {
+            // QR API에서 토큰 포함 URL 생성
+            const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(salonId)}`);
+            const data = await res.json();
+            if (data.url) {
+                await navigator.clipboard.writeText(data.url);
+                alert("토큰 포함 URL이 복사되었습니다! (60분 유효)");
+            } else {
+                // fallback: 토큰 없이 복사
+                const fallback = `${window.location.origin}/salon/${salonId}`;
+                await navigator.clipboard.writeText(fallback);
+                alert("URL 복사됨 (토큰 없이 복사 — QR 스캔 필요)");
+            }
+        } catch {
+            const fallback = `${window.location.origin}/salon/${salonId}`;
+            navigator.clipboard.writeText(fallback).then(() => alert("URL 복사됨"));
+        }
+    }, [salonId]);
 
     // 인증 체크 중 로딩
     if (authChecking || !isAuthenticated) {
@@ -292,7 +306,7 @@ export default function AdminDashboard({
                     <span className={styles.headerSalonId}>Salon: {salonId}</span>
                 </div>
                 <div className={styles.headerRight}>
-                    <button className={styles.headerLink} onClick={() => handleCopyUrl(`${typeof window !== "undefined" ? window.location.origin : ""}/salon/${salonId}`)}>
+                    <button className={styles.headerLink} onClick={handleCopyUrl}>
                         📋 고객 URL 복사
                     </button>
                     <a href={`/salon/${salonId}`} target="_blank" rel="noopener noreferrer" className={styles.headerLink}>

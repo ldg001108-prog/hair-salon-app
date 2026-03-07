@@ -200,41 +200,46 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
     const refImageInstruction = hasReferenceImage
         ? `
 
-★★★ CRITICAL — REFERENCE IMAGE RULES (READ THIS FIRST) ★★★
-The SECOND image is a HAIRSTYLE REFERENCE ONLY. Follow these rules with ZERO EXCEPTIONS:
+★★★ CRITICAL — REFERENCE IMAGE RULES ★★★
+The SECOND image is a HAIRSTYLE CATALOG PAGE. Think of it as a magazine photo showing ONLY a hairstyle.
+You are a barber looking at this catalog to understand what haircut to give your client (FIRST image).
+The person in the catalog is a COMPLETE STRANGER — you cannot even see their face. It is blurred out.
+You can ONLY see the HAIR in the catalog image.
 
-WHAT TO COPY FROM THE REFERENCE (SECOND IMAGE):
+EXTRACT FROM CATALOG (SECOND IMAGE):
 ✅ Hair shape, silhouette, and overall style
-✅ Hair length and volume
-✅ Hair texture (straight, wavy, curly)
-✅ Hair layering, bangs style, parting
-✅ Hair styling direction and flow
+✅ Hair length, volume, and texture
+✅ Hair layering, bangs style, parting, flow
 
-WHAT TO ABSOLUTELY NEVER COPY FROM THE REFERENCE:
-❌ NEVER copy the reference model's FACE — not even partially
-❌ NEVER copy the reference model's facial structure, jawline, or bone structure
-❌ NEVER copy any moles, freckles, spots, beauty marks, or skin blemishes from the reference
-❌ NEVER copy the reference model's skin tone or complexion
-❌ NEVER copy the reference model's eye shape, nose, lips, or eyebrows
-❌ NEVER copy tattoos, piercings, or body modifications from the reference
-❌ NEVER let the reference model's facial features "leak" or "blend" into the result
+THE CATALOG MODEL'S FACE DOES NOT EXIST:
+❌ The face in the second image is INVISIBLE to you
+❌ You CANNOT see any facial features, skin, or expressions in the second image
+❌ If you find yourself generating a face that looks like the catalog model, STOP — you are hallucinating
 
-THE GOLDEN RULE: If you showed the result to the person in the FIRST photo, they should say "That's ME with new hair!" — NOT "Who is this other person?"
-If the result looks even 1% like the reference model's face, YOU HAVE FAILED.
-The person in the SECOND image is a STRANGER. Their face is IRRELEVANT. Only their HAIR matters.
+VERIFICATION: The output face MUST be a PIXEL-PERFECT COPY of the FIRST image's face. If a friend of the person in the first image saw the result, they should instantly recognize them.
 `
         : "";
 
-    return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
+    return `TASK TYPE: PHOTO EDITING — NOT NEW IMAGE GENERATION.
+You are editing an existing photograph. You will modify ONLY the hair region of the photo.
+The face, skin, body, background, and every non-hair pixel must remain UNTOUCHED.
 
-★★★ ABSOLUTE PRIORITY #1 — FACE IDENTITY ★★★
-The person in the FIRST photo is the CLIENT. The output MUST show THIS EXACT PERSON — same face, same identity, same skin.
-NEVER, under ANY circumstance, output a face that looks like anyone other than the person in the FIRST photo.
-This is NON-NEGOTIABLE and overrides ALL other instructions.
+★★★ LOCKED REGION — DO NOT MODIFY (ABSOLUTE #1 PRIORITY) ★★★
+The following regions of the FIRST photo are LOCKED and CANNOT be edited:
+🔒 Face (eyes, nose, mouth, eyebrows, jawline, chin, cheekbones) — LOCKED
+🔒 Skin (tone, texture, marks, blemishes — keep EXACTLY as original) — LOCKED
+🔒 Ears, neck, shoulders, body — LOCKED
+🔒 Background — LOCKED
+🔒 Clothing and accessories — LOCKED
+🔒 Facial expression and gaze direction — LOCKED
 
-TASK: Transform ONLY the hairstyle (and optionally the hair color) of the person in the FIRST photo.
-The output image MUST be a photo of the FIRST image's person with a new hairstyle applied.
-The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
+EDITABLE REGION — ONLY this may change:
+✏️ Hair (style, length, volume, texture, color if specified) — EDITABLE
+
+If the output face differs from the input face in ANY way, the edit is REJECTED.
+
+TASK: Change ONLY the hair of the person in the FIRST photo to the target style.
+The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original.${refImageInstruction}
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${lengthInstruction}

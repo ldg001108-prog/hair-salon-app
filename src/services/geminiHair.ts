@@ -292,6 +292,14 @@ OTHER PRESERVATION RULES:
 1. BACKGROUND must remain exactly the same
 2. CLOTHES, ACCESSORIES, and BODY POSITION must stay unchanged
 
+★★★ ORIGINAL FRAME PRESERVATION (CRITICAL) ★★★
+1. The output image MUST have the EXACT SAME framing, cropping, and composition as the input photo.
+2. Do NOT extend, expand, or add ANY part of the body that is NOT visible in the original photo.
+3. If the original shows only head and shoulders, the output MUST show ONLY head and shoulders — do NOT generate chest, torso, or any body part below what is visible.
+4. If the original is cropped at a certain point, crop the output at the EXACT SAME point.
+5. The output resolution and aspect ratio should match the ORIGINAL photo's resolution and aspect ratio.
+6. Think of it as: you are painting new hair onto the EXACT SAME photograph. You cannot make the photo larger or show more of the scene.
+
 QUALITY AND REALISM:
 1. The hairstyle must look COMPLETELY NATURAL — NOT like a wig or Photoshop
 2. The TRANSITION between hair and face/forehead/ears must be seamless
@@ -300,10 +308,9 @@ QUALITY AND REALISM:
 5. Maintain realistic lighting, shadows that match the original photo
 6. Hair texture, individual strands should be photorealistic
 7. The result should look like a PROFESSIONAL SALON PHOTOGRAPH
-8. OUTPUT IMAGE MUST be in PORTRAIT orientation with EXACTLY a 3:4 aspect ratio (width:height = 3:4). Generate at the HIGHEST RESOLUTION possible while maintaining the 3:4 ratio. Frame the image so the subject's head and shoulders fill the frame naturally, similar to a professional ID photo or salon headshot.
-9. Generate a CRISP, SHARP image — every hair strand should be individually distinguishable, no blurriness or softness.
+8. Generate a CRISP, SHARP image — every hair strand should be individually distinguishable, no blurriness or softness.
 
-Generate the edited photo now. Output at MAXIMUM resolution in 3:4 portrait aspect ratio.`;
+Generate the edited photo now. Match the EXACT framing and resolution of the input photo.`;
 }
 
 

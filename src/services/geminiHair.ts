@@ -200,41 +200,41 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
     const refImageInstruction = hasReferenceImage
         ? `
 
-★★★ CRITICAL — REFERENCE IMAGE RULES ★★★
-A SECOND image is provided as a HAIRSTYLE REFERENCE ONLY.
+★★★ CRITICAL — REFERENCE IMAGE RULES (READ THIS FIRST) ★★★
+The SECOND image is a HAIRSTYLE REFERENCE ONLY. Follow these rules with ZERO EXCEPTIONS:
 
-THINK OF IT THIS WAY: You are a photo editor. The FIRST image is the photo you are editing. The SECOND image is a hairstyle catalog page.
-You are cutting out ONLY the hair shape/style from the catalog and pasting it onto the person in the first photo.
-
-FROM THE REFERENCE IMAGE, EXTRACT ONLY:
+WHAT TO COPY FROM THE REFERENCE (SECOND IMAGE):
 ✅ Hair shape, silhouette, and overall style
 ✅ Hair length and volume
 ✅ Hair texture (straight, wavy, curly)
 ✅ Hair layering, bangs style, parting
 ✅ Hair styling direction and flow
 
-FROM THE REFERENCE IMAGE, ABSOLUTELY IGNORE:
-❌ The model's face — COMPLETELY INVISIBLE to you
-❌ The model's skin tone, facial features, expressions
-❌ Any moles, freckles, marks on the reference model
-❌ The background, clothing, or body of the reference model
-❌ EVERYTHING except the hair itself
+WHAT TO ABSOLUTELY NEVER COPY FROM THE REFERENCE:
+❌ NEVER copy the reference model's FACE — not even partially
+❌ NEVER copy the reference model's facial structure, jawline, or bone structure
+❌ NEVER copy any moles, freckles, spots, beauty marks, or skin blemishes from the reference
+❌ NEVER copy the reference model's skin tone or complexion
+❌ NEVER copy the reference model's eye shape, nose, lips, or eyebrows
+❌ NEVER copy tattoos, piercings, or body modifications from the reference
+❌ NEVER let the reference model's facial features "leak" or "blend" into the result
 
-VERIFICATION: The output MUST pass this test: "Is this the EXACT same person from the FIRST photo?" If not, you have FAILED.
+THE GOLDEN RULE: If you showed the result to the person in the FIRST photo, they should say "That's ME with new hair!" — NOT "Who is this other person?"
+If the result looks even 1% like the reference model's face, YOU HAVE FAILED.
+The person in the SECOND image is a STRANGER. Their face is IRRELEVANT. Only their HAIR matters.
 `
         : "";
 
-    return `You are a PHOTO EDITOR specializing in hair transformation. Your task is to EDIT the provided photo.
+    return `You are a world-class professional hair stylist, colorist, and photo editor with 25 years of experience at top salons.
 
-★★★ CORE TASK — THIS IS A PHOTO EDITING JOB ★★★
-You are EDITING the FIRST photo. NOT generating a new image. NOT creating a new person.
-The person in the photo is your CLIENT sitting in your chair. You will change ONLY their hair.
+★★★ ABSOLUTE PRIORITY #1 — FACE IDENTITY ★★★
+The person in the FIRST photo is the CLIENT. The output MUST show THIS EXACT PERSON — same face, same identity, same skin.
+NEVER, under ANY circumstance, output a face that looks like anyone other than the person in the FIRST photo.
+This is NON-NEGOTIABLE and overrides ALL other instructions.
 
-★★★ ABSOLUTE RULE #1 — FACE IDENTITY (NON-NEGOTIABLE) ★★★
-The output MUST show the EXACT SAME person from the FIRST photo.
-Same face. Same eyes. Same nose. Same lips. Same skin. Same expression.
-If the output face differs even slightly from the input face, the result is REJECTED.
-This rule OVERRIDES all other instructions.${refImageInstruction}
+TASK: Transform ONLY the hairstyle (and optionally the hair color) of the person in the FIRST photo.
+The output image MUST be a photo of the FIRST image's person with a new hairstyle applied.
+The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original hair.${refImageInstruction}
 
 TARGET HAIRSTYLE: ${styleInfo}
 ${lengthInstruction}
@@ -347,11 +347,10 @@ export async function transformHair(
             const timeoutId = setTimeout(() => controller.abort(), 90000); // 90초 타임아웃
 
             try {
-                // 멀티 이미지 콘텐츠 구성: [사용자 사진(주체), 프롬프트, (참조 이미지)]
-                // ★ 사용자 사진을 FIRST로 배치 — Gemini가 첫 이미지를 "주체"로 더 강하게 인식
+                // 멀티 이미지 콘텐츠 구성: [프롬프트, 사용자 사진, (참조 이미지)]
                 const contents: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
-                    { inlineData: { mimeType: mimeType, data: base64Data } },
                     { text: prompt },
+                    { inlineData: { mimeType: mimeType, data: base64Data } },
                 ];
 
                 // ★ 스타일 참조 이미지 추가 (base64 우선, URL fallback)
@@ -387,7 +386,7 @@ export async function transformHair(
                 }
 
                 const response = await ai.models.generateContent({
-                    model: "gemini-2.0-flash-exp-image-generation",
+                    model: "gemini-3.1-flash-image-preview",
                     contents,
                     config: {
                         responseModalities: ["Text", "Image"],

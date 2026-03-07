@@ -15,7 +15,8 @@ type SessionStatus = "checking" | "valid" | "expired" | "invalid";
 export default function SalonPage() {
     const params = useParams();
     const searchParams = useSearchParams();
-    const salonId = (params?.salonId as string) || "demo";
+    const rawSalonId = (params?.salonId as string) || "demo";
+    const salonId = decodeURIComponent(rawSalonId);
 
     // 세션 토큰 검증 상태
     const [sessionStatus, setSessionStatus] = useState<SessionStatus>("checking");

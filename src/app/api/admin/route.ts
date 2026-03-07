@@ -17,7 +17,11 @@ function getServiceClient() {
 
 export async function POST(request: NextRequest) {
     try {
-        const { password, salonId } = await request.json();
+        const body = await request.json();
+        const password = body.password;
+        // URL 인코딩된 한글 salonId 디코딩
+        const salonId = body.salonId ? decodeURIComponent(body.salonId) : undefined;
+        console.log(`[Admin] 요청: salonId=${salonId}, raw=${body.salonId}`);
 
         if (!password) {
             return NextResponse.json(

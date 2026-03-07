@@ -184,8 +184,8 @@ export default function MainView({
                 const imgData = await imageUrlToImageData(resultImage, mask.width, mask.height);
                 if (cancelled) return;
                 setOriginalImageData(imgData);
-            } catch {
-                // 사전 추출 실패해도 무시
+            } catch (err) {
+                console.warn("[HairColor] 마스크 사전 추출 실패:", err);
             }
         })();
         return () => { cancelled = true; };

@@ -11,6 +11,19 @@ export interface HairMaskResult {
     height: number;
 }
 
+// 모바일 감지 헬퍼
+function isMobile(): boolean {
+    if (typeof navigator === "undefined") return false;
+    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+}
+
+// 모바일 이미지 리사이즈 최대 크기
+const MAX_MOBILE_SIZE = 512;
+// Canvas 절대 최대 크기 (iOS Safari 제한 대응)
+const MAX_CANVAS_SIZE = 4096;
+
 // MediaPipe 모델 캐시
 let imageSegmenter: unknown = null;
 let isModelLoading = false;
@@ -41,15 +54,34 @@ async function loadModel() {
 
         const vision = await FilesetResolver.forVisionTasks(WASM_CDN);
 
-        imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
-            baseOptions: {
-                modelAssetPath: HAIR_MODEL_URL,
-                delegate: "GPU", // WebGL GPU 가속
-            },
-            outputConfidenceMasks: true,
-            outputCategoryMask: false,
-            runningMode: "IMAGE",
-        });
+        // 모바일: CPU delegate (WebGL 호환 문제 방지)
+        // 데스크톱: GPU delegate (성능 최적화)
+        const delegate = isMobile() ? "CPU" : "GPU";
+        console.log(`[MediaPipe] delegate=${delegate}, mobile=${isMobile()}`);
+
+        try {
+            imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: HAIR_MODEL_URL,
+                    delegate,
+                },
+                outputConfidenceMasks: true,
+                outputCategoryMask: false,
+                runningMode: "IMAGE",
+            });
+        } catch (gpuErr) {
+            // GPU 실패 시 CPU fallback
+            console.warn(`[MediaPipe] ${delegate} delegate 실패, CPU로 재시도:`, gpuErr);
+            imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: HAIR_MODEL_URL,
+                    delegate: "CPU",
+                },
+                outputConfidenceMasks: true,
+                outputCategoryMask: false,
+                runningMode: "IMAGE",
+            });
+        }
 
         return imageSegmenter;
     } catch (err) {
@@ -91,13 +123,31 @@ export async function extractHairMask(
         image.src = imageDataUrl;
     });
 
-    // Canvas에 그려서 세그멘테이션 실행
+    // 모바일: 이미지 리사이즈 (메모리 절약) + Canvas 크기 클램핑
+    let cw = img.naturalWidth;
+    let ch = img.naturalHeight;
+
+    // 모바일에서는 최대 512px로 축소
+    if (isMobile()) {
+        const scale = Math.min(1, MAX_MOBILE_SIZE / Math.max(cw, ch));
+        cw = Math.round(cw * scale);
+        ch = Math.round(ch * scale);
+        console.log(`[MediaPipe] 모바일 리사이즈: ${img.naturalWidth}x${img.naturalHeight} → ${cw}x${ch}`);
+    }
+
+    // Canvas 절대 최대 크기 클램핑 (iOS Safari 대응)
+    if (cw > MAX_CANVAS_SIZE || ch > MAX_CANVAS_SIZE) {
+        const clampScale = Math.min(MAX_CANVAS_SIZE / cw, MAX_CANVAS_SIZE / ch);
+        cw = Math.round(cw * clampScale);
+        ch = Math.round(ch * clampScale);
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
+    canvas.width = cw;
+    canvas.height = ch;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas context 생성 실패");
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, cw, ch);
 
     // MediaPipe 세그멘테이션 실행
     const segmenterTyped = segmenter as {

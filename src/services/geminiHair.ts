@@ -387,10 +387,9 @@ export async function transformHair(
                 }
 
                 const response = await ai.models.generateContent({
-                    model: "gemini-2.0-flash-exp",
+                    model: "gemini-2.0-flash-exp-image-generation",
                     contents,
                     config: {
-                        systemInstruction: "You are a photo editor. Your ONLY job is to change the hairstyle of the person in the FIRST image. The person's face, skin, expression, and identity must remain PIXEL-PERFECT IDENTICAL to the original. If a second image is provided, use it ONLY as a hairstyle reference — completely ignore the face in the second image. Output the edited photo.",
                         responseModalities: ["Text", "Image"],
                         safetySettings: [
                             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },

@@ -1,5 +1,6 @@
 /**
- * 살롱 레이아웃 — 서버사이드에서 테마 CSS 주입 (FOUC 방지)
+ * 살롱 레이아웃 — 서버사이드에서 테마 CSS 즉시 주입 (FOUC 완전 방지)
+ * blocking <script>로 document.documentElement.style에 직접 설정
  */
 
 import { getSalon } from "@/lib/getSalonData";
@@ -19,7 +20,7 @@ export default async function SalonLayout({
     const themeId = salon?.themeColor || DEFAULT_THEME_ID;
     const theme = getThemeById(themeId);
 
-    // 서버사이드에서 CSS 변수를 inline style로 주입
+    // 서버사이드에서 CSS 변수 수집
     const cssVars: Record<string, string> = {};
 
     if (theme) {
@@ -29,16 +30,14 @@ export default async function SalonLayout({
         cssVars["--salon-theme-hover"] = theme.accent + "dd";
     }
 
-    // CSS 변수를 style 태그로 주입
-    const cssString = Object.entries(cssVars)
-        .map(([key, value]) => `${key}: ${value};`)
-        .join("\n    ");
+    // blocking script로 CSS 변수 즉시 주입 (FOUC 완전 방지)
+    // JSON으로 변수 전달 → document.documentElement.style에 직접 설정
+    const varsJson = JSON.stringify(cssVars);
+    const themeScript = `(function(){var v=${varsJson};var s=document.documentElement.style;for(var k in v){s.setProperty(k,v[k])}})();`;
 
     return (
         <>
-            <style dangerouslySetInnerHTML={{
-                __html: `:root:root {\n    ${cssString}\n}`
-            }} />
+            <script dangerouslySetInnerHTML={{ __html: themeScript }} />
             {children}
         </>
     );

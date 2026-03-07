@@ -37,7 +37,7 @@ export default async function SalonLayout({
     return (
         <>
             <style dangerouslySetInnerHTML={{
-                __html: `:root {\n    ${cssString}\n}`
+                __html: `:root:root {\n    ${cssString}\n}`
             }} />
             {children}
         </>

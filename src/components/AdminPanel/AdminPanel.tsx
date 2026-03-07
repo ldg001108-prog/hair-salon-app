@@ -138,25 +138,26 @@ export default function AdminPanel({ onClose, salonId }: AdminPanelProps) {
                                 </div>
                             )}
 
+
                             <div className={styles.statCard}>
-                                <div className={styles.statValue}>{usage?.todayUsed ?? apiStats.todayCalls}</div>
+                                <div className={styles.statValue}>{usage ? usage.todayUsed : "–"}</div>
                                 <div className={styles.statLabel}>오늘 합성</div>
                             </div>
                             <div className={styles.statCard}>
-                                <div className={styles.statValue}>{apiStats.totalCalls}</div>
-                                <div className={styles.statLabel}>총 합성</div>
+                                <div className={styles.statValue}>{usage ? `${usage.dailyLimit}` : "–"}</div>
+                                <div className={styles.statLabel}>일일 한도</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={styles.statValue} style={{ color: "#4ade80" }}>
                                     {apiStats.successCount}
                                 </div>
-                                <div className={styles.statLabel}>성공</div>
+                                <div className={styles.statLabel}>성공 (세션)</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={styles.statValue} style={{ color: "#f87171" }}>
                                     {apiStats.failCount}
                                 </div>
-                                <div className={styles.statLabel}>실패</div>
+                                <div className={styles.statLabel}>실패 (세션)</div>
                             </div>
                             <div className={`${styles.statCard} ${styles.statCardWide}`}>
                                 <div className={styles.progressBar}>

@@ -1,6 +1,10 @@
 /**
- * 살롱 레이아웃 — 서버사이드에서 테마 CSS 즉시 주입 (FOUC 완전 방지)
- * blocking <script>로 document.documentElement.style에 직접 설정
+ * 살롱 레이아웃 — 테마 CSS 변수를 인라인 스타일로 즉시 주입 (FOUC 완전 방지)
+ * 
+ * 핵심 원리: SSR HTML에 CSS 변수가 이미 포함되어 있으므로,
+ * 브라우저가 첫 페인트할 때부터 올바른 색상이 적용됨.
+ * CSS 변수는 자식 요소로 상속되므로, 래핑 div의 스타일이
+ * globals.css의 :root 기본값보다 우선함.
  */
 
 import { getSalon } from "@/lib/getSalonData";
@@ -20,25 +24,22 @@ export default async function SalonLayout({
     const themeId = salon?.themeColor || DEFAULT_THEME_ID;
     const theme = getThemeById(themeId);
 
-    // 서버사이드에서 CSS 변수 수집
-    const cssVars: Record<string, string> = {};
+    // 인라인 스타일용 CSS 변수 수집
+    const inlineStyle: Record<string, string> = {};
 
     if (theme) {
-        Object.assign(cssVars, theme.cssVars);
-        cssVars["--salon-theme"] = theme.accent;
-        cssVars["--salon-theme-light"] = theme.accent + "22";
-        cssVars["--salon-theme-hover"] = theme.accent + "dd";
+        // 프리셋 CSS 변수를 모두 인라인 스타일에 포함
+        for (const [key, value] of Object.entries(theme.cssVars)) {
+            inlineStyle[key] = value;
+        }
+        inlineStyle["--salon-theme"] = theme.accent;
+        inlineStyle["--salon-theme-light"] = theme.accent + "22";
+        inlineStyle["--salon-theme-hover"] = theme.accent + "dd";
     }
 
-    // blocking script로 CSS 변수 즉시 주입 (FOUC 완전 방지)
-    // JSON으로 변수 전달 → document.documentElement.style에 직접 설정
-    const varsJson = JSON.stringify(cssVars);
-    const themeScript = `(function(){var v=${varsJson};var s=document.documentElement.style;for(var k in v){s.setProperty(k,v[k])}})();`;
-
     return (
-        <>
-            <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <div style={inlineStyle as React.CSSProperties}>
             {children}
-        </>
+        </div>
     );
 }

@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        // QR 토큰 유효기간: 5분 (스캔 가능 시간)
+        // QR 토큰 유효기간: 60분 (복사/공유 후에도 충분한 시간)
         // 세션 유효기간(10분)은 verify-token API에서 별도 부여
-        const QR_TOKEN_VALIDITY_MIN = 5;
+        const QR_TOKEN_VALIDITY_MIN = 60;
         const token = generateSessionToken(salonId, QR_TOKEN_VALIDITY_MIN);
 
         // Production URL or localhost

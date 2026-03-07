@@ -43,13 +43,17 @@ export async function POST(request: NextRequest) {
                     .eq("id", salonId)
                     .single();
 
-                console.log(`[Admin] 살롱 조회: salonId=${salonId}, owner_id=${salon?.owner_id}, error=${salonError?.message || "none"}`);
+                if (salonError) {
+                    console.warn(`[Admin] 살롱 조회 실패: salonId=${salonId}, error=${salonError.message}`);
+                }
 
                 if (salon?.owner_id) {
                     // owner의 email 조회 (auth.admin API — service_role 필수)
                     const { data: userData, error: userError } = await serviceClient.auth.admin.getUserById(salon.owner_id);
 
-                    console.log(`[Admin] 유저 조회: email=${userData?.user?.email || "not found"}, error=${userError?.message || "none"}`);
+                    if (userError) {
+                        console.warn(`[Admin] 유저 조회 실패: owner_id=${salon.owner_id}, error=${userError.message}`);
+                    }
 
                     if (userData?.user?.email) {
                         // 해당 이메일+입력 비밀번호로 로그인 시도
@@ -58,21 +62,18 @@ export async function POST(request: NextRequest) {
                             password,
                         });
 
-                        console.log(`[Admin] 로그인 시도: email=${userData.user.email}, result=${signInError ? "FAIL: " + signInError.message : "SUCCESS"}`);
-
                         if (!signInError) {
                             return NextResponse.json({ success: true });
                         }
+                        console.warn(`[Admin] 로그인 실패: email=${userData.user.email}`);
                     }
                 }
             } else {
-                console.warn("[Admin] Service Role Key가 설정되지 않았습니다.");
+                console.warn("[Admin] SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다.");
             }
         }
 
         // 3) 모두 실패
-        const ip = request.headers.get("x-forwarded-for") || "unknown";
-        console.warn(`[Admin] ❌ 로그인 실패 (IP: ${ip}, salonId: ${salonId || "none"})`);
         return NextResponse.json(
             { success: false, error: "비밀번호가 틀렸습니다." },
             { status: 401 }

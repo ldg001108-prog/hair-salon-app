@@ -78,56 +78,7 @@
     color-scheme: light;
 }
 
-/* ── 다크 테마 ── */
-[data-theme="dark"] {
-    --bg-primary: #0a0a12;
-    --bg-secondary: #111119;
-    --bg-tertiary: #18181f;
-    --bg-card: rgba(255, 255, 255, 0.04);
-    --bg-card-hover: rgba(255, 255, 255, 0.07);
-    --bg-glass: rgba(255, 255, 255, 0.06);
-    --bg-glass-strong: rgba(255, 255, 255, 0.10);
 
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a0b0;
-    --text-tertiary: #65657a;
-    --text-muted: #45455a;
-
-    --accent: #a78bfa;
-    --accent-light: #c4b5fd;
-    --accent-dim: rgba(167, 139, 250, 0.15);
-    --accent-glow: rgba(167, 139, 250, 0.22);
-    --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
-
-    --success: #34d399;
-    --warning: #fbbf24;
-    --danger: #f87171;
-
-    --border: rgba(255, 255, 255, 0.08);
-    --border-light: rgba(255, 255, 255, 0.04);
-    --border-accent: rgba(167, 139, 250, 0.25);
-
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 20px rgba(167, 139, 250, 0.2);
-    --shadow-glow-strong: 0 0 40px rgba(167, 139, 250, 0.3);
-
-    --overlay-bg: rgba(10, 10, 18, 0.92);
-    --header-bg: rgba(10, 10, 18, 0.85);
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --upload-border: rgba(167, 139, 250, 0.2);
-    --upload-bg: rgba(255, 255, 255, 0.03);
-    --tab-indicator: var(--accent);
-    --tab-active-text: #fff;
-    --tab-active-bg: var(--accent);
-    --tab-inactive-text: var(--text-secondary);
-    --slider-track: rgba(167, 139, 250, 0.15);
-    --toast-bg: rgba(255, 255, 255, 0.12);
-    --toast-text: #f0f0f5;
-
-    color-scheme: dark;
-}
 
 /* ── 타이포그래피 & 스페이싱 (테마 무관) ── */
 :root {
@@ -175,10 +126,6 @@
         --accent-light: color(display-p3 0.831 0.561 0.659);
     }
 
-    [data-theme="dark"] {
-        --accent: color(display-p3 0.655 0.545 0.98);
-        --accent-light: color(display-p3 0.77 0.71 0.99);
-    }
 }
 
 /* ── 리셋 & 글로벌 ── */

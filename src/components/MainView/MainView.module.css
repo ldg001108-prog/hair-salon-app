@@ -936,7 +936,7 @@
     width: 100%;
     padding: var(--sp-3) 0;
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--sp-3));
-    background: linear-gradient(transparent, rgba(243, 181, 226, 0.85) 40%);
+    background: linear-gradient(transparent, var(--bg-primary, #fefbfc) 40%);
     z-index: 10;
 }
 

@@ -262,6 +262,9 @@ MANDATORY TRANSFORMATION RULES:
 6. Change the HAIR SILHOUETTE and SHAPE to match the target style.
 7. The transformation should be so obvious that anyone can instantly see it.
 8. IGNORE the original hair length completely — only the TARGET style's length matters.
+9. BANGS RULE (CRITICAL): If the target/reference style has NO BANGS, the output MUST have NO BANGS — even if the original photo has bangs. If the target style HAS BANGS, the output MUST have bangs — even if the original doesn't. The BANGS status must match the TARGET STYLE EXACTLY.
+10. PARTING RULE: If the target style has a center part, output center part. If side part, output side part. ALWAYS follow the target style's parting, NOT the original photo's parting.
+11. The output hairstyle should be an EXACT REPLICA of the target/reference hairstyle — every detail (bangs, layers, parting, volume, texture, length) must match the target, NOT the original.
 
 CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 1. Apply the target hairstyle in the most STANDARD, TEXTBOOK, REPRESENTATIVE way possible.

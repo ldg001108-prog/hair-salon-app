@@ -57,7 +57,7 @@ export const DEMO_SALON: Salon = {
     logoUrl: "",
     themeColor: "#2563EB",
     sessionTimeoutMin: 30,
-    dailyLimit: 50,
+    dailyLimit: 10,
 };
 
 // ============================================

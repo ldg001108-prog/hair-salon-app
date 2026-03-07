@@ -12,7 +12,7 @@ import { getSupabase } from "@/lib/supabase";
 
 // 플랜별 설정
 const PLANS = {
-    free: { name: "무료", dailyLimit: 50, maxStyles: 10, price: 0 },
+    free: { name: "무료", dailyLimit: 10, maxStyles: 10, price: 0 },
     basic: { name: "베이직", dailyLimit: 500, maxStyles: 30, price: 29000 },
     pro: { name: "프로", dailyLimit: 2000, maxStyles: 999, price: 59000 },
 } as const;

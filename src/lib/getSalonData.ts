@@ -29,7 +29,7 @@ export async function getSalon(salonId: string): Promise<Salon | null> {
                 themeColor: data.theme_color || "#c06c8e",
                 reservationUrl: data.reservation_url || undefined,
                 sessionTimeoutMin: data.session_timeout_min || 30,
-                dailyLimit: data.daily_limit || 50,
+                dailyLimit: data.daily_limit || 10,
             };
         }
     }

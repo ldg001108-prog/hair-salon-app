@@ -17,6 +17,7 @@ interface Salon {
     ownerEmail: string;
     plan: string;
     daily_limit: number;
+    today_used: number;
     is_active: boolean;
     created_at: string;
     theme_color?: string;
@@ -338,7 +339,7 @@ export default function DevDashboard() {
                                         <th>미용실 이름</th>
                                         <th>아이디 (사장님 계정)</th>
                                         <th>플랜</th>
-                                        <th>일일 한도</th>
+                                        <th>오늘 사용</th>
                                         <th>상태</th>
                                         <th>서비스 URL</th>
                                         <th>가입일</th>
@@ -354,7 +355,14 @@ export default function DevDashboard() {
                                             </td>
                                             <td>{s.ownerEmail}</td>
                                             <td><span className={styles.badge}>{s.plan || "free"}</span></td>
-                                            <td>{s.daily_limit}회/일</td>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <div style={{ width: 40, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${Math.min(100, (s.today_used / s.daily_limit) * 100)}%`, height: '100%', background: s.today_used >= s.daily_limit ? '#ef4444' : s.today_used >= s.daily_limit * 0.8 ? '#f59e0b' : '#22c55e', borderRadius: 3, transition: 'width 0.3s' }} />
+                                                    </div>
+                                                    <span style={{ fontSize: 12, color: s.today_used >= s.daily_limit ? '#ef4444' : undefined }}>{s.today_used}/{s.daily_limit}</span>
+                                                </div>
+                                            </td>
                                             <td><span className={`${styles.statusDot} ${s.is_active ? styles.active : styles.inactive}`} />{s.is_active ? "활성" : "비활성"}</td>
                                             <td>
                                                 <a href={`/salon/${s.id}`} target="_blank" rel="noopener noreferrer" className={styles.link}>

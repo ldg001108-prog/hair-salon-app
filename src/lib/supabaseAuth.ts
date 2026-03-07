@@ -55,7 +55,7 @@ export async function signUpOwner(email: string, password: string, salonName: st
         owner_id: authData.user.id,
         name: salonName,
         plan: "free",
-        daily_limit: 50,
+        daily_limit: 10,
     });
 
     if (salonError) {

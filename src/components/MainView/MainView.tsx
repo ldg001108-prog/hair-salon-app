@@ -874,7 +874,7 @@ export default function MainView({
             )}
 
             {/* 관리자 패널 */}
-            {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+            {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} salonId={salonId} />}
 
             {/* 예약 모달 */}
             {showReservation && (

@@ -77,7 +77,7 @@ export async function checkSalonRateLimit(ip: string, salonId?: string): Promise
     // 2) 일일 제한 체크 (Supabase 기반)
     if (salonId) {
         const salon = await getSalon(salonId);
-        const dailyLimit = salon?.dailyLimit || 50;
+        const dailyLimit = salon?.dailyLimit || 10;
         const todayUsage = await getTodayUsage(salonId);
 
         if (todayUsage >= dailyLimit) {

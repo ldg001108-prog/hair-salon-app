@@ -50,9 +50,22 @@ export async function GET() {
             }
         }
 
+        // 오늘 사용량 조회
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: usageData } = await supabase
+            .from("daily_usage")
+            .select("salon_id, api_calls")
+            .eq("usage_date", today);
+
+        const usageMap: Record<string, number> = {};
+        usageData?.forEach(u => {
+            usageMap[u.salon_id] = u.api_calls;
+        });
+
         const enriched = (salons || []).map(s => ({
             ...s,
             ownerEmail: ownerMap[s.owner_id] || "—",
+            today_used: usageMap[s.id] || 0,
         }));
 
         return NextResponse.json({

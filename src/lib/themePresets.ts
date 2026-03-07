@@ -260,10 +260,60 @@ export const THEME_PRESETS: ThemePreset[] = [
         },
     },
 ];
+/**
+ * HEX 색상에서 RGB 값 추출
+ */
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+    const match = hex.replace("#", "").match(/.{2}/g);
+    if (!match || match.length < 3) return null;
+    return {
+        r: parseInt(match[0], 16),
+        g: parseInt(match[1], 16),
+        b: parseInt(match[2], 16),
+    };
+}
 
-/** ID로 테마 프리셋 찾기 */
+/**
+ * accent 색상 기반으로 border, shadow, overlay, upload 등 파생 CSS 변수 생성
+ */
+function buildDerivedVars(accent: string, bgPrimary: string): Record<string, string> {
+    const rgb = hexToRgb(accent);
+    const bgRgb = hexToRgb(bgPrimary);
+    if (!rgb || !bgRgb) return {};
+
+    return {
+        "--border": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.18)`,
+        "--border-light": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`,
+        "--border-accent": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`,
+        "--shadow-sm": `0 1px 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`,
+        "--shadow-md": `0 4px 12px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
+        "--shadow-lg": `0 8px 30px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.14)`,
+        "--shadow-glow": `0 0 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.20)`,
+        "--shadow-glow-strong": `0 0 40px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.30)`,
+        "--overlay-bg": `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.92)`,
+        "--header-bg": `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.85)`,
+        "--upload-border": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`,
+        "--slider-track": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`,
+        "--accent-glow": `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.22)`,
+    };
+}
+
+/** ID로 테마 프리셋 찾기 (파생 변수 자동 추가) */
 export function getThemeById(id: string): ThemePreset | undefined {
-    return THEME_PRESETS.find((t) => t.id === id);
+    const preset = THEME_PRESETS.find((t) => t.id === id);
+    if (!preset) return undefined;
+
+    // accent 기반 파생 변수 자동 생성 후 cssVars에 병합
+    const bgPrimary = preset.cssVars["--bg-primary"] || "#f0dce8";
+    const derived = buildDerivedVars(preset.accent, bgPrimary);
+
+    return {
+        ...preset,
+        cssVars: {
+            ...derived,      // 파생 변수 (기본)
+            ...preset.cssVars, // 프리셋 변수 (우선)
+        },
+    };
 }
 
 /** 기본 테마 */

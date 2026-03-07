@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         const result = verifySessionToken(token);
 
         if (!result.valid) {
+            console.warn(`[VerifyToken] 토큰 검증 실패: ${result.error}, salonId=${result.salonId || 'unknown'}, SESSION_SECRET=${process.env.SESSION_SECRET ? '설정됨' : '⚠️ 미설정(fallback 사용)'}`);
             return NextResponse.json(
                 { valid: false, error: result.error },
                 { status: 401 }

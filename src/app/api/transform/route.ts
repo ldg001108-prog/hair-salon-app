@@ -147,15 +147,49 @@ export async function POST(request: NextRequest) {
         try {
             const supabase = getSupabase();
             if (supabase) {
-                supabase.from("api_logs").insert({
+                const { error: logError } = await supabase.from("api_logs").insert({
                     salon_id: salonId || "demo",
                     endpoint: "transform",
                     success: result.success,
                     error_message: result.success ? null : (result.error || null),
                 });
+                if (logError) {
+                    console.warn("[Transform API] api_logs 기록 실패:", logError.message);
+                } else {
+                    console.log(`[Transform API] 📊 api_logs 기록 완료 (salon=${salonId}, success=${result.success})`);
+                }
+
+                // 성공한 합성에 대해 daily_usage 카운트 증가
+                if (result.success) {
+                    const today = new Date().toISOString().slice(0, 10);
+                    const sid = salonId || "demo";
+
+                    // 기존 row 조회
+                    const { data: existing } = await supabase
+                        .from("daily_usage")
+                        .select("api_calls")
+                        .eq("salon_id", sid)
+                        .eq("usage_date", today)
+                        .maybeSingle();
+
+                    if (existing) {
+                        // 기존 row가 있으면 +1 업데이트
+                        await supabase
+                            .from("daily_usage")
+                            .update({ api_calls: existing.api_calls + 1 })
+                            .eq("salon_id", sid)
+                            .eq("usage_date", today);
+                    } else {
+                        // 없으면 새로 insert
+                        await supabase
+                            .from("daily_usage")
+                            .insert({ salon_id: sid, usage_date: today, api_calls: 1 });
+                    }
+                    console.log(`[Transform API] 📈 daily_usage 업데이트 완료 (salon=${sid}, date=${today})`);
+                }
             }
-        } catch {
-            // 로깅 실패는 무시
+        } catch (logErr) {
+            console.warn("[Transform API] api_logs/daily_usage 기록 에러:", logErr);
         }
 
         if (result.success) {

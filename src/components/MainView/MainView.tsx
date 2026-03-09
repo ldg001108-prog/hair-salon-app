@@ -90,6 +90,7 @@ export default function MainView({
     // 저장/공유 상태
     const [isSaved, setIsSaved] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [toastText, setToastText] = useState("");
     const [canShare, setCanShare] = useState(false);
 
     // 예약 모달 상태
@@ -323,6 +324,7 @@ export default function MainView({
 
     // 토스트
     const showToastMsg = (msg: string) => {
+        setToastText(msg);
         setShowToast(true);
         setTimeout(() => setShowToast(false), 2000);
     };
@@ -842,7 +844,7 @@ export default function MainView({
 
             {/* 토스트 */}
             {showToast && (
-                <div className={styles.toast}>이미지가 저장되었습니다</div>
+                <div className={styles.toast}>{toastText}</div>
             )}
 
             {/* 관리자 패널 */}

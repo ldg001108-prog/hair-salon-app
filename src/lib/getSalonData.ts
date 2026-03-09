@@ -248,24 +248,28 @@ export async function getSalonStats(salonId: string) {
         };
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
 
-    // 오늘 사용량
-    const { data: todayUsage } = await supabase
-        .from("daily_usage")
-        .select("api_calls, success_count, fail_count")
+    // 오늘 사용량 (api_logs 기반)
+    const { data: todayLogs } = await supabase
+        .from("api_logs")
+        .select("success")
         .eq("salon_id", salonId)
-        .eq("usage_date", today)
-        .single();
+        .gte("created_at", todayISO);
 
-    // 전체 사용량
-    const { data: totalUsage } = await supabase
-        .from("daily_usage")
-        .select("api_calls, success_count")
+    const todayCalls = todayLogs?.length || 0;
+    const todaySuccess = todayLogs?.filter(l => l.success).length || 0;
+
+    // 전체 사용량 (api_logs 기반)
+    const { data: allLogs } = await supabase
+        .from("api_logs")
+        .select("success")
         .eq("salon_id", salonId);
 
-    const totalCalls = totalUsage?.reduce((sum, u) => sum + u.api_calls, 0) || 0;
-    const totalSuccess = totalUsage?.reduce((sum, u) => sum + u.success_count, 0) || 0;
+    const totalCalls = allLogs?.length || 0;
+    const totalSuccess = allLogs?.filter(l => l.success).length || 0;
 
     // 오늘 예약
     const { count: todayReservations } = await supabase
@@ -303,7 +307,7 @@ export async function getSalonStats(salonId: string) {
         .map(([name, count]) => ({ name, count }));
 
     return {
-        todayCalls: todayUsage?.api_calls || 0,
+        todayCalls,
         totalCalls,
         successRate: totalCalls > 0 ? Math.round((totalSuccess / totalCalls) * 100) : 0,
         todayReservations: todayReservations || 0,
@@ -313,19 +317,21 @@ export async function getSalonStats(salonId: string) {
 }
 
 /**
- * 살롱별 오늘 사용량 조회 (Rate Limit용)
+ * 살롱별 오늘 사용량 조회 (Rate Limit용) — api_logs 기반
  */
 export async function getTodayUsage(salonId: string): Promise<number> {
     const supabase = getSupabase();
     if (!supabase) return 0;
 
-    const today = new Date().toISOString().slice(0, 10);
-    const { data } = await supabase
-        .from("daily_usage")
-        .select("api_calls")
-        .eq("salon_id", salonId)
-        .eq("usage_date", today)
-        .single();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-    return data?.api_calls || 0;
+    const { count } = await supabase
+        .from("api_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("salon_id", salonId)
+        .eq("success", true)
+        .gte("created_at", todayStart.toISOString());
+
+    return count || 0;
 }

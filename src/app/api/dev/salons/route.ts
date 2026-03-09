@@ -50,16 +50,19 @@ export async function GET() {
             }
         }
 
-        // 오늘 사용량 조회
-        const today = new Date().toISOString().slice(0, 10);
-        const { data: usageData } = await supabase
-            .from("daily_usage")
-            .select("salon_id, api_calls")
-            .eq("usage_date", today);
+        // 오늘 사용량 조회 (api_logs 기반 — 가장 신뢰할 수 있는 데이터)
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { data: todayLogs } = await supabase
+            .from("api_logs")
+            .select("salon_id")
+            .gte("created_at", todayStart.toISOString())
+            .eq("success", true);
 
         const usageMap: Record<string, number> = {};
-        usageData?.forEach(u => {
-            usageMap[u.salon_id] = u.api_calls;
+        todayLogs?.forEach(log => {
+            const sid = log.salon_id || "unknown";
+            usageMap[sid] = (usageMap[sid] || 0) + 1;
         });
 
         const enriched = (salons || []).map(s => ({

@@ -15,6 +15,8 @@ interface UsageInfo {
     dailyLimit: number;
     todayUsed: number;
     remaining: number;
+    successCount: number;
+    failCount: number;
 }
 
 export default function AdminPanel({ onClose, salonId }: AdminPanelProps) {
@@ -40,6 +42,8 @@ export default function AdminPanel({ onClose, salonId }: AdminPanelProps) {
                             dailyLimit: data.dailyLimit,
                             todayUsed: data.todayUsed,
                             remaining: data.remaining,
+                            successCount: data.successCount ?? 0,
+                            failCount: data.failCount ?? 0,
                         });
                     }
                 })
@@ -54,9 +58,10 @@ export default function AdminPanel({ onClose, salonId }: AdminPanelProps) {
         { id: "settings", label: "설정", icon: "⚙️" },
     ];
 
+    const totalCalls = usage ? (usage.successCount + usage.failCount) : 0;
     const successRate =
-        apiStats.totalCalls > 0
-            ? Math.round((apiStats.successCount / apiStats.totalCalls) * 100)
+        totalCalls > 0
+            ? Math.round((usage!.successCount / totalCalls) * 100)
             : 0;
 
     const formatTime = (ts: number) => {
@@ -149,15 +154,15 @@ export default function AdminPanel({ onClose, salonId }: AdminPanelProps) {
                             </div>
                             <div className={styles.statCard}>
                                 <div className={styles.statValue} style={{ color: "#4ade80" }}>
-                                    {apiStats.successCount}
+                                    {usage ? usage.successCount : "–"}
                                 </div>
-                                <div className={styles.statLabel}>성공 (세션)</div>
+                                <div className={styles.statLabel}>성공</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={styles.statValue} style={{ color: "#f87171" }}>
-                                    {apiStats.failCount}
+                                    {usage ? usage.failCount : "–"}
                                 </div>
-                                <div className={styles.statLabel}>실패 (세션)</div>
+                                <div className={styles.statLabel}>실패</div>
                             </div>
                             <div className={`${styles.statCard} ${styles.statCardWide}`}>
                                 <div className={styles.progressBar}>

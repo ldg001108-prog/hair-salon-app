@@ -85,11 +85,12 @@ export default function AdminDashboard({
     // 구독 플랜
     const [currentPlan, setCurrentPlan] = useState("free");
 
-    // 스토어에서 데이터 가져오기
-    const apiStats = useAppStore((s) => s.apiStats);
+    // 서버 API 통계 (Supabase 기반 — 새로고침해도 유지)
+    const [serverStats, setServerStats] = useState({ todayCalls: 0, totalCalls: 0, successCount: 0, failCount: 0, successRate: 0 });
+
+    // 스토어에서 데이터 가져오기 (히스토리/에러 로그는 로컬 유지)
     const errorLogs = useAppStore((s) => s.errorLogs);
     const history = useAppStore((s) => s.history);
-    const resetApiStats = useAppStore((s) => s.resetApiStats);
     const clearErrorLogs = useAppStore((s) => s.clearErrorLogs);
     const clearHistory = useAppStore((s) => s.clearHistory);
 
@@ -171,6 +172,32 @@ export default function AdminDashboard({
                 }
             })
             .catch(() => { });
+    }, [isAuthenticated, salonId]);
+
+    // 서버 API 통계 로드
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        const loadStats = async () => {
+            try {
+                const res = await fetch(`/api/dev/stats?period=day`);
+                const data = await res.json();
+                if (data.success) {
+                    const mySalon = data.perSalon?.[salonId];
+                    setServerStats({
+                        todayCalls: mySalon?.total ?? 0,
+                        totalCalls: mySalon?.total ?? 0,
+                        successCount: mySalon?.success ?? 0,
+                        failCount: mySalon?.fail ?? 0,
+                        successRate: mySalon
+                            ? (mySalon.total > 0 ? Math.round((mySalon.success / mySalon.total) * 100) : 0)
+                            : 0,
+                    });
+                }
+            } catch {
+                // 서버 통계 로드 실패 시 0으로 유지
+            }
+        };
+        loadStats();
     }, [isAuthenticated, salonId]);
 
     // 예약 목록 로드
@@ -278,10 +305,8 @@ export default function AdminDashboard({
         );
     }
 
-    // 통계 카드 데이터
-    const successRate = apiStats.totalCalls > 0
-        ? Math.round((apiStats.successCount / apiStats.totalCalls) * 100)
-        : 0;
+    // 통계 카드 데이터 (서버 기반)
+    const successRate = serverStats.successRate;
 
     const statusLabel: Record<string, string> = {
         pending: "대기",
@@ -338,12 +363,11 @@ export default function AdminDashboard({
                     <section className={styles.card}>
                         <h2 className={styles.cardTitle}>📈 API 통계</h2>
                         <div className={styles.statsGrid}>
-                            <div className={styles.statItem}><span className={styles.statValue}>{apiStats.todayCalls}</span><span className={styles.statLabel}>오늘 합성</span></div>
-                            <div className={styles.statItem}><span className={styles.statValue}>{apiStats.totalCalls}</span><span className={styles.statLabel}>전체 합성</span></div>
+                            <div className={styles.statItem}><span className={styles.statValue}>{serverStats.todayCalls}</span><span className={styles.statLabel}>오늘 합성</span></div>
+                            <div className={styles.statItem}><span className={styles.statValue}>{serverStats.totalCalls}</span><span className={styles.statLabel}>전체 합성</span></div>
                             <div className={styles.statItem}><span className={`${styles.statValue} ${styles.statSuccess}`}>{successRate}%</span><span className={styles.statLabel}>성공률</span></div>
-                            <div className={styles.statItem}><span className={styles.statValue}>{apiStats.failCount}</span><span className={styles.statLabel}>실패 횟수</span></div>
+                            <div className={styles.statItem}><span className={styles.statValue}>{serverStats.failCount}</span><span className={styles.statLabel}>실패 횟수</span></div>
                         </div>
-                        <button className={styles.resetBtn} onClick={() => { resetApiStats(); }}>🔄 통계 초기화</button>
                     </section>
 
                     <section className={styles.card}>

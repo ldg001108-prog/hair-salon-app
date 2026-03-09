@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
 
         // 1) 슈퍼 관리자 비밀번호 체크 (환경변수)
         const adminPassword = process.env.ADMIN_PASSWORD;
-        if (adminPassword && password === adminPassword) {
+        const devAdminPw = process.env.DEV_ADMIN_PW;
+        if ((adminPassword && password === adminPassword) || (devAdminPw && password === devAdminPw)) {
             return NextResponse.json({ success: true });
         }
 

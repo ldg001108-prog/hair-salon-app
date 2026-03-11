@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
 
         // ── 새로고침 우회 방지: 쿠키로 세션 시작 시각 추적 ──
         const salonId = result.salonId || "unknown";
-        const cookieName = `session-start-${salonId}`;
+        // 쿠키 이름에 한글 사용 불가 (RFC 6265) → hex 인코딩
+        const safeSalonId = Buffer.from(salonId).toString("hex").slice(0, 32);
+        const cookieName = `ss-${safeSalonId}`;
         const existingCookie = request.cookies.get(cookieName);
 
         let sessionStartMs: number;

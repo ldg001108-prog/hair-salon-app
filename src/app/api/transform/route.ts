@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
             colorSaturation,
             colorLightness,
             category,
+            gender,
         } = body;
 
         // 필수 파라미터 검증
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
             colorSaturation: colorSaturation ?? undefined,
             colorLightness: colorLightness ?? undefined,
             category: category || undefined,
+            gender: gender || undefined,
         };
 
         console.log(

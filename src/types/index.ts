@@ -59,6 +59,7 @@ export interface TransformRequest {
     /** 스타일 참조 이미지 URL — 서버 fallback용 */
     styleImageUrl?: string;
     category: string;
+    gender?: "female" | "male";
     salonId: string;
     colorName?: string;
     colorHex?: string;

@@ -31,6 +31,8 @@ export interface HairTransformRequest {
     colorLightness?: number;
     /** 스타일 카테고리 (short/medium/long/perm) */
     category?: string;
+    /** 성별 (female/male) */
+    gender?: "female" | "male";
 }
 
 export interface HairTransformResult {
@@ -197,6 +199,7 @@ HAIR COLOR: Keep the original natural hair color of the person in the photo. Do 
 
     // 참조 이미지 유무에 따른 프롬프트 분기
     const hasReferenceImage = !!request.styleImageBase64;
+    const isMaleStyle = request.gender === "male";
     const refImageInstruction = hasReferenceImage
         ? `
 
@@ -210,15 +213,44 @@ EXTRACT FROM CATALOG (SECOND IMAGE):
 ✅ Hair shape, silhouette, and overall style
 ✅ Hair length, volume, and texture
 ✅ Hair layering, bangs style, parting, flow
+✅ Hair curl pattern, wave frequency, and strand direction
 
+★★★ FACE IDENTITY ANCHOR (ABSOLUTE — ZERO TOLERANCE) ★★★
+The FIRST image = CLIENT (their face is SACRED and IMMUTABLE).
+The SECOND image = STRANGER (their face DOES NOT EXIST to you).
+Your job: give the CLIENT the STRANGER's HAIRSTYLE — NOT the STRANGER's FACE.
+
+ANTI-HALLUCINATION PROTOCOL:
+- Step 1: MEMORIZE the CLIENT's face from Image 1 — eye shape, nose bridge width, lip thickness, jawline contour, skin tone, every unique feature.
+- Step 2: Extract ONLY the hair attributes from Image 2 — treat the model's face as a featureless gray oval.
+- Step 3: Apply the extracted hair onto the CLIENT's head.
+- Step 4: VERIFY — does the output face match Image 1 pixel-for-pixel? If it resembles Image 2's model AT ALL → REJECT and regenerate.
+${isMaleStyle ? `
+MALE-SPECIFIC FACE ANCHOR (CRITICAL):
+- Male hairstyle reference images often show very clear, distinctive faces.
+- You MUST be EXTRA VIGILANT: the output face must be 100% the CLIENT from Image 1.
+- Do NOT blend, morph, or average the two faces. The CLIENT's face is the ONLY face.
+- Common failure: male synthesis outputs look like the reference model. This is UNACCEPTABLE.
+` : ''}
 ★★★ HAIR LENGTH FROM REFERENCE IMAGE (ABSOLUTE RULE) ★★★
 - The hair length in the OUTPUT must match the SECOND image (reference) PRECISELY.
 - If the reference image shows hair ending at the jaw, the output hair MUST end at the jaw — NOT longer, NOT shorter.
 - If the reference image shows hair ending at the shoulders, the output hair MUST end at the shoulders — NOT extending below.
 - If the reference image shows hair NOT going past the shoulders, the output MUST NOT show hair going past the shoulders.
-- MEASURE the hair length in the reference image relative to body landmarks (ears, chin, jaw, neck, shoulders, collarbone, chest) and REPLICATE that exact proportion.
+
+HAIR LENGTH VERIFICATION CHECKLIST:
+- Step 1: In the REFERENCE image, identify where hair ENDS relative to: ear, chin, neck, shoulder, collarbone, chest.
+- Step 2: In your OUTPUT, the hair MUST end at the EXACT SAME body landmark.
+- Step 3: If the output hair is even SLIGHTLY longer or shorter than the reference → FIX IT before finalizing.
+- COMMON ERROR: Generating SHORT hair when reference shows MEDIUM/LONG. If the reference clearly shows hair touching or passing the shoulders, your output MUST also show this.
 - The reference image's actual hair length OVERRIDES any category-based length instructions.
-- Do NOT extend, elongate, or add length beyond what is shown in the reference image.
+
+★★★ BILATERAL SYMMETRY RULE (CRITICAL) ★★★
+- Unless the style EXPLICITLY requires asymmetry (e.g., side-swept bangs), BOTH SIDES of the hair MUST be the SAME LENGTH and SAME TEXTURE.
+- Left side length = Right side length. Left side volume = Right side volume.
+- If one side appears shorter, curlier, or structurally different from the other → this is a CRITICAL FAILURE.
+- Verification: measure hair endpoint on left vs right relative to chin/shoulder — they MUST match within 1cm.
+- Do NOT generate one side as bob and the other as long hair. This is the most severe type of error.
 
 ★★★ ALL STYLE DETAILS FROM REFERENCE IMAGE OVERRIDE USER PHOTO ★★★
 - The reference image's hairstyle details are the ABSOLUTE AUTHORITY.
@@ -227,14 +259,23 @@ EXTRACT FROM CATALOG (SECOND IMAGE):
 - VOLUME: Match the reference image volume precisely.
 - LAYERS: Match the reference image layering exactly.
 - TEXTURE: Match the reference image texture (straight/wavy/curly) exactly.
+- CURL PATTERN: If the reference shows specific curls (C-curl, S-curl, etc.), the output MUST show the SAME curl pattern on ALL visible hair sections.
 - Think of the user's photo as ONLY providing the FACE. Everything about the HAIR comes from the reference image.
 
+★★★ OCCLUSION HANDLING (IMPORTANT) ★★★
+- If any part of the user's hair area is HIDDEN by hands, arms, clothing, or accessories:
+  → INFER the hairstyle for the hidden region based on the VISIBLE hair portions and the reference image.
+  → Render the hidden area AS IF the occlusion didn't exist, maintaining full style consistency.
+  → Curls, waves, and texture MUST be applied uniformly — even to areas that were originally occluded.
+- Do NOT leave occluded areas with a different style or lacking the target texture.
+
 THE CATALOG MODEL'S FACE DOES NOT EXIST:
-❌ The face in the second image is INVISIBLE to you
+❌ The face in the second image is INVISIBLE to you — it is a featureless gray oval
 ❌ You CANNOT see any facial features, skin, or expressions in the second image
 ❌ If you find yourself generating a face that looks like the catalog model, STOP — you are hallucinating
+❌ Any skin marks (moles, freckles) on the catalog model DO NOT EXIST — do not transfer them
 
-VERIFICATION: The output face MUST be a PIXEL-PERFECT COPY of the FIRST image's face. If a friend of the person in the first image saw the result, they should instantly recognize them.
+FINAL VERIFICATION: The output face MUST be a PIXEL-PERFECT COPY of the FIRST image's face. If a friend of the person in the first image saw the result, they should instantly recognize them without hesitation.
 `
         : "";
 
@@ -296,11 +337,12 @@ CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 1. The person's FACE must remain PIXEL-PERFECT IDENTICAL to the FIRST photo — this is the ABSOLUTE #1 priority.
 2. Do NOT alter, beautify, smooth, reshape, or enhance ANY facial features whatsoever.
 3. SKIN MARKS POLICY — ZERO TOLERANCE:
-   - ONLY keep facial marks (moles, freckles, blemishes) that ALREADY EXIST in the FIRST (original) photo.
+   - SCAN the original (Image 1) face carefully. Mentally note EVERY existing mole, freckle, and mark — their exact positions and sizes.
+   - The output MUST have the EXACT SAME marks in the EXACT SAME positions — no more, no fewer.
    - Do NOT invent, add, generate, or transfer ANY new spots, freckles, moles, marks, dots, or blemishes.
    - If the reference image (second image) has moles/spots on the model's face, DO NOT transfer them. They belong to a DIFFERENT person.
    - If there is ANY doubt whether a mark exists in the original, DO NOT add it. Err on the side of CLEAN SKIN.
-   - Adding non-existent skin features is a CRITICAL FAILURE that makes the result unusable.
+   - A MISSING mole is acceptable; an ADDED mole is UNACCEPTABLE and a CRITICAL FAILURE.
 4. SKIN TONE and COMPLEXION must be pixel-level identical to the original. If the original skin is clean and clear, the result MUST also be clean and clear.
 5. Do NOT change the face shape, jawline, chin, cheekbones, or any bone structure.
 6. Do NOT enlarge or reshape eyes, nose, lips, or ears in any way.
@@ -308,6 +350,7 @@ CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 8. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
 9. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair — the face and skin look IDENTICAL."
 10. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
+11. IDENTITY TEST: If you showed the output to someone who knows the person in Image 1, they MUST instantly say "Oh, that's [person's name]!" If they hesitate, the face preservation has FAILED.
 
 OTHER PRESERVATION RULES:
 1. BACKGROUND must remain exactly the same

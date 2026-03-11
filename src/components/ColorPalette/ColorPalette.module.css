@@ -1,5 +1,6 @@
 /* ========================================
    ColorPalette — 대중적 헤어 컬러 8색
+   모바일 대응: 좁은 화면에서도 모든 스와치 표시
    ======================================== */
 
 .container {
@@ -19,20 +20,14 @@
     width: 100%;
 }
 
-/* 팔레트 그리드 (8개 가로 한 줄, 모바일 대응) */
+/* 팔레트 그리드 (모바일 대응: 4+4 자동 줄바꿈) */
 .paletteGrid {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 6px;
     width: 100%;
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
     padding: 4px 2px;
-}
-
-.paletteGrid::-webkit-scrollbar {
-    display: none;
 }
 
 /* 개별 스와치 */
@@ -50,6 +45,14 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+/* 좁은 화면에서 스와치 크기 축소 */
+@media (max-width: 340px) {
+    .swatch {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 .swatch:active {
@@ -86,6 +89,7 @@
     border-radius: 999px;
     background: var(--accent-dim);
     transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 /* 슬라이더 */

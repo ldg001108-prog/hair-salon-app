@@ -109,6 +109,16 @@ export default function SalonPage() {
         verifyToken();
     }, [salonId, searchParams]);
 
+    // URL에서 token 파라미터 제거 (새로고침 우회 방지)
+    const removeTokenFromUrl = useCallback(() => {
+        if (typeof window === "undefined") return;
+        const url = new URL(window.location.href);
+        if (url.searchParams.has("token")) {
+            url.searchParams.delete("token");
+            window.history.replaceState({}, "", url.toString());
+        }
+    }, []);
+
     // === 세션 만료 타이머 ===
     useEffect(() => {
         if (sessionStatus !== "valid" || !expiresAt) return;
@@ -117,6 +127,7 @@ export default function SalonPage() {
         if (remaining <= 0) {
             setSessionStatus("expired");
             setSessionError("세션이 만료되었습니다. QR코드를 다시 스캔해주세요.");
+            removeTokenFromUrl();
             return;
         }
 
@@ -127,6 +138,7 @@ export default function SalonPage() {
                 setSessionStatus("expired");
                 setSessionError("세션이 만료되었습니다. QR코드를 다시 스캔해주세요.");
                 sessionStorage.removeItem(`salon-token-${salonId}`);
+                removeTokenFromUrl();
                 clearInterval(interval);
             } else {
                 setRemainingMin(Math.ceil(left / 60000));
@@ -138,13 +150,14 @@ export default function SalonPage() {
             setSessionStatus("expired");
             setSessionError("세션이 만료되었습니다. QR코드를 다시 스캔해주세요.");
             sessionStorage.removeItem(`salon-token-${salonId}`);
+            removeTokenFromUrl();
         }, remaining);
 
         return () => {
             clearInterval(interval);
             clearTimeout(timeout);
         };
-    }, [sessionStatus, expiresAt, salonId]);
+    }, [sessionStatus, expiresAt, salonId, removeTokenFromUrl]);
 
     // === 로딩/검증 중 화면 ===
     if (sessionStatus === "checking") {
@@ -239,7 +252,7 @@ export default function SalonPage() {
             {/* 남은 시간 표시 (10분 이하일 때) */}
             {remainingMin !== null && remainingMin <= 10 && (
                 <div style={{
-                    position: "fixed", top: 52, right: 12, zIndex: 9999,
+                    position: "fixed", top: 52, left: "var(--sp-5, 20px)", zIndex: 9999,
                     background: remainingMin <= 3 ? "#ff4444" : "#ff8800",
                     color: "white", padding: "6px 14px", borderRadius: 20,
                     fontSize: 12, fontWeight: 600,

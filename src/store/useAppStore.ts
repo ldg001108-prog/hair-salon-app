@@ -199,6 +199,11 @@ export const useAppStore = create<AppState>()(
                 theme: state.theme,
                 apiStats: state.apiStats,
                 errorLogs: state.errorLogs,
+                // 히스토리는 메타 정보만 저장 (base64 이미지 제외 → localStorage 절약)
+                history: state.history.map(({ resultImage, ...rest }) => ({
+                    ...rest,
+                    resultImage: "",  // 이미지 데이터는 저장하지 않음
+                })),
             }),
         }
     )

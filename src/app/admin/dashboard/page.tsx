@@ -207,6 +207,22 @@ export default function DevDashboard() {
         }
     };
 
+    // 살롱 미리보기 (토큰 포함 URL로 새 탭 열기)
+    const openSalonPreview = async (salonId: string) => {
+        try {
+            const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(salonId)}`);
+            const data = await res.json();
+            if (data.url) {
+                window.open(data.url, "_blank", "noopener,noreferrer");
+                return;
+            }
+        } catch {
+            // fallback below
+        }
+        // fallback: 토큰 없이 열기
+        window.open(`/salon/${salonId}`, "_blank", "noopener,noreferrer");
+    };
+
     // 로그아웃
     const handleLogout = () => {
         localStorage.removeItem("dev-admin-token");
@@ -303,9 +319,9 @@ export default function DevDashboard() {
                                             <td>{s.ownerEmail}</td>
                                             <td><span className={styles.badge}>{s.plan || "free"}</span></td>
                                             <td>
-                                                <a href={`/salon/${s.id}`} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                                                <button type="button" onClick={() => openSalonPreview(s.id)} className={styles.link} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}>
                                                     /salon/{s.id}
-                                                </a>
+                                                </button>
                                             </td>
                                             <td>{new Date(s.created_at).toLocaleDateString("ko-KR")}</td>
                                         </tr>
@@ -365,9 +381,9 @@ export default function DevDashboard() {
                                             </td>
                                             <td><span className={`${styles.statusDot} ${s.is_active ? styles.active : styles.inactive}`} />{s.is_active ? "활성" : "비활성"}</td>
                                             <td>
-                                                <a href={`/salon/${s.id}`} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                                                <button type="button" onClick={() => openSalonPreview(s.id)} className={styles.link} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}>
                                                     /salon/{s.id}
-                                                </a>
+                                                </button>
                                             </td>
                                             <td>{new Date(s.created_at).toLocaleDateString("ko-KR")}</td>
                                             <td><button className={styles.dangerBtnSm} onClick={() => handleDeleteSalon(s.id, s.name || s.id)}>🗑️</button></td>

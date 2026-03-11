@@ -211,6 +211,24 @@ EXTRACT FROM CATALOG (SECOND IMAGE):
 ✅ Hair length, volume, and texture
 ✅ Hair layering, bangs style, parting, flow
 
+★★★ HAIR LENGTH FROM REFERENCE IMAGE (ABSOLUTE RULE) ★★★
+- The hair length in the OUTPUT must match the SECOND image (reference) PRECISELY.
+- If the reference image shows hair ending at the jaw, the output hair MUST end at the jaw — NOT longer, NOT shorter.
+- If the reference image shows hair ending at the shoulders, the output hair MUST end at the shoulders — NOT extending below.
+- If the reference image shows hair NOT going past the shoulders, the output MUST NOT show hair going past the shoulders.
+- MEASURE the hair length in the reference image relative to body landmarks (ears, chin, jaw, neck, shoulders, collarbone, chest) and REPLICATE that exact proportion.
+- The reference image's actual hair length OVERRIDES any category-based length instructions.
+- Do NOT extend, elongate, or add length beyond what is shown in the reference image.
+
+★★★ ALL STYLE DETAILS FROM REFERENCE IMAGE OVERRIDE USER PHOTO ★★★
+- The reference image's hairstyle details are the ABSOLUTE AUTHORITY.
+- BANGS: If the reference has bangs → output MUST have bangs. If no bangs → output MUST NOT have bangs. The USER photo's bangs status is IRRELEVANT.
+- PARTING: Follow the reference image parting EXACTLY, ignore the user photo parting.
+- VOLUME: Match the reference image volume precisely.
+- LAYERS: Match the reference image layering exactly.
+- TEXTURE: Match the reference image texture (straight/wavy/curly) exactly.
+- Think of the user's photo as ONLY providing the FACE. Everything about the HAIR comes from the reference image.
+
 THE CATALOG MODEL'S FACE DOES NOT EXIST:
 ❌ The face in the second image is INVISIBLE to you
 ❌ You CANNOT see any facial features, skin, or expressions in the second image
@@ -254,17 +272,17 @@ PHOTO ANGLE AWARENESS (CRITICAL):
 - Regardless of angle, the NEW HAIRSTYLE must be OBVIOUSLY DIFFERENT from the original.
 
 MANDATORY TRANSFORMATION RULES:
-1. HAIR LENGTH CHANGE IS THE #1 PRIORITY — if the target is "long" hair, the result MUST show long hair regardless of the original photo's hair length. If the target is "short", the result MUST show short hair. NEVER keep the original hair length if it doesn't match the target.
-2. The hairstyle MUST look COMPLETELY DIFFERENT from the original.
-3. Change the HAIR LENGTH to match the target style precisely — this is NON-NEGOTIABLE.
+1. REFERENCE IMAGE IS THE ULTIMATE AUTHORITY — if a reference image (SECOND image) is provided, its hair length, silhouette, and every detail OVERRIDE all other instructions including category-based length rules.
+2. HAIR LENGTH PRECISION — the output hair length must match the reference/target EXACTLY. If the reference shows hair that does NOT go past the shoulders, the output MUST NOT go past the shoulders. Do NOT add extra length.
+3. The hairstyle MUST look COMPLETELY DIFFERENT from the original user photo.
 4. Change the HAIR VOLUME and BODY to match the target style.
 5. Change the HAIR TEXTURE (straight/wavy/curly) to match the target style.
 6. Change the HAIR SILHOUETTE and SHAPE to match the target style.
 7. The transformation should be so obvious that anyone can instantly see it.
-8. IGNORE the original hair length completely — only the TARGET style's length matters.
-9. BANGS RULE (CRITICAL): If the target/reference style has NO BANGS, the output MUST have NO BANGS — even if the original photo has bangs. If the target style HAS BANGS, the output MUST have bangs — even if the original doesn't. The BANGS status must match the TARGET STYLE EXACTLY.
-10. PARTING RULE: If the target style has a center part, output center part. If side part, output side part. ALWAYS follow the target style's parting, NOT the original photo's parting.
-11. The output hairstyle should be an EXACT REPLICA of the target/reference hairstyle — every detail (bangs, layers, parting, volume, texture, length) must match the target, NOT the original.
+8. IGNORE the original hair completely — the reference/target style dictates EVERYTHING about the hair.
+9. BANGS RULE (CRITICAL): If the target/reference style has NO BANGS, the output MUST have NO BANGS — the user photo's bangs are IRRELEVANT. If the target style HAS BANGS (see-through, full, side-swept, etc.), the output MUST have the SAME type of bangs — the user's original bangs status is IRRELEVANT.
+10. PARTING RULE: ALWAYS follow the target/reference style's parting, NOT the user photo's parting.
+11. The output hairstyle should be a PRECISE REPLICA of the target/reference hairstyle — every detail (bangs, layers, parting, volume, texture, length, silhouette) must match the target, NOT the original.
 
 CONSISTENCY RULES (CRITICAL — for producing the same result every time):
 1. Apply the target hairstyle in the most STANDARD, TEXTBOOK, REPRESENTATIVE way possible.

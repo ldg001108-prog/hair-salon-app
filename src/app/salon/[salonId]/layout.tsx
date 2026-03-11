@@ -15,29 +15,32 @@ export default async function SalonLayout({
     children: React.ReactNode;
     params: Promise<{ salonId: string }>;
 }) {
-    const { salonId } = await params;
-    const salon = await getSalon(salonId);
-
-    // 테마 CSS 변수 생성
-    const themeId = salon?.themeColor || DEFAULT_THEME_ID;
-    const theme = getThemeById(themeId);
-
-    // CSS 변수를 :root 스타일로 생성
     let cssVarsString = "";
 
-    if (theme) {
-        const allVars: Record<string, string> = {
-            ...theme.cssVars,
-            "--salon-theme": theme.accent,
-            "--salon-theme-light": theme.accent + "22",
-            "--salon-theme-hover": theme.accent + "dd",
-        };
+    try {
+        const { salonId } = await params;
+        const salon = await getSalon(salonId);
 
-        const declarations = Object.entries(allVars)
-            .map(([key, value]) => `${key}: ${value} !important`)
-            .join(";\n    ");
+        // 테마 CSS 변수 생성
+        const themeId = salon?.themeColor || DEFAULT_THEME_ID;
+        const theme = getThemeById(themeId);
 
-        cssVarsString = `:root {\n    ${declarations};\n}`;
+        if (theme) {
+            const allVars: Record<string, string> = {
+                ...theme.cssVars,
+                "--salon-theme": theme.accent,
+                "--salon-theme-light": theme.accent + "22",
+                "--salon-theme-hover": theme.accent + "dd",
+            };
+
+            const declarations = Object.entries(allVars)
+                .map(([key, value]) => `${key}: ${value} !important`)
+                .join(";\n    ");
+
+            cssVarsString = `:root {\n    ${declarations};\n}`;
+        }
+    } catch (err) {
+        console.error("[SalonLayout] ERROR:", err);
     }
 
     return (

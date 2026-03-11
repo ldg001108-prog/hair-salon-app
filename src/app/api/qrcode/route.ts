@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
         const QR_TOKEN_VALIDITY_MIN = 60;
         const token = generateSessionToken(salonId, QR_TOKEN_VALIDITY_MIN);
 
-        // Production URL or localhost
-        const baseUrl =
-            process.env.NEXT_PUBLIC_BASE_URL ||
-            request.nextUrl.origin;
+        // 실제 요청 호스트 기반 URL 생성 (프로덕션에서 localhost 방지)
+        const host = request.headers.get("host") || request.nextUrl.host;
+        const protocol = request.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
         const salonUrl = `${baseUrl}/salon/${encodeURIComponent(salonId)}?token=${encodeURIComponent(token)}`;
 
         // QR 코드를 SVG 문자열로 생성 (canvas 불필요)

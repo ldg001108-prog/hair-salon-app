@@ -20,9 +20,12 @@ export async function GET(request: NextRequest) {
 
     try {
         const token = generateSessionToken(salonId, TOKEN_VALIDITY_MIN);
-        const baseUrl =
-            process.env.NEXT_PUBLIC_BASE_URL ||
-            request.nextUrl.origin;
+
+        // 실제 요청 호스트 기반 URL 생성 (프로덕션에서 localhost 방지)
+        const host = request.headers.get("host") || request.nextUrl.host;
+        const protocol = request.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
+
         const url = `${baseUrl}/salon/${encodeURIComponent(salonId)}?token=${encodeURIComponent(token)}`;
 
         return NextResponse.json({ url, validMin: TOKEN_VALIDITY_MIN });

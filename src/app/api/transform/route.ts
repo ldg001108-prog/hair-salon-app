@@ -15,6 +15,10 @@ import { uploadSynthesisImage } from "@/lib/storageUpload";
 import { getSupabase } from "@/lib/supabase";
 import { verifySessionToken } from "@/lib/sessionToken";
 
+// Vercel 서버리스 함수 타임아웃 설정 (초)
+// Hobby: 최대 60초, Pro: 최대 300초
+export const maxDuration = 60;
+
 // POST 요청 핸들러
 export async function POST(request: NextRequest) {
     try {

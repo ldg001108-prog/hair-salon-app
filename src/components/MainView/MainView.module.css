@@ -32,10 +32,10 @@
 
 .logo {
     font-family: var(--tmpl-font-display, var(--font-display));
-    font-size: var(--fs-lg);
-    font-weight: var(--tmpl-header-weight, 700);
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--text-primary);
-    letter-spacing: var(--tmpl-title-tracking, -0.02em);
+    letter-spacing: -0.03em;
 }
 
 .themeToggle {

@@ -96,6 +96,22 @@ export default function MainView({
     // 예약 모달 상태
     const [showReservation, setShowReservation] = useState(false);
 
+    // QR 코드 헤더 표시 + 30분 자동 갱신
+    const [qrSvgUrl, setQrSvgUrl] = useState<string | null>(null);
+    const [showQrModal, setShowQrModal] = useState(false);
+
+    useEffect(() => {
+        // QR 코드 가져오기
+        const fetchQr = () => {
+            setQrSvgUrl(`/api/qrcode?salonId=${encodeURIComponent(salonId)}&t=${Date.now()}`);
+        };
+        fetchQr();
+
+        // 30분마다 자동 갱신
+        const refreshInterval = setInterval(fetchQr, 30 * 60 * 1000);
+        return () => clearInterval(refreshInterval);
+    }, [salonId]);
+
 
 
     // 관리자 모드 (로고 5탭)
@@ -410,6 +426,15 @@ export default function MainView({
             {/* ── 헤더 ── */}
             <header className={styles.header}>
                 <h1 className={styles.logo} onClick={handleLogoTap} style={{ cursor: 'default', userSelect: 'none' }}>{salonName || "AI Hair Studio"}</h1>
+                {qrSvgUrl && (
+                    <button
+                        className={styles.headerQr}
+                        onClick={() => setShowQrModal(true)}
+                        aria-label="QR 코드 확대"
+                    >
+                        <img src={qrSvgUrl} alt="QR" width={36} height={36} />
+                    </button>
+                )}
             </header>
 
             {/* ── 섹션 1: 성별 선택 ── */}
@@ -859,6 +884,17 @@ export default function MainView({
                     resultImageUrl={resultImage}
                     onClose={() => setShowReservation(false)}
                 />
+            )}
+
+            {/* QR 확대 모달 */}
+            {showQrModal && qrSvgUrl && (
+                <div className={styles.qrModalOverlay} onClick={() => setShowQrModal(false)}>
+                    <div className={styles.qrModalContent} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.qrModalClose} onClick={() => setShowQrModal(false)}>✕</button>
+                        <img src={qrSvgUrl} alt="QR 코드" className={styles.qrModalImage} />
+                        <p className={styles.qrModalHint}>QR 코드를 스캔하면 서비스에 접속할 수 있습니다</p>
+                    </div>
+                </div>
             )}
             {/* 개인정보처리방침 / 이용약관 */}
             <div style={{

@@ -122,21 +122,21 @@ export default function AdminDashboard({
         checkAuth();
     }, [salonId, router]);
 
-    // QR 코드 URL 설정 + 5분마다 자동 갱신
+    // QR 코드 URL 설정 + 30분마다 자동 갱신
     const [qrRefreshKey, setQrRefreshKey] = useState(0);
-    const [qrCountdown, setQrCountdown] = useState(300); // 5분 = 300초
+    const [qrCountdown, setQrCountdown] = useState(1800); // 30분 = 1800초
 
     useEffect(() => {
         if (!isAuthenticated) return;
         setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
-        setQrCountdown(300);
+        setQrCountdown(1800);
 
-        // 5분마다 QR 갱신
+        // 30분마다 QR 갱신
         const refreshInterval = setInterval(() => {
             setQrRefreshKey((k) => k + 1);
             setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
-            setQrCountdown(300);
-        }, 5 * 60 * 1000);
+            setQrCountdown(1800);
+        }, 30 * 60 * 1000);
 
         // 1초마다 카운트다운
         const countdownInterval = setInterval(() => {
@@ -384,14 +384,14 @@ export default function AdminDashboard({
                                 onClick={() => {
                                     setQrRefreshKey((k) => k + 1);
                                     setQrUrl(`/api/qrcode?salonId=${salonId}&t=${Date.now()}`);
-                                    setQrCountdown(300);
+                                    setQrCountdown(1800);
                                 }}
                                 style={{ marginBottom: '8px' }}
                             >
                                 🔄 QR 즉시 갱신
                             </button>
                             <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 12px' }}>
-                                QR 코드는 5분마다 자동 갱신됩니다. 스캔 후 10분간 사용 가능합니다.
+                                QR 코드는 30분마다 자동 갱신됩니다. 스캔 후 10분간 사용 가능합니다.
                             </p>
                             <p className={styles.qrUrl}>{typeof window !== "undefined" ? `${window.location.origin}/salon/${salonId}` : `/salon/${salonId}`}</p>
                         </div>

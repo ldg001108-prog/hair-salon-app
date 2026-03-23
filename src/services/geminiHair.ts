@@ -136,7 +136,7 @@ function getColorDescription(hex: string): string {
     return `${satDesc}${tone}${colorName}`;
 }
 
-// === 프롬프트 빌더 ===
+// === 프롬프트 빌더 (압축 v2 — 중복 제거, 핵심 집중) ===
 function buildHairPrompt(request: HairTransformRequest): string {
     const {
         styleName, styleDescription, colorName, colorHex,
@@ -144,237 +144,72 @@ function buildHairPrompt(request: HairTransformRequest): string {
         category
     } = request;
 
-    // 헤어스타일 설명
     const styleInfo = styleDescription
         ? `${styleName} - ${styleDescription}`
         : styleName;
 
-    // 카테고리별 길이 정보
-    let lengthInstruction = "";
+    // 카테고리별 길이
+    let lengthLine = "";
     switch (category) {
-        case "short":
-            lengthInstruction = `\nHAIR LENGTH CATEGORY: SHORT (단발/숏컷)\nThe resulting hair MUST be SHORT — above the shoulders, typically chin-length or shorter (approximately ear to jaw length, 5~20cm).\nIf the person in the photo currently has long hair, you MUST cut it short to match the target style. Do NOT keep the original long hair length.\n`;
-            break;
-        case "medium":
-            lengthInstruction = `\nHAIR LENGTH CATEGORY: MEDIUM (중간 길이)\nThe resulting hair MUST be MEDIUM length — around shoulder-length (approximately 20~35cm, from chin to collarbone).\nIf the person currently has very short or very long hair, you MUST change the length to medium.\n`;
-            break;
-        case "long":
-            lengthInstruction = `\nHAIR LENGTH CATEGORY: LONG (긴 머리/장발)\nThe resulting hair MUST be LONG — below the shoulders, reaching chest level or longer (approximately 35~60cm+).\nCRITICAL: If the person in the photo currently has SHORT hair (above shoulders), you MUST EXTEND the hair to be LONG. This is the #1 priority. The hair MUST reach well below the shoulders. Do NOT keep the original short hair length.\n`;
-            break;
-        case "perm":
-            lengthInstruction = `\nHAIR TEXTURE CATEGORY: PERM (펌)\nThe resulting hair MUST have clear wave/curl texture as defined by the target perm style. The curls/waves should be clearly visible and well-defined.\n`;
-            break;
-        default:
-            lengthInstruction = "";
+        case "short": lengthLine = "LENGTH: SHORT — above shoulders, ear-to-jaw (5~20cm). If currently long, CUT IT SHORT."; break;
+        case "medium": lengthLine = "LENGTH: MEDIUM — shoulder-length (20~35cm). Adjust from any current length."; break;
+        case "long": lengthLine = "LENGTH: LONG — below shoulders to chest (35~60cm+). If currently short, EXTEND IT. #1 priority."; break;
+        case "perm": lengthLine = "TEXTURE: PERM — clear, well-defined waves/curls matching the target perm style."; break;
     }
 
-    // 색상 설명 — 강화된 버전
-    let colorInstruction = "";
+    // 색상 (있을 때만)
+    let colorBlock = "COLOR: Keep original hair color unchanged.";
     if (colorHex && colorName && colorName !== "Original") {
         const colorDesc = getColorDescription(colorHex);
         const hsl = hexToHSL(colorHex);
-
-        // 채도/명도 정보 (프론트엔드에서 전달된 값 or hex에서 계산)
         const sat = colorSaturation ?? hsl.s;
         const light = colorLightness ?? hsl.l;
-
-        colorInstruction = `
-HAIR COLOR (CRITICAL — FOLLOW EXACTLY):
-Target color: ${colorDesc}
-Exact hex code: ${colorHex}
-HSL values: Hue ${hsl.h}°, Saturation ${sat}%, Lightness ${light}%
-
-COLOR APPLICATION RULES:
-1. The ENTIRE hair must be dyed to match hex ${colorHex} as closely as possible.
-2. The overall visual impression of the hair color MUST match the target hex code — a viewer should recognize it as "${colorDesc}" hair.
-3. Color intensity: ${colorIntensity}% — ${colorIntensity >= 80 ? "the color should be STRONG, VIVID, and CLEARLY the target color with minimal natural undertone showing through" : colorIntensity >= 50 ? "the color should be clearly visible and noticeable, blending naturally with hair texture" : "the color should be subtle, like a tint or wash over the natural hair color"}.
-4. Apply the color UNIFORMLY across all hair — roots, mid-lengths, and ends should all clearly show the target color.
-5. Maintain subtle highlights and lowlights within ±10% lightness of the target color for realism, but the DOMINANT color must unmistakably be ${colorHex}.
-6. Do NOT default to brown or black — if the target is red, make it RED. If blonde, make it BLONDE. If blue, make it BLUE.
-7. The dyed color should look like a PROFESSIONAL salon color job, not a cheap wig.`;
-    } else {
-        colorInstruction = `
-HAIR COLOR: Keep the original natural hair color of the person in the photo. Do NOT change the hair color at all.`;
+        const intensityDesc = colorIntensity >= 80 ? "STRONG and VIVID" : colorIntensity >= 50 ? "clearly visible, natural blend" : "subtle tint";
+        colorBlock = `COLOR (MUST FOLLOW):
+- Target: ${colorDesc} (hex ${colorHex}, HSL ${hsl.h}°/${sat}%/${light}%)
+- Intensity: ${colorIntensity}% — ${intensityDesc}
+- Apply UNIFORMLY (roots to ends). Do NOT default to brown/black.
+- Must look like a PROFESSIONAL salon dye job.`;
     }
 
-    // 참조 이미지 유무에 따른 프롬프트 분기
-    const hasReferenceImage = !!request.styleImageBase64;
-    const isMaleStyle = request.gender === "male";
-    const refImageInstruction = hasReferenceImage
-        ? `
+    // 참조 이미지 규칙 (있을 때만)
+    const hasRef = !!request.styleImageBase64;
+    const isMale = request.gender === "male";
+    const refBlock = hasRef ? `
+REFERENCE IMAGE (2nd image) RULES:
+- 2nd image = HAIRSTYLE CATALOG only. Extract ONLY: shape, silhouette, length, volume, texture, bangs, parting, curl pattern, layers.
+- The catalog model's FACE DOES NOT EXIST — treat it as a featureless gray oval. Do NOT transfer any facial features, skin marks, or identity.${isMale ? "\n- MALE EXTRA: Male references show distinctive faces. Be EXTRA vigilant — output face must be 100% the client." : ""}
+- Reference hair length OVERRIDES category instructions. Match the EXACT body landmark where hair ends (ear/chin/shoulder/chest).
+- ALL style details (bangs, parting, volume, layers, texture, curl pattern) come from the reference. The user photo provides ONLY the face.
+- Both sides MUST be symmetric in length and volume unless the style explicitly requires asymmetry.
+- If hair is occluded by hands/clothing, INFER the style for hidden areas from visible hair + reference.` : "";
 
-★★★ CRITICAL — REFERENCE IMAGE RULES ★★★
-The SECOND image is a HAIRSTYLE CATALOG PAGE. Think of it as a magazine photo showing ONLY a hairstyle.
-You are a barber looking at this catalog to understand what haircut to give your client (FIRST image).
-The person in the catalog is a COMPLETE STRANGER — you cannot even see their face. It is blurred out.
-You can ONLY see the HAIR in the catalog image.
+    return `ROLE: You are a photo editor. Edit ONLY the hair in the FIRST image. Everything else is LOCKED.
 
-EXTRACT FROM CATALOG (SECOND IMAGE):
-✅ Hair shape, silhouette, and overall style
-✅ Hair length, volume, and texture
-✅ Hair layering, bangs style, parting, flow
-✅ Hair curl pattern, wave frequency, and strand direction
+LOCKED (do NOT modify): face, eyes, nose, mouth, jawline, skin tone, skin marks, expression, gaze, ears, neck, body, background, clothing, accessories, frame/crop/composition.
+EDITABLE: hair only (style, length, volume, texture, color).
 
-★★★ FACE IDENTITY ANCHOR (ABSOLUTE — ZERO TOLERANCE) ★★★
-The FIRST image = CLIENT (their face is SACRED and IMMUTABLE).
-The SECOND image = STRANGER (their face DOES NOT EXIST to you).
-Your job: give the CLIENT the STRANGER's HAIRSTYLE — NOT the STRANGER's FACE.
+ABSOLUTE RULE #1 — FACE IDENTITY:
+The output face must be PIXEL-PERFECT IDENTICAL to Image 1. No smoothing, reshaping, beautifying, or any alteration. Same skin marks (no additions, no removals). Same expression and gaze. If a friend wouldn't instantly recognize the person → FAILED.
+${refBlock}
 
-ANTI-HALLUCINATION PROTOCOL:
-- Step 1: MEMORIZE the CLIENT's face from Image 1 — eye shape, nose bridge width, lip thickness, jawline contour, skin tone, every unique feature.
-- Step 2: Extract ONLY the hair attributes from Image 2 — treat the model's face as a featureless gray oval.
-- Step 3: Apply the extracted hair onto the CLIENT's head.
-- Step 4: VERIFY — does the output face match Image 1 pixel-for-pixel? If it resembles Image 2's model AT ALL → REJECT and regenerate.
-${isMaleStyle ? `
-MALE-SPECIFIC FACE ANCHOR (CRITICAL):
-- Male hairstyle reference images often show very clear, distinctive faces.
-- You MUST be EXTRA VIGILANT: the output face must be 100% the CLIENT from Image 1.
-- Do NOT blend, morph, or average the two faces. The CLIENT's face is the ONLY face.
-- Common failure: male synthesis outputs look like the reference model. This is UNACCEPTABLE.
-` : ''}
-★★★ HAIR LENGTH FROM REFERENCE IMAGE (ABSOLUTE RULE) ★★★
-- The hair length in the OUTPUT must match the SECOND image (reference) PRECISELY.
-- If the reference image shows hair ending at the jaw, the output hair MUST end at the jaw — NOT longer, NOT shorter.
-- If the reference image shows hair ending at the shoulders, the output hair MUST end at the shoulders — NOT extending below.
-- If the reference image shows hair NOT going past the shoulders, the output MUST NOT show hair going past the shoulders.
+TARGET: ${styleInfo}
+${lengthLine}
+${colorBlock}
 
-HAIR LENGTH VERIFICATION CHECKLIST:
-- Step 1: In the REFERENCE image, identify where hair ENDS relative to: ear, chin, neck, shoulder, collarbone, chest.
-- Step 2: In your OUTPUT, the hair MUST end at the EXACT SAME body landmark.
-- Step 3: If the output hair is even SLIGHTLY longer or shorter than the reference → FIX IT before finalizing.
-- COMMON ERROR: Generating SHORT hair when reference shows MEDIUM/LONG. If the reference clearly shows hair touching or passing the shoulders, your output MUST also show this.
-- The reference image's actual hair length OVERRIDES any category-based length instructions.
+TRANSFORMATION RULES:
+1. The new hairstyle MUST be DRAMATICALLY different from the original.
+2. Reference image (if provided) is the ULTIMATE AUTHORITY for all hair details.
+3. Match target style's bangs, parting, volume, layers, texture, silhouette EXACTLY. Ignore original hair completely.
+4. Apply the most STANDARD, TEXTBOOK version of "${styleName}" — no creative variations.
+5. Adapt to photo angle (front/side/3-4/back) — transform all visible hair for that angle.
+6. Result must be CONSISTENT — same output every time for the same inputs.
 
-★★★ BILATERAL SYMMETRY RULE (CRITICAL) ★★★
-- Unless the style EXPLICITLY requires asymmetry (e.g., side-swept bangs), BOTH SIDES of the hair MUST be the SAME LENGTH and SAME TEXTURE.
-- Left side length = Right side length. Left side volume = Right side volume.
-- If one side appears shorter, curlier, or structurally different from the other → this is a CRITICAL FAILURE.
-- Verification: measure hair endpoint on left vs right relative to chin/shoulder — they MUST match within 1cm.
-- Do NOT generate one side as bob and the other as long hair. This is the most severe type of error.
+FRAME: Same cropping, composition, resolution, aspect ratio as input. Do NOT extend or reveal more body.
 
-★★★ ALL STYLE DETAILS FROM REFERENCE IMAGE OVERRIDE USER PHOTO ★★★
-- The reference image's hairstyle details are the ABSOLUTE AUTHORITY.
-- BANGS: If the reference has bangs → output MUST have bangs. If no bangs → output MUST NOT have bangs. The USER photo's bangs status is IRRELEVANT.
-- PARTING: Follow the reference image parting EXACTLY, ignore the user photo parting.
-- VOLUME: Match the reference image volume precisely.
-- LAYERS: Match the reference image layering exactly.
-- TEXTURE: Match the reference image texture (straight/wavy/curly) exactly.
-- CURL PATTERN: If the reference shows specific curls (C-curl, S-curl, etc.), the output MUST show the SAME curl pattern on ALL visible hair sections.
-- Think of the user's photo as ONLY providing the FACE. Everything about the HAIR comes from the reference image.
+QUALITY: Photorealistic, natural (not wig-like), seamless hair-to-skin transition, sharp strand-level detail, matching lighting/shadows, professional salon quality.
 
-★★★ OCCLUSION HANDLING (IMPORTANT) ★★★
-- If any part of the user's hair area is HIDDEN by hands, arms, clothing, or accessories:
-  → INFER the hairstyle for the hidden region based on the VISIBLE hair portions and the reference image.
-  → Render the hidden area AS IF the occlusion didn't exist, maintaining full style consistency.
-  → Curls, waves, and texture MUST be applied uniformly — even to areas that were originally occluded.
-- Do NOT leave occluded areas with a different style or lacking the target texture.
-
-THE CATALOG MODEL'S FACE DOES NOT EXIST:
-❌ The face in the second image is INVISIBLE to you — it is a featureless gray oval
-❌ You CANNOT see any facial features, skin, or expressions in the second image
-❌ If you find yourself generating a face that looks like the catalog model, STOP — you are hallucinating
-❌ Any skin marks (moles, freckles) on the catalog model DO NOT EXIST — do not transfer them
-
-FINAL VERIFICATION: The output face MUST be a PIXEL-PERFECT COPY of the FIRST image's face. If a friend of the person in the first image saw the result, they should instantly recognize them without hesitation.
-`
-        : "";
-
-    return `TASK TYPE: PHOTO EDITING — NOT NEW IMAGE GENERATION.
-You are editing an existing photograph. You will modify ONLY the hair region of the photo.
-The face, skin, body, background, and every non-hair pixel must remain UNTOUCHED.
-
-★★★ LOCKED REGION — DO NOT MODIFY (ABSOLUTE #1 PRIORITY) ★★★
-The following regions of the FIRST photo are LOCKED and CANNOT be edited:
-🔒 Face (eyes, nose, mouth, eyebrows, jawline, chin, cheekbones) — LOCKED
-🔒 Skin (tone, texture, marks, blemishes — keep EXACTLY as original) — LOCKED
-🔒 Ears, neck, shoulders, body — LOCKED
-🔒 Background — LOCKED
-🔒 Clothing and accessories — LOCKED
-🔒 Facial expression and gaze direction — LOCKED
-
-EDITABLE REGION — ONLY this may change:
-✏️ Hair (style, length, volume, texture, color if specified) — EDITABLE
-
-If the output face differs from the input face in ANY way, the edit is REJECTED.
-
-TASK: Change ONLY the hair of the person in the FIRST photo to the target style.
-The hair change MUST be CLEARLY VISIBLE and DRAMATICALLY different from the original.${refImageInstruction}
-
-TARGET HAIRSTYLE: ${styleInfo}
-${lengthInstruction}
-${colorInstruction}
-
-PHOTO ANGLE AWARENESS (CRITICAL):
-- Carefully analyze the photo angle: front-facing, side profile (left/right), 3/4 angle, or back view.
-- For SIDE PROFILE photos: Focus on changing the hair silhouette visible from the side — the ear area, sideburns, nape line, temple area, hair length as seen from the side, and overall volume shape from the lateral view.
-- For 3/4 ANGLE photos: Show the hairstyle transformation on both the visible front portion and the side portion — adjust bangs, side volume, and layering visible from this angle.
-- For BACK VIEW photos: Completely transform the back hair — nape shape, back layers, length, and overall rear silhouette of the style.
-- For FRONT-FACING photos: Focus on bangs, face-framing layers, parting, crown volume, and overall front silhouette.
-- Regardless of angle, the NEW HAIRSTYLE must be OBVIOUSLY DIFFERENT from the original.
-
-MANDATORY TRANSFORMATION RULES:
-1. REFERENCE IMAGE IS THE ULTIMATE AUTHORITY — if a reference image (SECOND image) is provided, its hair length, silhouette, and every detail OVERRIDE all other instructions including category-based length rules.
-2. HAIR LENGTH PRECISION — the output hair length must match the reference/target EXACTLY. If the reference shows hair that does NOT go past the shoulders, the output MUST NOT go past the shoulders. Do NOT add extra length.
-3. The hairstyle MUST look COMPLETELY DIFFERENT from the original user photo.
-4. Change the HAIR VOLUME and BODY to match the target style.
-5. Change the HAIR TEXTURE (straight/wavy/curly) to match the target style.
-6. Change the HAIR SILHOUETTE and SHAPE to match the target style.
-7. The transformation should be so obvious that anyone can instantly see it.
-8. IGNORE the original hair completely — the reference/target style dictates EVERYTHING about the hair.
-9. BANGS RULE (CRITICAL): If the target/reference style has NO BANGS, the output MUST have NO BANGS — the user photo's bangs are IRRELEVANT. If the target style HAS BANGS (see-through, full, side-swept, etc.), the output MUST have the SAME type of bangs — the user's original bangs status is IRRELEVANT.
-10. PARTING RULE: ALWAYS follow the target/reference style's parting, NOT the user photo's parting.
-11. The output hairstyle should be a PRECISE REPLICA of the target/reference hairstyle — every detail (bangs, layers, parting, volume, texture, length, silhouette) must match the target, NOT the original.
-
-CONSISTENCY RULES (CRITICAL — for producing the same result every time):
-1. Apply the target hairstyle in the most STANDARD, TEXTBOOK, REPRESENTATIVE way possible.
-2. Do NOT add creative variations, artistic interpretations, or random styling choices.
-3. Follow the most CONVENTIONAL and TYPICAL version of the "${styleName}" hairstyle.
-4. Hair parting, bang length, layer placement should follow the CLASSIC definition of this style.
-5. Do NOT randomly change the hair parting direction or add asymmetric elements unless the style specifically requires it.
-6. The result should look the same regardless of how many times this exact style is applied to this exact photo.
-
-★★★ FACE PRESERVATION RULES (MOST CRITICAL — ZERO TOLERANCE FOR VIOLATIONS) ★★★
-1. The person's FACE must remain PIXEL-PERFECT IDENTICAL to the FIRST photo — this is the ABSOLUTE #1 priority.
-2. Do NOT alter, beautify, smooth, reshape, or enhance ANY facial features whatsoever.
-3. SKIN MARKS POLICY — ZERO TOLERANCE:
-   - SCAN the original (Image 1) face carefully. Mentally note EVERY existing mole, freckle, and mark — their exact positions and sizes.
-   - The output MUST have the EXACT SAME marks in the EXACT SAME positions — no more, no fewer.
-   - Do NOT invent, add, generate, or transfer ANY new spots, freckles, moles, marks, dots, or blemishes.
-   - If the reference image (second image) has moles/spots on the model's face, DO NOT transfer them. They belong to a DIFFERENT person.
-   - If there is ANY doubt whether a mark exists in the original, DO NOT add it. Err on the side of CLEAN SKIN.
-   - A MISSING mole is acceptable; an ADDED mole is UNACCEPTABLE and a CRITICAL FAILURE.
-4. SKIN TONE and COMPLEXION must be pixel-level identical to the original. If the original skin is clean and clear, the result MUST also be clean and clear.
-5. Do NOT change the face shape, jawline, chin, cheekbones, or any bone structure.
-6. Do NOT enlarge or reshape eyes, nose, lips, or ears in any way.
-7. Do NOT apply any skin smoothing, whitening, or beauty filter effects.
-8. The ONLY acceptable skin change is matching the lighting/shadow to be consistent with the new hairstyle.
-9. A viewer comparing the original and result should say "this is clearly the SAME person with just different hair — the face and skin look IDENTICAL."
-10. EXPRESSION, GAZE DIRECTION, and FACIAL MUSCLE STATE must remain identical.
-11. IDENTITY TEST: If you showed the output to someone who knows the person in Image 1, they MUST instantly say "Oh, that's [person's name]!" If they hesitate, the face preservation has FAILED.
-
-OTHER PRESERVATION RULES:
-1. BACKGROUND must remain exactly the same
-2. CLOTHES, ACCESSORIES, and BODY POSITION must stay unchanged
-
-★★★ ORIGINAL FRAME PRESERVATION (CRITICAL) ★★★
-1. The output image MUST have the EXACT SAME framing, cropping, and composition as the input photo.
-2. Do NOT extend, expand, or add ANY part of the body that is NOT visible in the original photo.
-3. If the original shows only head and shoulders, the output MUST show ONLY head and shoulders — do NOT generate chest, torso, or any body part below what is visible.
-4. If the original is cropped at a certain point, crop the output at the EXACT SAME point.
-5. The output resolution and aspect ratio should match the ORIGINAL photo's resolution and aspect ratio.
-6. Think of it as: you are painting new hair onto the EXACT SAME photograph. You cannot make the photo larger or show more of the scene.
-
-QUALITY AND REALISM:
-1. The hairstyle must look COMPLETELY NATURAL — NOT like a wig or Photoshop
-2. The TRANSITION between hair and face/forehead/ears must be seamless
-3. Hair should naturally follow the person's head shape
-4. Output a CRISP, HIGH-QUALITY, SHARP photograph with fine strand-level detail
-5. Maintain realistic lighting, shadows that match the original photo
-6. Hair texture, individual strands should be photorealistic
-7. The result should look like a PROFESSIONAL SALON PHOTOGRAPH
-8. Generate a CRISP, SHARP image — every hair strand should be individually distinguishable, no blurriness or softness.
-
-Generate the edited photo now. Match the EXACT framing and resolution of the input photo.`;
+Generate the edited photo now.`;
 }
 
 

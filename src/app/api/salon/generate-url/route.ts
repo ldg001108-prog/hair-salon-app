@@ -10,6 +10,7 @@ const TOKEN_VALIDITY_MIN = 60; // 60분 유효
 
 export async function GET(request: NextRequest) {
     const salonId = request.nextUrl.searchParams.get("salonId");
+    const type = request.nextUrl.searchParams.get("type");
 
     if (!salonId) {
         return NextResponse.json(
@@ -19,7 +20,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const token = generateSessionToken(salonId, TOKEN_VALIDITY_MIN);
+        const isOwner = type === "owner";
+        const validMin = isOwner ? 999999 : TOKEN_VALIDITY_MIN;
+        const token = generateSessionToken(salonId, validMin, isOwner);
 
         // 실제 요청 호스트 기반 URL 생성 (프로덕션에서 localhost 방지)
         const host = request.headers.get("host") || request.nextUrl.host;
@@ -28,7 +31,7 @@ export async function GET(request: NextRequest) {
 
         const url = `${baseUrl}/salon/${encodeURIComponent(salonId)}?token=${encodeURIComponent(token)}`;
 
-        return NextResponse.json({ url, validMin: TOKEN_VALIDITY_MIN });
+        return NextResponse.json({ url, validMin, isOwner });
     } catch (err) {
         console.error("[GenerateUrl] Error:", err);
         return NextResponse.json(

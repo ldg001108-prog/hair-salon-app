@@ -464,11 +464,11 @@ export default function DevDashboard() {
                                                 className={styles.copyBtn}
                                                 onClick={async () => {
                                                     try {
-                                                        const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(s.id)}`);
+                                                        const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(s.id)}&type=owner`);
                                                         const data = await res.json();
                                                         if (data.url) {
                                                             await navigator.clipboard.writeText(data.url);
-                                                            alert("토큰 포함 URL 복사됨! (60분 유효)");
+                                                            alert("원장님 전용 영구 URL 복사됨!");
                                                         } else {
                                                             const url = `${window.location.origin}/salon/${s.id}`;
                                                             await navigator.clipboard.writeText(url);

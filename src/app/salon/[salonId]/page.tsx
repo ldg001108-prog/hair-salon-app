@@ -249,6 +249,7 @@ export default function SalonPage() {
                     onResynthesize={handleResynthesize}
                     onClearResult={handleClearResult}
                     isLoading={isLoading}
+                    isOwner={isOwner}
                 />
             )}
 

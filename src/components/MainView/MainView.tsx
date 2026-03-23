@@ -41,6 +41,7 @@ interface MainViewProps {
     onResynthesize: (colorHex: string) => void;
     onClearResult: () => void;
     isLoading: boolean;
+    isOwner?: boolean;
 }
 
 export default function MainView({
@@ -59,6 +60,7 @@ export default function MainView({
     onResynthesize,
     onClearResult,
     isLoading,
+    isOwner = false,
 }: MainViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const styleGridRef = useRef<HTMLDivElement>(null);
@@ -101,16 +103,18 @@ export default function MainView({
     const [showQrModal, setShowQrModal] = useState(false);
 
     useEffect(() => {
-        // QR 코드 가져오기
+        // QR 코드는 원장님만 필요 (고객에게 줄 QR)
+        if (!isOwner) return;
+
         const fetchQr = () => {
             setQrSvgUrl(`/api/qrcode?salonId=${encodeURIComponent(salonId)}&t=${Date.now()}`);
         };
         fetchQr();
 
-        // 30분마다 자동 갱신
-        const refreshInterval = setInterval(fetchQr, 30 * 60 * 1000);
+        // 10분마다 자동 갱신 (고객용 QR)
+        const refreshInterval = setInterval(fetchQr, 10 * 60 * 1000);
         return () => clearInterval(refreshInterval);
-    }, [salonId]);
+    }, [salonId, isOwner]);
 
 
 

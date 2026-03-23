@@ -17,6 +17,8 @@ interface TokenPayload {
     exp: number;
     /** 고유 nonce (중복 방지) */
     nce: string;
+    /** 원장님 영구 토큰 여부 */
+    own?: boolean;
 }
 
 export interface TokenVerifyResult {
@@ -24,6 +26,7 @@ export interface TokenVerifyResult {
     salonId?: string;
     expiresAt?: number;
     remainingMin?: number;
+    isOwner?: boolean;
     error?: string;
 }
 
@@ -69,9 +72,10 @@ function sign(payload: string): string {
  * 세션 토큰 생성
  * @param salonId 살롱 ID
  * @param timeoutMin 만료 시간 (분), 기본 30분
+ * @param isOwner 원장님 영구 토큰 여부
  * @returns 서명된 토큰 문자열
  */
-export function generateSessionToken(salonId: string, timeoutMin: number = 30): string {
+export function generateSessionToken(salonId: string, timeoutMin: number = 30, isOwner: boolean = false): string {
     const now = Math.floor(Date.now() / 1000);
     const payload: TokenPayload = {
         sid: salonId,
@@ -79,6 +83,9 @@ export function generateSessionToken(salonId: string, timeoutMin: number = 30): 
         exp: now + timeoutMin * 60,
         nce: crypto.randomBytes(8).toString("hex"),
     };
+    if (isOwner) {
+        payload.own = true;
+    }
 
     const payloadStr = toBase64Url(JSON.stringify(payload));
     const signature = sign(payloadStr);
@@ -110,9 +117,9 @@ export function verifySessionToken(token: string): TokenVerifyResult {
         // 페이로드 파싱
         const payload: TokenPayload = JSON.parse(fromBase64Url(payloadStr));
 
-        // 만료 체크
+        // 만료 체크 (원장님 토큰은 만료 없음)
         const now = Math.floor(Date.now() / 1000);
-        if (now > payload.exp) {
+        if (!payload.own && now > payload.exp) {
             return {
                 valid: false,
                 salonId: payload.sid,
@@ -120,13 +127,14 @@ export function verifySessionToken(token: string): TokenVerifyResult {
             };
         }
 
-        const remainingMin = Math.ceil((payload.exp - now) / 60);
+        const remainingMin = payload.own ? 999999 : Math.ceil((payload.exp - now) / 60);
 
         return {
             valid: true,
             salonId: payload.sid,
-            expiresAt: payload.exp * 1000, // milliseconds for client
+            expiresAt: payload.own ? Date.now() + 10 * 365 * 24 * 3600 * 1000 : payload.exp * 1000,
             remainingMin,
+            isOwner: !!payload.own,
         };
     } catch {
         return { valid: false, error: "토큰을 처리할 수 없습니다." };

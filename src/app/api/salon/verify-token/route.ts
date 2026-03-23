@@ -41,59 +41,63 @@ export async function POST(request: NextRequest) {
 
         // ── 새로고침 우회 방지: 쿠키로 세션 시작 시각 추적 ──
         const salonId = result.salonId || "unknown";
+        const isOwner = result.isOwner;
+
         // 쿠키 이름에 한글 사용 불가 (RFC 6265) → hex 인코딩
         const safeSalonId = Buffer.from(salonId).toString("hex").slice(0, 32);
         const cookieName = `ss-${safeSalonId}`;
         const existingCookie = request.cookies.get(cookieName);
 
-        let sessionStartMs: number;
+        let sessionStartMs: number = Date.now();
         let isNewSession = false;
 
-        if (existingCookie) {
-            // 기존 세션 존재 → 최초 시작 시각 기준으로 만료 체크
-            sessionStartMs = parseInt(existingCookie.value, 10);
-            const elapsed = Date.now() - sessionStartMs;
-            const sessionDurationMs = SESSION_DURATION_MIN * 60 * 1000;
+        // 원장님 토큰은 10분 세션 제한을 적용하지 않음
+        if (!isOwner) {
+            if (existingCookie) {
+                sessionStartMs = parseInt(existingCookie.value, 10);
+                const elapsed = Date.now() - sessionStartMs;
+                const sessionDurationMs = SESSION_DURATION_MIN * 60 * 1000;
 
-            if (elapsed > sessionDurationMs) {
-                // 10분 초과 → 세션 만료, 재발급 거부
-                console.log(`[VerifyToken] 세션 만료 (경과: ${Math.round(elapsed / 60000)}분). salonId=${salonId}`);
-                const expiredResponse = NextResponse.json(
-                    { valid: false, error: "세션이 만료되었습니다. QR코드를 다시 스캔해주세요." },
-                    { status: 401 }
-                );
-                // 만료된 쿠키 삭제
-                expiredResponse.cookies.set(cookieName, "", {
-                    maxAge: 0,
-                    httpOnly: true,
-                    sameSite: "lax",
-                    path: "/",
-                });
-                return expiredResponse;
+                if (elapsed > sessionDurationMs) {
+                    console.log(`[VerifyToken] 세션 만료 (경과: ${Math.round(elapsed / 60000)}분). salonId=${salonId}`);
+                    const expiredResponse = NextResponse.json(
+                        { valid: false, error: "세션이 만료되었습니다. QR코드를 다시 스캔해주세요." },
+                        { status: 401 }
+                    );
+                    expiredResponse.cookies.set(cookieName, "", {
+                        maxAge: 0,
+                        httpOnly: true,
+                        sameSite: "lax",
+                        path: "/",
+                    });
+                    return expiredResponse;
+                }
+            } else {
+                sessionStartMs = Date.now();
+                isNewSession = true;
             }
-        } else {
-            // 최초 세션 → 시작 시각 기록
-            sessionStartMs = Date.now();
-            isNewSession = true;
         }
 
-        // 세션 만료 시각 = 최초 시작 + SESSION_DURATION_MIN 분
-        const sessionExpiresAt = sessionStartMs + SESSION_DURATION_MIN * 60 * 1000;
+        // 응답 데이터 구성
+        const sessionExpiresAt = isOwner
+            ? Date.now() + 10 * 365 * 24 * 3600 * 1000  // 원장님: 사실상 영구
+            : sessionStartMs + SESSION_DURATION_MIN * 60 * 1000;  // 고객: 10분
         const sessionRemainingMs = sessionExpiresAt - Date.now();
-        const sessionRemainingMin = Math.max(1, Math.ceil(sessionRemainingMs / 60000));
+        const sessionRemainingMin = isOwner ? null : Math.max(1, Math.ceil(sessionRemainingMs / 60000));
 
         const response = NextResponse.json({
             valid: true,
             salonId: result.salonId,
             expiresAt: sessionExpiresAt,
             remainingMin: sessionRemainingMin,
-            sessionDurationMin: SESSION_DURATION_MIN,
+            sessionDurationMin: isOwner ? null : SESSION_DURATION_MIN,
+            isOwner: !!isOwner,
         });
 
-        // 최초 세션일 때만 쿠키 설정 (기존에는 이미 존재)
-        if (isNewSession) {
+        // 고객의 최초 세션일 때만 쿠키 설정
+        if (!isOwner && isNewSession) {
             response.cookies.set(cookieName, sessionStartMs.toString(), {
-                maxAge: SESSION_DURATION_MIN * 60, // 10분 후 자동 삭제
+                maxAge: SESSION_DURATION_MIN * 60,
                 httpOnly: true,
                 sameSite: "lax",
                 path: "/",

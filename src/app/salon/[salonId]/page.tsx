@@ -23,6 +23,7 @@ export default function SalonPage() {
     const [sessionError, setSessionError] = useState<string>("");
     const [expiresAt, setExpiresAt] = useState<number | null>(null);
     const [remainingMin, setRemainingMin] = useState<number | null>(null);
+    const [isOwner, setIsOwner] = useState(false);
 
     // 살롱 데이터 로딩
     const { salon, hairstyles } = useSalonData(salonId);
@@ -78,11 +79,13 @@ export default function SalonPage() {
                 const data = await res.json();
 
                 if (data.valid) {
-                    // 토큰 유효 → sessionStorage에 저장
                     sessionStorage.setItem(`salon-token-${salonId}`, token);
                     setSessionStatus("valid");
                     setExpiresAt(data.expiresAt);
                     setRemainingMin(data.remainingMin);
+                    if (data.isOwner) {
+                        setIsOwner(true);
+                    }
                 } else {
                     // 토큰 무효/만료
                     sessionStorage.removeItem(`salon-token-${salonId}`);
@@ -119,9 +122,9 @@ export default function SalonPage() {
         }
     }, []);
 
-    // === 세션 만료 타이머 ===
+    // === 세션 만료 타이머 (고객만 적용, 원장님은 스킵) ===
     useEffect(() => {
-        if (sessionStatus !== "valid" || !expiresAt) return;
+        if (sessionStatus !== "valid" || !expiresAt || isOwner) return;
 
         const remaining = expiresAt - Date.now();
         if (remaining <= 0) {
@@ -157,7 +160,7 @@ export default function SalonPage() {
             clearInterval(interval);
             clearTimeout(timeout);
         };
-    }, [sessionStatus, expiresAt, salonId, removeTokenFromUrl]);
+    }, [sessionStatus, expiresAt, salonId, removeTokenFromUrl, isOwner]);
 
     // === 로딩/검증 중 화면 ===
     if (sessionStatus === "checking") {
@@ -249,8 +252,8 @@ export default function SalonPage() {
                 />
             )}
 
-            {/* 남은 시간 표시 (10분 이하일 때) */}
-            {remainingMin !== null && remainingMin <= 10 && (
+            {/* 남은 시간 표시 (고객만, 10분 이하일 때) */}
+            {!isOwner && remainingMin !== null && remainingMin <= 10 && (
                 <div style={{
                     position: "fixed", top: "calc(env(safe-area-inset-top) + 16px)", left: "var(--sp-5, 20px)", zIndex: 9999,
                     background: remainingMin <= 3 ? "#ff4444" : "#ff8800",

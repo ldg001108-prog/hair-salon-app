@@ -11,6 +11,7 @@ import { generateSessionToken } from "@/lib/sessionToken";
 
 export async function GET(request: NextRequest) {
     const salonId = request.nextUrl.searchParams.get("salonId");
+    const type = request.nextUrl.searchParams.get("type");
 
     if (!salonId) {
         return NextResponse.json(
@@ -20,10 +21,11 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        // QR 토큰 유효기간: 60분 (복사/공유 후에도 충분한 시간)
-        // 세션 유효기간(10분)은 verify-token API에서 별도 부여
-        const QR_TOKEN_VALIDITY_MIN = 60;
-        const token = generateSessionToken(salonId, QR_TOKEN_VALIDITY_MIN);
+        // type=owner: 원장님용 영구 QR (만료 없음)
+        // 그 외: 고객용 QR (60분 유효)
+        const isOwner = type === "owner";
+        const QR_TOKEN_VALIDITY_MIN = isOwner ? 999999 : 60;
+        const token = generateSessionToken(salonId, QR_TOKEN_VALIDITY_MIN, isOwner);
 
         // 실제 요청 호스트 기반 URL 생성 (프로덕션에서 localhost 방지)
         const host = request.headers.get("host") || request.nextUrl.host;

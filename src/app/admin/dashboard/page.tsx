@@ -453,7 +453,7 @@ export default function DevDashboard() {
                                         <div className={styles.qrImageWrap}>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
-                                                src={`/api/qrcode?salonId=${s.id}`}
+                                                src={`/api/qrcode?salonId=${s.id}&type=owner`}
                                                 alt={`QR - ${s.name}`}
                                                 className={styles.qrImage}
                                             />

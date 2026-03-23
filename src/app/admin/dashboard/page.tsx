@@ -49,28 +49,7 @@ export default function DevDashboard() {
     const [statsPeriod, setStatsPeriod] = useState<"day" | "week" | "month">("day");
     const [statsLoading, setStatsLoading] = useState(false);
 
-    // QR 자동갱신
-    const [qrRefreshKey, setQrRefreshKey] = useState(0);
-    const [qrCountdown, setQrCountdown] = useState(300);
-
-    useEffect(() => {
-        if (!isAuth || activeTab !== "qr") return;
-        setQrCountdown(300);
-
-        const refreshInterval = setInterval(() => {
-            setQrRefreshKey((k) => k + 1);
-            setQrCountdown(300);
-        }, 5 * 60 * 1000);
-
-        const countdownInterval = setInterval(() => {
-            setQrCountdown((c) => (c > 0 ? c - 1 : 0));
-        }, 1000);
-
-        return () => {
-            clearInterval(refreshInterval);
-            clearInterval(countdownInterval);
-        };
-    }, [isAuth, activeTab, qrRefreshKey]);
+    // QR 코드는 갱신하지 않음 (영구 고정)
 
     // 새 살롱 등록 모달
     const [showModal, setShowModal] = useState(false);
@@ -462,18 +441,9 @@ export default function DevDashboard() {
                         <>
                             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
                                 <p style={{ fontSize: '13px', color: '#888', margin: '0 0 6px' }}>
-                                    ⏱ 다음 갱신까지: <strong style={{ color: qrCountdown <= 60 ? '#e74c3c' : 'inherit' }}>
-                                        {Math.floor(qrCountdown / 60)}:{String(qrCountdown % 60).padStart(2, '0')}
-                                    </strong>
-                                    &nbsp;|&nbsp;
-                                    <button
-                                        onClick={() => { setQrRefreshKey((k) => k + 1); setQrCountdown(300); }}
-                                        style={{ background: 'none', border: 'none', color: '#7c3aed', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}
-                                    >
-                                        🔄 즉시 갱신
-                                    </button>
+                                    🔒 이 QR 코드는 갱신되지 않는 고정 QR입니다
                                 </p>
-                                <p style={{ fontSize: '11px', color: '#aaa' }}>QR은 5분마다 자동 갱신 | 스캔 후 10분간 사용 가능</p>
+                                <p style={{ fontSize: '11px', color: '#aaa' }}>스캔 후 10분간 사용 가능</p>
                             </div>
                             <div className={styles.qrGrid}>
                                 {salons.map((s) => (
@@ -483,7 +453,7 @@ export default function DevDashboard() {
                                         <div className={styles.qrImageWrap}>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
-                                                src={`/api/qrcode?salonId=${s.id}&t=${qrRefreshKey}`}
+                                                src={`/api/qrcode?salonId=${s.id}`}
                                                 alt={`QR - ${s.name}`}
                                                 className={styles.qrImage}
                                             />

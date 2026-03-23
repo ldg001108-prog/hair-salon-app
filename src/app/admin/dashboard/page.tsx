@@ -189,7 +189,7 @@ export default function DevDashboard() {
     // 살롱 미리보기 (토큰 포함 URL로 새 탭 열기)
     const openSalonPreview = async (salonId: string) => {
         try {
-            const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(salonId)}`);
+            const res = await fetch(`/api/salon/generate-url?salonId=${encodeURIComponent(salonId)}&type=owner`);
             const data = await res.json();
             if (data.url) {
                 window.open(data.url, "_blank", "noopener,noreferrer");

@@ -182,7 +182,8 @@ REFERENCE IMAGE (2nd image) RULES:
 - Reference hair length OVERRIDES category instructions. Match the EXACT body landmark where hair ends (ear/chin/shoulder/chest).
 - ALL style details (bangs, parting, volume, layers, texture, curl pattern) come from the reference. The user photo provides ONLY the face.
 - Both sides MUST be symmetric in length and volume unless the style explicitly requires asymmetry.
-- If hair is occluded by hands/clothing, INFER the style for hidden areas from visible hair + reference.` : "";
+- If hair is occluded (by hands, hat, clothing, or accessories), INFER hidden hair from: (1) visible hair on the same head, (2) reference image, (3) style's standard form. Do NOT leave gaps or abrupt edges.
+- If face is partially occluded (mask, sunglasses), still apply hair transformation — the face beneath stays untouched.` : "";
 
     return `ROLE: You are a photo editor. Edit ONLY the hair in the FIRST image. Everything else is LOCKED.
 
@@ -202,12 +203,23 @@ TRANSFORMATION RULES:
 2. Reference image (if provided) is the ULTIMATE AUTHORITY for all hair details.
 3. Match target style's bangs, parting, volume, layers, texture, silhouette EXACTLY. Ignore original hair completely.
 4. Apply the most STANDARD, TEXTBOOK version of "${styleName}" — no creative variations.
-5. Adapt to photo angle (front/side/3-4/back) — transform all visible hair for that angle.
-6. Result must be CONSISTENT — same output every time for the same inputs.
+5. Result must be CONSISTENT — same output every time for the same inputs.
+
+CAMERA ANGLE ADAPTATION (CRITICAL):
+- First, DETECT the photo angle: front / 3-4 quarter / side profile / high angle (above) / low angle (below) / tilted.
+- FRONT: Apply style symmetrically. Both ears' visibility must match the target style.
+- 3/4 QUARTER: Near side shows more volume/detail; far side shows less. Maintain correct perspective foreshortening.
+- SIDE PROFILE: Only one side visible. Apply full style to visible side. Do NOT hallucinate the hidden side.
+- HIGH ANGLE (top-down): Crown and parting are dominant. Emphasize top texture, parting. Sides are foreshortened.
+- LOW ANGLE (bottom-up): Bangs, fringe, front hairline emphasized. Crown barely visible.
+- TILTED: Keep head tilt as-is. Hair must follow gravity for that tilt.
+- For ANY angle: hair must follow realistic gravity and physics for that camera perspective.
 
 FRAME: Same cropping, composition, resolution, aspect ratio as input. Do NOT extend or reveal more body.
 
 QUALITY: Photorealistic, natural (not wig-like), seamless hair-to-skin transition, sharp strand-level detail, matching lighting/shadows, professional salon quality.
+
+INPUT TOLERANCE: Handle any input — low resolution, poor lighting, blur, overexposure, backlighting. Never refuse due to image quality.
 
 Generate the edited photo now.`;
 }

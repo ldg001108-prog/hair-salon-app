@@ -215,7 +215,7 @@ CAMERA ANGLE ADAPTATION (CRITICAL):
 - TILTED: Keep head tilt as-is. Hair must follow gravity for that tilt.
 - For ANY angle: hair must follow realistic gravity and physics for that camera perspective.
 
-FRAME: Same cropping, composition, resolution, aspect ratio as input. Do NOT extend or reveal more body.
+FRAME: Same cropping, composition, aspect ratio as input. Output resolution must be 1024px on the longest side. Do NOT extend or reveal more body.
 
 QUALITY: Photorealistic, natural (not wig-like), seamless hair-to-skin transition, sharp strand-level detail, matching lighting/shadows, professional salon quality.
 

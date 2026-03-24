@@ -51,7 +51,7 @@ async function imageUrlToBase64(url: string): Promise<string> {
 /**
  * 이미지를 최대 크기로 리사이즈
  */
-export function resizeImage(dataUrl: string, maxSize: number = 2048): Promise<string> {
+export function resizeImage(dataUrl: string, maxSize: number = 1024): Promise<string> {
     return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {

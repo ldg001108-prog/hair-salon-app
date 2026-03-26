@@ -233,24 +233,44 @@ export default function SalonPage() {
 
             {/* 메인 (합성 결과도 여기서 인라인 표시) */}
             {step === "main" && (
-                <MainView
-                    salonId={salonId}
-                    salonName={salon.name}
-                    hairstyles={hairstyles}
-                    userPhoto={userPhoto}
-                    selectedStyleId={selectedStyleId}
-                    selectedColor={selectedColor}
-                    resultImage={resultImage}
-                    onPhotoSelect={handlePhotoSelect}
-                    onPhotoChange={handlePhotoChange}
-                    onStyleSelect={setSelectedStyleId}
-                    onColorSelect={setSelectedColor}
-                    onSynthesize={handleSynthesize}
-                    onResynthesize={handleResynthesize}
-                    onClearResult={handleClearResult}
-                    isLoading={isLoading}
-                    isOwner={isOwner}
-                />
+                <div style={salonId === "master-woori-salon" ? {
+                    minHeight: "100dvh",
+                    background: "linear-gradient(135deg, #fce4ec 0%, #f3e5f5 30%, #ede7f6 60%, #e8eaf6 100%)",
+                    // CSS 변수 오버라이드
+                    "--bg-primary": "#fce4ec",
+                    "--bg-secondary": "#f8e0ea",
+                    "--bg-tertiary": "#f3d7e4",
+                    "--bg-gradient": "linear-gradient(135deg, #fce4ec 0%, #f3e5f5 30%, #ede7f6 60%, #e8eaf6 100%)",
+                    "--bg-card": "rgba(255, 255, 255, 0.55)",
+                    "--accent": "#c06c8e",
+                    "--accent-light": "#d4899e",
+                    "--accent-dim": "rgba(192, 108, 142, 0.12)",
+                    "--accent-gradient": "linear-gradient(135deg, #d4899e 0%, #c06c8e 50%, #9c5a7a 100%)",
+                    "--border": "rgba(192, 108, 142, 0.15)",
+                    "--border-accent": "rgba(192, 108, 142, 0.25)",
+                    "--tab-active-bg": "#c06c8e",
+                    "--tab-active-text": "#fff",
+                } as React.CSSProperties : undefined}>
+                    <MainView
+                        salonId={salonId}
+                        salonName={salon.name}
+                        hairstyles={hairstyles}
+                        userPhoto={userPhoto}
+                        selectedStyleId={selectedStyleId}
+                        selectedColor={selectedColor}
+                        resultImage={resultImage}
+                        onPhotoSelect={handlePhotoSelect}
+                        onPhotoChange={handlePhotoChange}
+                        onStyleSelect={setSelectedStyleId}
+                        onColorSelect={setSelectedColor}
+                        onSynthesize={handleSynthesize}
+                        onResynthesize={handleResynthesize}
+                        onClearResult={handleClearResult}
+                        isLoading={isLoading}
+                        isOwner={isOwner}
+                        hideQr={salonId === "master-woori-salon"}
+                    />
+                </div>
             )}
 
             {/* 남은 시간 표시 (고객만, 10분 이하일 때) */}

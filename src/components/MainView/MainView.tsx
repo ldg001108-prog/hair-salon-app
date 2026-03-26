@@ -42,6 +42,7 @@ interface MainViewProps {
     onClearResult: () => void;
     isLoading: boolean;
     isOwner?: boolean;
+    hideQr?: boolean;
 }
 
 export default function MainView({
@@ -61,6 +62,7 @@ export default function MainView({
     onClearResult,
     isLoading,
     isOwner = false,
+    hideQr = false,
 }: MainViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const styleGridRef = useRef<HTMLDivElement>(null);
@@ -430,7 +432,7 @@ export default function MainView({
             {/* ── 헤더 ── */}
             <header className={styles.header}>
                 <h1 className={styles.logo} onClick={handleLogoTap} style={{ cursor: 'default', userSelect: 'none' }}>{salonName || "AI Hair Studio"}</h1>
-                {qrSvgUrl && (
+                {qrSvgUrl && !hideQr && (
                     <button
                         className={styles.headerQr}
                         onClick={() => setShowQrModal(true)}

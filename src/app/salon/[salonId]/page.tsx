@@ -180,8 +180,8 @@ export default function SalonPage() {
         return (
             <div style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
-                height: "100dvh", background: "var(--bg-primary, #faf8f5)",
-                color: "var(--text-secondary, #666)", fontSize: 16,
+                height: "100dvh", background: "var(--bg-gradient, var(--bg-primary))",
+                color: "var(--text-secondary)", fontSize: 16,
             }}>
                 <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
@@ -196,25 +196,29 @@ export default function SalonPage() {
         return (
             <div style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
-                height: "100dvh", background: "var(--bg-primary, #faf8f5)",
+                height: "100dvh", background: "var(--bg-gradient, var(--bg-primary))",
                 padding: 24,
             }}>
                 <div style={{
-                    textAlign: "center", maxWidth: 360, width: "100%",
-                    background: "white", borderRadius: 20, padding: "40px 28px",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+                    textAlign: "center", maxWidth: 320, width: "100%",
+                    background: "var(--tmpl-card-bg, var(--bg-card))",
+                    border: "var(--tmpl-card-border, 1px solid var(--border))",
+                    borderRadius: "var(--tmpl-radius-card, 16px)", 
+                    padding: "40px 24px",
+                    boxShadow: "var(--shadow-lg)",
+                    backdropFilter: "var(--tmpl-card-backdrop, blur(20px))",
                 }}>
                     <div style={{ fontSize: 48, marginBottom: 16 }}>
                         🔐
                     </div>
                     <h2 style={{
                         fontSize: 20, fontWeight: 700, marginBottom: 12,
-                        color: "var(--text-primary, #1a1a2e)",
+                        color: "var(--text-primary)",
                     }}>
                         데모 접속
                     </h2>
                     <p style={{
-                        fontSize: 14, color: "var(--text-secondary, #666)",
+                        fontSize: 14, color: "var(--text-secondary)",
                         lineHeight: 1.6, marginBottom: 24,
                     }}>
                         테스트 환경에 접속하기 위해<br/>비밀번호를 입력해주세요.
@@ -237,7 +241,7 @@ export default function SalonPage() {
                             style={{
                                 padding: "14px",
                                 borderRadius: 12,
-                                border: "1px solid #ddd",
+                                border: "1px solid var(--border)",
                                 fontSize: 16,
                                 textAlign: "center",
                                 letterSpacing: "0.2em"
@@ -247,7 +251,7 @@ export default function SalonPage() {
                         <button type="submit" style={{
                             padding: "14px",
                             borderRadius: 12,
-                            background: "var(--text-primary, #1a1a2e)",
+                            background: "var(--accent)",
                             color: "white",
                             fontSize: 16,
                             fontWeight: 600,
@@ -292,33 +296,35 @@ export default function SalonPage() {
         return (
             <div style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
-                height: "100dvh", background: "var(--bg-primary, #faf8f5)",
+                height: "100dvh", background: "var(--bg-gradient, var(--bg-primary))",
                 padding: 24,
             }}>
                 <div style={{
-                    textAlign: "center", maxWidth: 360,
-                    background: "white", borderRadius: 20, padding: "40px 28px",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+                    textAlign: "center", maxWidth: 320, width: "100%",
+                    background: "var(--tmpl-card-bg, var(--bg-card))",
+                    border: "var(--tmpl-card-border, 1px solid var(--border))",
+                    borderRadius: "var(--tmpl-radius-card, 16px)", 
+                    padding: "40px 24px",
+                    boxShadow: "var(--shadow-lg)",
+                    backdropFilter: "var(--tmpl-card-backdrop, blur(20px))",
                 }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>
-                        {sessionStatus === "expired" ? "⏰" : "🔒"}
-                    </div>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
                     <h2 style={{
                         fontSize: 20, fontWeight: 700, marginBottom: 12,
-                        color: "var(--text-primary, #1a1a2e)",
+                        color: "var(--text-primary)",
                     }}>
                         {sessionStatus === "expired" ? "세션 만료" : "접근 불가"}
                     </h2>
                     <p style={{
-                        fontSize: 14, color: "var(--text-secondary, #666)",
+                        fontSize: 14, color: "var(--text-secondary)",
                         lineHeight: 1.6, marginBottom: 24,
                     }}>
                         {sessionError}
                     </p>
                     <div style={{
-                        padding: "12px 20px", background: "var(--bg-secondary, #f0ece5)",
-                        borderRadius: 12, fontSize: 13,
-                        color: "var(--text-secondary, #888)",
+                        padding: "12px 20px", background: "var(--bg-secondary)",
+                        borderRadius: "var(--tmpl-radius-card, 12px)", fontSize: 13,
+                        color: "var(--text-secondary)",
                     }}>
                         💡 미용실 내 QR코드를 스캔하면<br />서비스를 이용하실 수 있습니다.
                     </div>

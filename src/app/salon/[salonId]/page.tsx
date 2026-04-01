@@ -10,7 +10,7 @@ import Splash from "@/components/Splash/Splash";
 import MainView from "@/components/MainView/MainView";
 
 /** 세션 상태 */
-type SessionStatus = "checking" | "valid" | "expired" | "invalid";
+type SessionStatus = "checking" | "valid" | "expired" | "invalid" | "password";
 
 export default function SalonPage() {
     const params = useParams();
@@ -24,6 +24,7 @@ export default function SalonPage() {
     const [expiresAt, setExpiresAt] = useState<number | null>(null);
     const [remainingMin, setRemainingMin] = useState<number | null>(null);
     const [isOwner, setIsOwner] = useState(false);
+    const [passwordInput, setPasswordInput] = useState("");
 
     // 살롱 데이터 로딩
     const { salon, hairstyles } = useSalonData(salonId);
@@ -64,6 +65,10 @@ export default function SalonPage() {
                     setSessionStatus("valid");
                     return;
                 }
+                if (salonId === "demo") {
+                    setSessionStatus("password");
+                    return;
+                }
                 setSessionStatus("invalid");
                 setSessionError("QR코드를 스캔하여 접속해주세요.");
                 return;
@@ -94,6 +99,10 @@ export default function SalonPage() {
                         setSessionStatus("valid");
                         return;
                     }
+                    if (salonId === "demo") {
+                        setSessionStatus("password");
+                        return;
+                    }
                     setSessionStatus("expired");
                     setSessionError(data.error || "세션이 만료되었습니다.");
                 }
@@ -102,6 +111,10 @@ export default function SalonPage() {
                 const isDev = process.env.NODE_ENV === "development";
                 if (isDev) {
                     setSessionStatus("valid");
+                    return;
+                }
+                if (salonId === "demo") {
+                    setSessionStatus("password");
                     return;
                 }
                 setSessionStatus("invalid");
@@ -174,6 +187,102 @@ export default function SalonPage() {
                     <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
                     세션 확인 중...
                 </div>
+            </div>
+        );
+    }
+
+    // === 비밀번호 입력 화면 (데모 전용) ===
+    if (sessionStatus === "password") {
+        return (
+            <div style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                height: "100dvh", background: "var(--bg-primary, #faf8f5)",
+                padding: 24,
+            }}>
+                <div style={{
+                    textAlign: "center", maxWidth: 360, width: "100%",
+                    background: "white", borderRadius: 20, padding: "40px 28px",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+                }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>
+                        🔐
+                    </div>
+                    <h2 style={{
+                        fontSize: 20, fontWeight: 700, marginBottom: 12,
+                        color: "var(--text-primary, #1a1a2e)",
+                    }}>
+                        데모 접속
+                    </h2>
+                    <p style={{
+                        fontSize: 14, color: "var(--text-secondary, #666)",
+                        lineHeight: 1.6, marginBottom: 24,
+                    }}>
+                        테스트 환경에 접속하기 위해<br/>비밀번호를 입력해주세요.
+                    </p>
+
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (passwordInput === "4321") {
+                            setSessionStatus("valid");
+                            setIsOwner(true); // 관리자 모드로
+                        } else {
+                            showToast("비밀번호가 틀렸습니다.");
+                        }
+                    }} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <input
+                            type="password"
+                            placeholder="비밀번호 입력"
+                            value={passwordInput}
+                            onChange={(e) => setPasswordInput(e.target.value)}
+                            style={{
+                                padding: "14px",
+                                borderRadius: 12,
+                                border: "1px solid #ddd",
+                                fontSize: 16,
+                                textAlign: "center",
+                                letterSpacing: "0.2em"
+                            }}
+                            autoFocus
+                        />
+                        <button type="submit" style={{
+                            padding: "14px",
+                            borderRadius: 12,
+                            background: "var(--text-primary, #1a1a2e)",
+                            color: "white",
+                            fontSize: 16,
+                            fontWeight: 600,
+                            border: "none",
+                            cursor: "pointer"
+                        }}>
+                            접속하기
+                        </button>
+                    </form>
+                </div>
+
+                {toastMessage && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            bottom: 100,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            zIndex: 10000,
+                            background: 'var(--text-primary)',
+                            color: 'var(--bg-primary)',
+                            padding: '12px 20px',
+                            borderRadius: 12,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                            maxWidth: '80%',
+                            textAlign: 'center',
+                            animation: 'fadeIn 0.3s ease-out',
+                        }}
+                        onClick={hideToast}
+                    >
+                        ⚠️ {toastMessage}
+                    </div>
+                )}
             </div>
         );
     }
